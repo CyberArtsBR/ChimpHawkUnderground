@@ -357,6 +357,55 @@ export class GameShell {
     }
     if(this.phase==='results'){this.content.scrollTop=0;this.animateResultsScore();}
     this.focusSelection(this.phase!=='results');
+    this.updateLoadingOverlay();
+  }
+  /**
+   * "Dropping in" loading screen shown while LET'S SKATE prepares the map,
+   * rider and lighting. It lives beside the menu content, so the loadout's
+   * progress re-renders only update its text and its animations keep running.
+   */
+  updateLoadingOverlay(){
+    if(!this.root||typeof document==='undefined')return;
+    let overlay=this.root.querySelector(':scope > .drop-in-loading:not(.leaving)');
+    const busy=this.phase==='select'&&this.selectBusy;
+    if(!busy){
+      if(overlay){const leaving=overlay;leaving.classList.add('leaving');setTimeout(()=>leaving.remove(),280);}
+      return;
+    }
+    const hero=this.heroes?.[this.heroIndex],spot=LOCATIONS[this.locationIndex];
+    if(!overlay){
+      overlay=document.createElement('div');
+      overlay.className='drop-in-loading';
+      overlay.setAttribute('role','status');
+      overlay.setAttribute('aria-live','polite');
+      const tips=[
+        'Hold SPACE to charge a bigger ollie, release to pop.',
+        'Flip mid-air: hold a direction and tap ← (X / Square).',
+        'Hold ↑ (Y / Triangle) near a rail or coping to grind.',
+        'W then S starts a manual: link your lines without landing the combo.',
+        'On vert, Left Ctrl after the apex carries you over the coping.',
+        'R puts you back on your board without losing banked points.',
+      ];
+      overlay.innerHTML=`<div class="drop-in-art"></div><div class="drop-in-card">
+        <small>CHIMP HAWK / DROPPING IN</small><h2>DROPPING IN</h2>
+        <p class="drop-in-who"><b data-drop-rider></b><span>·</span><b data-drop-spot></b></p>
+        <div class="drop-in-rail" aria-hidden="true"><i class="drop-in-deck"></i><i class="drop-in-sparks"></i></div>
+        <div class="drop-in-bar" aria-hidden="true"><i data-drop-fill></i></div>
+        <p class="drop-in-status" data-drop-status></p>
+        <div class="drop-in-tips">${tips.map((tip,i)=>`<p style="--i:${i}"><b>TIP</b> ${tip}</p>`).join('')}</div>
+      </div>`;
+      this.root.append(overlay);
+    }
+    overlay.dataset.location=spot?.id||'';
+    overlay.querySelector('[data-drop-rider]').textContent=hero?.name||'';
+    overlay.querySelector('[data-drop-spot]').textContent=spot?.name||'';
+    const status=String(this.selectError||'Loading…');
+    overlay.querySelector('[data-drop-status]').textContent=status;
+    // Stage-based progress: the loader reports stages, not percentages.
+    const stage=/LIGHTING/i.test(status)?.88:/CHARACTER|RIDER/i.test(status)?.6:/PARK|MAP|GEOMETRY|SURFACE|TEXTURE/i.test(status)?.35:.15;
+    const fill=overlay.querySelector('[data-drop-fill]');
+    const current=Number(fill.dataset.value||0);
+    if(stage>current){fill.dataset.value=String(stage);fill.style.transform=`scaleX(${stage})`;}
   }
   /** Results presentation: the final score counts up from zero (visual only). */
   animateResultsScore(){
