@@ -65,37 +65,68 @@ export function graffitiTexture(text: string, accent: string, base: string): THR
   return t;
 }
 
+export interface EnvironmentOptions {
+  parkSize: number;
+  quality: 'high' | 'low';
+  /** Procedural sunset dome + skyline + neon border (The Lab). Off for maps with their own sky. */
+  procedural: boolean;
+  fogColor?: string; fogDensity?: number;
+  hemiSky?: string; hemiGround?: string; hemiIntensity?: number;
+  sunColor?: string; sunIntensity?: number;
+  /** Direction toward the sun (any length). */
+  sunDirection?: [number, number, number];
+  /** Equirectangular sky image used for image-based lighting (reflections + ambient). */
+  environmentMap?: THREE.Texture | null;
+  environmentIntensity?: number;
+}
+
 export class Environment {
   readonly group = new THREE.Group();
   readonly sun: THREE.DirectionalLight;
   private sunOffset = new THREE.Vector3(-30, 26, 18);
 
-  constructor(scene: THREE.Scene, parkSize: number, quality: 'high' | 'low') {
+  constructor(scene: THREE.Scene, renderer: THREE.WebGLRenderer, o: EnvironmentOptions) {
+    if (o.sunDirection) this.sunOffset.set(...o.sunDirection).normalize().multiplyScalar(45);
     const sunDir = this.sunOffset.clone().normalize();
-    scene.fog = new THREE.FogExp2(0x6a2a5a, 0.0065);
-    scene.background = new THREE.Color(0x2a1238);
+    scene.fog = new THREE.FogExp2(new THREE.Color(o.fogColor ?? '#6a2a5a'), o.fogDensity ?? 0.0065);
+    scene.background = new THREE.Color(o.fogColor ?? '#2a1238');
 
-    const sky = new THREE.Mesh(new THREE.SphereGeometry(400, 32, 16), new THREE.ShaderMaterial({
-      vertexShader: skyVertex, fragmentShader: skyFragment, side: THREE.BackSide, depthWrite: false, fog: false,
-      uniforms: { sunDir: { value: sunDir } },
-    }));
-    sky.name = 'Sky';
-    sky.frustumCulled = false;
-    sky.renderOrder = -1;
-    this.group.add(sky);
+    if (o.procedural) {
+      const sky = new THREE.Mesh(new THREE.SphereGeometry(400, 32, 16), new THREE.ShaderMaterial({
+        vertexShader: skyVertex, fragmentShader: skyFragment, side: THREE.BackSide, depthWrite: false, fog: false,
+        uniforms: { sunDir: { value: sunDir } },
+      }));
+      sky.name = 'Sky';
+      sky.frustumCulled = false;
+      sky.renderOrder = -1;
+      this.group.add(sky);
+    }
 
-    this.group.add(new THREE.HemisphereLight(0x9a7cff, 0x5a3328, 1.15));
-    this.sun = new THREE.DirectionalLight(0xffb27a, 3.1);
+    if (o.environmentMap) {
+      // Image-based lighting from the map's own sky: real reflections on metal,
+      // coping and paint, and ambient light that matches the backdrop.
+      const pmrem = new THREE.PMREMGenerator(renderer);
+      const source = o.environmentMap.clone();
+      source.mapping = THREE.EquirectangularReflectionMapping;
+      source.colorSpace = THREE.SRGBColorSpace;
+      source.needsUpdate = true;
+      scene.environment = pmrem.fromEquirectangular(source).texture;
+      scene.environmentIntensity = o.environmentIntensity ?? 0.8;
+      pmrem.dispose();
+    }
+
+    this.group.add(new THREE.HemisphereLight(new THREE.Color(o.hemiSky ?? '#9a7cff'), new THREE.Color(o.hemiGround ?? '#5a3328'), o.hemiIntensity ?? 1.15));
+    this.sun = new THREE.DirectionalLight(new THREE.Color(o.sunColor ?? '#ffb27a'), o.sunIntensity ?? 3.1);
     this.sun.castShadow = true;
-    const size = quality === 'high' ? 2048 : 1024;
+    const size = o.quality === 'high' ? 2048 : 1024;
     this.sun.shadow.mapSize.set(size, size);
     const cam = this.sun.shadow.camera;
-    cam.left = -28; cam.right = 28; cam.top = 28; cam.bottom = -28; cam.near = 1; cam.far = 120;
+    cam.left = -28; cam.right = 28; cam.top = 28; cam.bottom = -28; cam.near = 1; cam.far = 140;
     this.sun.shadow.bias = -0.0004;
     this.sun.shadow.normalBias = 0.03;
     this.group.add(this.sun, this.sun.target);
 
-    this.buildSkyline(parkSize);
+    if (o.procedural) this.buildSkyline(o.parkSize);
     scene.add(this.group);
   }
 

@@ -7,17 +7,19 @@ import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPa
 import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass.js';
 import './style.css';
 import { PhysicsWorld } from './physics/PhysicsWorld';
-import { buildTestPark } from './park/TestPark';
 import { Skater } from './skater/Skater';
 import { SKATER } from './skater/config';
 import { Input, type InputFrame } from './input/Input';
 import { RiderView } from './render/RiderView';
-import { buildParkView } from './render/ParkView';
 import { Environment } from './render/Environment';
 import { Effects } from './render/Effects';
 import { FollowCamera } from './camera/FollowCamera';
 import { Hud, controlsTable } from './hud/Hud';
 import { SkateAudio } from './audio/SkateAudio';
+import { MAPS, loadMap, readMapId, saveMapId, type MapId } from './maps';
+import { RIDERS, loadCatalogRider, loadUploadedRider, readRiderId, saveRiderId } from './riders';
+import { loadGlb } from './render/loadGltf';
+import type { RigRider } from './render/RigRider';
 
 type Quality = 'high' | 'low';
 
@@ -62,16 +64,25 @@ async function boot(): Promise<void> {
   const camera = new THREE.PerspectiveCamera(62, window.innerWidth / window.innerHeight, 0.1, 900);
 
   await document.fonts?.load('150px Bangers').catch(() => undefined);
-  const park = buildTestPark();
+  const mapId = readMapId();
+  const map = await loadMap(mapId, renderer, f => { loading.textContent = `Loading ${MAPS.find(m => m.id === mapId)!.name}… ${Math.round(f * 100)}%`; });
   const physics = await PhysicsWorld.create();
-  for (const piece of park.pieces) physics.addGeometry(piece.geometry);
+  for (const geometry of map.collision) physics.addGeometry(geometry);
   physics.finalize();
 
-  const environment = new Environment(scene, park.size, quality);
-  scene.add(buildParkView(park, renderer));
-  const skater = new Skater(physics, park.rails, park.spawn);
+  const environment = new Environment(scene, renderer, { ...map.environment, quality });
+  scene.add(map.visual);
+  const skater = new Skater(physics, map.rails, map.spawn, map.regions);
   const rider = new RiderView();
   scene.add(rider.root);
+  // Real models stream in after the map; the placeholder covers the gap.
+  void loadGlb(import.meta.env.BASE_URL + 'assets/riders/skateboard.glb').then(g => rider.setBoardModel(g.scene)).catch(e => console.warn(e));
+  let riderId = readRiderId();
+  const applyRider = async (load: () => Promise<RigRider>) => {
+    try { rider.setRider(await load()); return null; } catch (e) { console.warn(e); return e instanceof Error ? e.message : String(e); }
+  };
+  const initial = RIDERS.find(r => r.id === riderId) ?? RIDERS[0];
+  void applyRider(() => loadCatalogRider(initial));
   const effects = new Effects();
   scene.add(effects.points);
   const follow = new FollowCamera(camera);
@@ -80,7 +91,7 @@ async function boot(): Promise<void> {
   audio.onTrackChange = title => hud.showToast(`♪ ${title}`);
   const input = new Input(renderer.domElement);
   // Debug handle for the browser console / automated checks.
-  (window as unknown as { __chimp: unknown }).__chimp = { skater, physics, park };
+  (window as unknown as { __chimp: unknown }).__chimp = { skater, physics, map, rider, camera, follow };
 
   let composer: EffectComposer | null = null;
   if (quality === 'high') {
@@ -105,6 +116,46 @@ async function boot(): Promise<void> {
   qualityButton.onclick = () => { try { localStorage.setItem('chimphawk.quality', quality === 'high' ? 'low' : 'high'); } catch { /* ignore */ } location.reload(); };
   document.getElementById('next-track')!.onclick = () => audio.nextTrack();
 
+  // ── Rider + map select ─────────────────────────────────────────────────
+  const select = document.getElementById('select')!;
+  const riderList = document.getElementById('rider-list')!;
+  const mapList = document.getElementById('map-list')!;
+  const selectStatus = document.getElementById('select-status')!;
+  const upload = document.getElementById('rider-upload') as HTMLInputElement;
+  let chosenMap: MapId = mapId;
+  const renderSelect = () => {
+    riderList.innerHTML = RIDERS.map(r => `<button class="pick ${r.id === riderId ? 'chosen' : ''}" data-rider="${r.id}" style="--accent:${r.accent}"><b>${r.name}</b><small>${r.subtitle}</small></button>`).join('')
+      + `<button class="pick upload ${riderId === 'custom' ? 'chosen' : ''}" data-rider="upload"><b>⬆ Upload rider</b><small>Your own rigged .glb</small></button>`;
+    mapList.innerHTML = MAPS.map(m => `<button class="pick ${m.id === chosenMap ? 'chosen' : ''}" data-map="${m.id}"><b>${m.name}</b><small>${m.subtitle}</small></button>`).join('');
+  };
+  riderList.addEventListener('click', async e => {
+    const button = (e.target as HTMLElement).closest<HTMLButtonElement>('[data-rider]');
+    if (!button) return;
+    if (button.dataset.rider === 'upload') { upload.click(); return; }
+    const entry = RIDERS.find(r => r.id === button.dataset.rider)!;
+    riderId = entry.id; saveRiderId(riderId); renderSelect();
+    selectStatus.textContent = `Loading ${entry.name}…`;
+    const error = await applyRider(() => loadCatalogRider(entry));
+    selectStatus.textContent = error ?? `${entry.name} is ready.`;
+  });
+  upload.addEventListener('change', async () => {
+    const file = upload.files?.[0];
+    upload.value = '';
+    if (!file) return;
+    selectStatus.textContent = `Checking ${file.name}…`;
+    const error = await applyRider(() => loadUploadedRider(file));
+    if (error) { selectStatus.textContent = `Couldn't use that rider: ${error}`; return; }
+    riderId = 'custom'; renderSelect();
+    selectStatus.textContent = `${file.name} is rigged and ready. (Uploaded riders last until you reload.)`;
+  });
+  mapList.addEventListener('click', e => {
+    const button = (e.target as HTMLElement).closest<HTMLButtonElement>('[data-map]');
+    if (!button) return;
+    chosenMap = button.dataset.map as MapId; renderSelect();
+    selectStatus.textContent = chosenMap === mapId ? '' : 'The map loads when you press Skate.';
+  });
+  renderSelect();
+
   let started = false;
   let paused = false;
   const setPaused = (value: boolean) => {
@@ -113,16 +164,29 @@ async function boot(): Promise<void> {
     audio.setPaused(paused);
     input.clear();
   };
+  const openSelect = () => { title.classList.add('hidden'); select.classList.add('show'); };
+  document.getElementById('change-rider')!.onclick = () => { pause.classList.remove('show'); openSelect(); };
+  document.getElementById('skate')!.onclick = () => {
+    if (chosenMap !== mapId) { saveMapId(chosenMap); location.search = `?map=${chosenMap}`; return; }
+    select.classList.remove('show');
+    if (!started) start(); else setPaused(false);
+  };
   const start = () => {
     if (started) return;
     started = true;
     title.classList.add('hidden');
+    select.classList.remove('show');
     void audio.unlock();
     input.clear();
     renderer.domElement.focus();
   };
-  title.addEventListener('click', start);
-  window.addEventListener('keydown', e => { if (!started && (e.code === 'Enter' || e.code === 'Space')) { e.preventDefault(); start(); } });
+  title.addEventListener('click', () => { void audio.unlock(); openSelect(); });
+  window.addEventListener('keydown', e => {
+    if (started || !(e.code === 'Enter' || e.code === 'Space')) return;
+    e.preventDefault();
+    void audio.unlock();
+    if (select.classList.contains('show')) document.getElementById('skate')!.click(); else openSelect();
+  });
   document.getElementById('resume')!.onclick = () => setPaused(false);
   document.addEventListener('visibilitychange', () => { if (document.hidden && started && !paused) setPaused(true); });
 

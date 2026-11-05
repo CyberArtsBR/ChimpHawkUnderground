@@ -3,7 +3,11 @@
 Browser street-skating game. TypeScript + Three.js 0.180 + Rapier physics, built with Vite.
 This is the v2 rebuild of [StreetSkate](https://github.com/CyberArtsBR/StreetSkate); the audit and roadmap behind it live in that repo (`docs/AAA-AUDIT-AND-ROADMAP-2026-11-05.md`).
 
-**Status: Phase 1 (foundation).** One greybox test park, "The Lab", with every obstacle type, the full Classic control scheme from v1, and a first pass of graphics, effects and audio.
+**Status: Phase 1 (foundation).** Two maps: the original **Skate Paradise** (v1's authored map with its photographic sunset sky, collision and 44 grind paths) and **The Lab** (code-built test park with every obstacle type). The five original riders and the original skateboard, the full Classic control scheme from v1, sunset lighting, bloom, effects and audio.
+
+### Riders and uploading your own
+
+Pick a rider on the **Build your line** screen, or choose **Upload rider** and load your own rigged character (`.glb`, textures embedded, up to 40 MB). Any humanoid skeleton works: bones are matched by name (Mixamo `mixamorig:*`, Unreal Mannequin `pelvis/thigh_l/calf_l…`, common Rigify/Blender names), then posed on the board with IK, so no retargeting is needed. The legs must be identifiable (hips, both thighs, calves and feet); arms, spine and head are optional.
 
 ## Run
 

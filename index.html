@@ -19,11 +19,27 @@
         </div>
       </section>
 
+      <section id="select" aria-label="Choose rider and map">
+        <div class="select-card">
+          <h2>BUILD YOUR LINE</h2>
+          <h3>Rider</h3>
+          <div id="rider-list" class="pick-grid"></div>
+          <input id="rider-upload" type="file" accept=".glb,model/gltf-binary" hidden />
+          <h3>Spot</h3>
+          <div id="map-list" class="pick-grid maps"></div>
+          <div class="select-footer">
+            <p id="select-status" role="status"></p>
+            <button id="skate" class="primary">LET'S SKATE →</button>
+          </div>
+        </div>
+      </section>
+
       <section id="pause" aria-label="Pause menu">
         <div class="pause-card">
           <h2>PAUSED</h2>
           <div class="pause-row">
             <button id="resume" class="primary">▶ Resume</button>
+            <button id="change-rider">Rider / map</button>
             <button id="next-track">Next track</button>
             <button id="quality"></button>
           </div>

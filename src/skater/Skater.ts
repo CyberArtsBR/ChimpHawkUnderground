@@ -5,6 +5,7 @@ import * as THREE from 'three';
 import { SKATER as C } from './config';
 import type { PhysicsWorld, RayHit } from '../physics/PhysicsWorld';
 import type { ParkSpot, Rail } from '../park/TestPark';
+import type { Region } from '../park/GlbPark';
 import type { InputFrame, Direction } from '../input/Input';
 import { Combo } from '../tricks/Combo';
 import {
@@ -108,7 +109,7 @@ export class Skater {
   private random = mulberry32(7);
   private railLengths = new Map<Rail, number[]>();
 
-  constructor(private world: PhysicsWorld, private rails: Rail[], private spawn: ParkSpot) {
+  constructor(private world: PhysicsWorld, private rails: Rail[], private spawn: ParkSpot, private regions: Region[] = []) {
     for (const rail of rails) this.railLengths.set(rail, railLength(rail));
     this.respawn(spawn.position, spawn.heading);
   }
@@ -145,7 +146,7 @@ export class Skater {
     if (input.practiceReturn) { this.returnToMarker(); return; }
 
     // Safety net: anything that ends up below the world respawns safely.
-    if (this.position.y < -10) { this.place(this.lastSafe.clone(), this.lastSafeForward.clone()); return; }
+    if (this.position.y < -10 || this.outsideRegions()) { this.place(this.lastSafe.clone(), this.lastSafeForward.clone()); return; }
 
     switch (this.state) {
       case 'ground': this.stepGround(input, dt); break;
@@ -675,6 +676,12 @@ export class Skater {
   }
 
   // ── Helpers ────────────────────────────────────────────────────────────
+
+  private outsideRegions(): boolean {
+    if (!this.regions.length) return false;
+    const { x, z } = this.position;
+    return !this.regions.some(r => x >= r.minX - 2 && x <= r.maxX + 2 && z >= r.minZ - 2 && z <= r.maxZ + 2);
+  }
 
   private place(position: THREE.Vector3, forward: THREE.Vector3): void {
     let hit = this.probeGround(position.clone().setY(position.y + 1.5), UP)

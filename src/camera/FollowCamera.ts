@@ -6,7 +6,7 @@ import type { Skater } from '../skater/Skater';
 import type { InputFrame } from '../input/Input';
 
 export const CAMERA_MODES = [
-  { name: 'Follow', distance: 5.4, height: 2.1, lookHeight: 1.0, fov: 62 },
+  { name: 'Follow', distance: 4.3, height: 1.75, lookHeight: 1.0, fov: 64 },
   { name: 'Follow Close', distance: 3.8, height: 1.5, lookHeight: 1.0, fov: 66 },
   { name: 'Follow Low', distance: 4.6, height: 0.8, lookHeight: 0.9, fov: 70 },
 ] as const;

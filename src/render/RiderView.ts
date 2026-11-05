@@ -1,8 +1,12 @@
-// Placeholder Chimp Hawk rider for the greybox phase: black hoodie, white
-// face, horned helmet, red eyes (from the title art), on a readable board.
-// Phase 3 swaps this for the rigged Blender model; the interface stays.
+// Rider presentation. Starts with a built-in placeholder (horned-helmet
+// chimp from the title art) and swaps in real GLB models when they load:
+// the original skateboard and any rigged humanoid, posed by RigRider IK.
 import * as THREE from 'three';
 import type { Skater } from '../skater/Skater';
+import type { RigRider } from './RigRider';
+
+/** Board length in metres (v1 used ~1.5 m; real decks are ~0.8 m). */
+const BOARD_LENGTH = 1.0;
 
 export class RiderView {
   readonly root = new THREE.Group();
@@ -17,6 +21,9 @@ export class RiderView {
   private xAxis = new THREE.Vector3();
   private zAxis = new THREE.Vector3();
   private bailSpin = 0;
+  private placeholderBoard: THREE.Object3D[] = [];
+  private rig: RigRider | null = null;
+  private deckTop = 0.0975;
 
   constructor() {
     this.root.name = 'Rider';
@@ -44,6 +51,7 @@ export class RiderView {
         this.boardSpin.add(w);
       }
     }
+    this.placeholderBoard = [...this.boardSpin.children];
     // Flips rotate around the board's centre, not its wheels.
     this.boardSpin.position.y = 0;
     this.board.add(this.boardSpin);
@@ -80,6 +88,35 @@ export class RiderView {
     // Face points to the rider's front (heel side), board nose stays -Z.
     this.body.rotation.y = Math.PI / 2;
     this.root.add(this.body);
+  }
+
+  /** Replace the placeholder board with a real board model (any axis, any scale). */
+  setBoardModel(model: THREE.Object3D): void {
+    const box = new THREE.Box3().setFromObject(model);
+    const size = box.getSize(new THREE.Vector3());
+    // Long axis becomes the board's Z (nose -Z).
+    if (size.x > size.z) model.rotation.y = Math.PI / 2;
+    model.scale.multiplyScalar(BOARD_LENGTH / Math.max(size.x, size.z));
+    model.updateMatrixWorld(true);
+    const placed = new THREE.Box3().setFromObject(model);
+    const center = placed.getCenter(new THREE.Vector3());
+    model.position.set(-center.x, -placed.min.y, -center.z);
+    model.updateMatrixWorld(true);
+    model.traverse(o => { if ((o as THREE.Mesh).isMesh) { o.castShadow = true; o.receiveShadow = true; } });
+    // Deck top: cast down at the board centre onto the model itself.
+    const ray = new THREE.Raycaster(new THREE.Vector3(0, 2, 0), new THREE.Vector3(0, -1, 0));
+    const hit = ray.intersectObject(model, true)[0];
+    this.deckTop = hit ? hit.point.y : (placed.max.y - placed.min.y) * 0.7;
+    for (const part of this.placeholderBoard) part.visible = false;
+    this.boardSpin.add(model);
+  }
+
+  /** Replace the placeholder body with a rigged rider (or pass null to restore it). */
+  setRider(rig: RigRider | null): void {
+    if (this.rig) this.root.remove(this.rig.model);
+    this.rig = rig;
+    this.body.visible = !rig;
+    if (rig) this.root.add(rig.model);
   }
 
   /** Copy the skater's pose. `position` is the interpolated render position. */
@@ -128,6 +165,14 @@ export class RiderView {
       const tilt = skater.state === 'grind' ? lean * 0.6 : -skater.speed * 0.004;
       this.body.rotation.set(skater.manual ? lean * 0.4 : 0, Math.PI / 2, skater.grind ? 0 : tilt);
       if (skater.grind) this.body.rotation.x = lean * 0.6;
+    }
+    if (this.rig) {
+      this.rig.pose(this.root, this.deckTop + this.board.position.y, {
+        crouch: skater.crouch + (skater.state === 'air' ? 0.35 : 0) + (skater.state === 'grind' ? 0.25 : 0),
+        grab, lean, air: skater.state === 'air',
+        bail: skater.state === 'bail' ? Math.min(1, this.bailSpin / 1.5) : 0,
+        switchStance: skater.switchStance,
+      });
     }
   }
 }

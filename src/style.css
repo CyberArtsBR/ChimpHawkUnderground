@@ -57,6 +57,27 @@ button { font: inherit; }
 .hud-help { position: absolute; top: 24px; right: 28px; font-size: 15px; letter-spacing: 1px; color: #d9cfee; opacity: 0.8; }
 .hud-help b { color: var(--gold); }
 
+/* Select */
+#select { position: absolute; inset: 0; z-index: 11; display: none; place-items: center; padding: 16px;
+  background: linear-gradient(130deg, rgba(11,9,21,0.86), rgba(32,13,38,0.82)), url('/media/title-screen.webp') center / cover no-repeat; }
+#select.show { display: grid; }
+.select-card { width: min(96vw, 1040px); max-height: 94vh; overflow: auto; padding: 24px 28px; background: var(--panel); border-radius: 14px; border: 2px solid rgba(255,255,255,0.08); }
+.select-card h2 { margin: 0 0 6px; font-family: var(--display); font-size: clamp(40px, 5vw, 64px); letter-spacing: 3px; color: var(--cyan); text-shadow: 3px 3px 0 var(--ink); }
+.select-card h3 { margin: 14px 0 8px; font-size: 18px; letter-spacing: 4px; color: var(--gold); }
+.pick-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+.pick-grid.maps { grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); }
+.pick { display: grid; gap: 2px; text-align: left; padding: 12px 14px; min-height: 64px; color: var(--text); cursor: pointer;
+  background: rgba(255,255,255,0.05); border: 2px solid rgba(255,255,255,0.12); border-left: 6px solid var(--accent, var(--violet)); border-radius: 10px; transition: transform 0.12s, border-color 0.12s; }
+.pick b { font-size: 21px; letter-spacing: 0.5px; }
+.pick small { font-size: 15px; color: #cbbfe0; letter-spacing: 0.5px; }
+.pick:hover, .pick:focus-visible { transform: translateY(-2px); border-color: var(--cyan); outline: none; }
+.pick.chosen { background: rgba(255,61,139,0.16); border-color: var(--pink); box-shadow: 0 0 0 2px var(--pink) inset; }
+.pick.upload { border-style: dashed; border-left-style: solid; }
+.select-footer { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-top: 18px; flex-wrap: wrap; }
+.select-footer p { margin: 0; font-size: 17px; color: #e6dcf7; min-height: 1.2em; flex: 1; }
+.select-footer button { padding: 14px 28px; font-size: 24px; letter-spacing: 1.5px; color: #fff; background: var(--pink); border: 0; border-radius: 10px; cursor: pointer; }
+.select-footer button:hover, .select-footer button:focus-visible { filter: brightness(1.12); outline: 2px solid var(--gold); }
+
 /* Pause */
 #pause { position: absolute; inset: 0; z-index: 12; display: none; place-items: center; background: rgba(12,6,22,0.62); backdrop-filter: blur(4px); }
 #pause.show { display: grid; }
