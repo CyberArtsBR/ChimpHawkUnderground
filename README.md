@@ -30,7 +30,7 @@ npm run build    # type-check + production build into dist/
 | Vert: carry over the coping | Left Ctrl after the apex | LT |
 | Switch stance | Right Ctrl | RT |
 | Manual / Nose manual | W then S / S then W | D-pad up→down / down→up |
-| Camera mode / look around | C / drag mouse | R3 / right stick |
+| Camera mode (Follow, Follow Close, Follow Low, Classic, Fixed) / look around | C / drag mouse | R3 / right stick |
 | Reset / marker save / return | R / M / N | — |
 | Pause | Esc | Start |
 

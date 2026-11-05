@@ -85,7 +85,7 @@ async function boot(): Promise<void> {
   void applyRider(() => loadCatalogRider(initial));
   const effects = new Effects();
   scene.add(effects.points);
-  const follow = new FollowCamera(camera);
+  const follow = new FollowCamera(camera, physics);
   const hud = new Hud(app);
   const audio = new SkateAudio();
   audio.onTrackChange = title => hud.showToast(`♪ ${title}`);
@@ -231,6 +231,7 @@ async function boot(): Promise<void> {
         hud.handle(event);
         audio.handle(event);
         effects.handle(event, skater);
+        if (event.type === 'land') rider.land(event.impact);
       }
       if (frame.practiceMark) hud.showToast('Marker saved');
     }

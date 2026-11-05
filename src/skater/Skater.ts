@@ -84,6 +84,8 @@ export class Skater {
   /** Direction of travel, tangent to the surface on the ground. */
   readonly forward = new THREE.Vector3(0, 0, -1);
   speed = 0;
+  /** Last steering input, for presentation (body lean). */
+  steer = 0;
   fakie = false;
   switchStance = false;
 
@@ -137,6 +139,7 @@ export class Skater {
   /** Advance one fixed step. `input` edges (pressed/released/taps) apply to this step only. */
   step(input: InputFrame, dt = C.step): void {
     this.time += dt;
+    this.steer = input.steer;
     this.grindCooldown = Math.max(0, this.grindCooldown - dt);
     for (const dir of input.directionTaps) this.taps.push({ dir, time: this.time });
     this.taps = this.taps.filter(t => this.time - t.time <= C.manualTapWindow);

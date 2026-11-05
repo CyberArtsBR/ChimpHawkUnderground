@@ -4,6 +4,8 @@
 import * as THREE from 'three';
 import type { Skater } from '../skater/Skater';
 import type { RigRider } from './RigRider';
+import { flipMotion } from './RiderMotion';
+import { SKATER } from '../skater/config';
 
 /** Board length in metres (v1 used ~1.5 m; real decks are ~0.8 m). */
 const BOARD_LENGTH = 1.0;
@@ -24,6 +26,10 @@ export class RiderView {
   private placeholderBoard: THREE.Object3D[] = [];
   private rig: RigRider | null = null;
   private deckTop = 0.0975;
+  private deckWidth = 0.21;
+  private deckLength = 0.8;
+  private landing = 0;
+  private time = 0;
 
   constructor() {
     this.root.name = 'Rider';
@@ -107,6 +113,8 @@ export class RiderView {
     const ray = new THREE.Raycaster(new THREE.Vector3(0, 2, 0), new THREE.Vector3(0, -1, 0));
     const hit = ray.intersectObject(model, true)[0];
     this.deckTop = hit ? hit.point.y : (placed.max.y - placed.min.y) * 0.7;
+    const dims = placed.getSize(new THREE.Vector3());
+    this.deckWidth = dims.x; this.deckLength = dims.z;
     for (const part of this.placeholderBoard) part.visible = false;
     this.boardSpin.add(model);
   }
@@ -118,6 +126,9 @@ export class RiderView {
     this.body.visible = !rig;
     if (rig) this.root.add(rig.model);
   }
+
+  /** Landing impact (m/s into the surface): riders absorb it in their legs. */
+  land(impact: number): void { this.landing = Math.max(this.landing, Math.min(1, impact / 9)); }
 
   /** Copy the skater's pose. `position` is the interpolated render position. */
   update(skater: Skater, position: THREE.Vector3, dt: number): void {
@@ -136,43 +147,65 @@ export class RiderView {
     const sharpness = skater.state === 'ground' || skater.state === 'manual' ? 30 : 18;
     this.root.quaternion.slerp(this.targetQuat, 1 - Math.exp(-sharpness * dt));
 
-    // Board flip animation.
+    this.time += dt;
+    this.landing = Math.max(0, this.landing - dt / 0.35);
+
+    // Board flip: v1 timing (pop, flick, spin, catch).
     const flip = skater.air?.flip;
+    const flipProgress = flip ? Math.min(1, flip.t / flip.trick.duration) : 0;
     if (flip) {
-      const p = Math.min(1, flip.t / flip.trick.duration);
-      const e = p < 0.5 ? 2 * p * p : 1 - (-2 * p + 2) ** 2 / 2;
-      this.boardSpin.position.y = Math.sin(p * Math.PI) * 0.22;
-      this.boardSpin.rotation.set(flip.trick.pitch * Math.PI * 2 * e, flip.trick.yaw * Math.PI * 2 * e, flip.trick.roll * Math.PI * 2 * e);
+      const m = flipMotion(flipProgress);
+      this.boardSpin.position.y = m.clearance * 0.22;
+      const r = m.rotation * Math.PI * 2;
+      this.boardSpin.rotation.set(flip.trick.pitch * r, flip.trick.yaw * r, flip.trick.roll * r);
     } else {
       this.boardSpin.position.y = THREE.MathUtils.damp(this.boardSpin.position.y, 0, 20, dt);
       this.boardSpin.rotation.set(0, 0, 0);
     }
 
-    // Body: crouch while charging, tuck for grabs, lean on balance, tumble when bailing.
+    // Grabs pull the board up toward the hand; manuals tip it onto the tail/nose.
     const grab = !!skater.air?.grab;
-    const crouch = skater.crouch * 0.18 + (grab ? 0.3 : 0) + (skater.state === 'air' ? 0.08 : 0);
-    this.body.position.y = THREE.MathUtils.damp(this.body.position.y, -crouch, 14, dt);
-    this.board.position.y = THREE.MathUtils.damp(this.board.position.y, grab ? 0.22 : 0, 14, dt);
+    this.board.position.y = THREE.MathUtils.damp(this.board.position.y, grab ? (this.rig ? 0.1 : 0.22) : 0, 14, dt);
     const lean = skater.balance ?? 0;
     const manualPitch = skater.manual ? (skater.manual.kind === 'manual' ? -0.28 : 0.28) : 0;
     this.board.rotation.x = THREE.MathUtils.damp(this.board.rotation.x, manualPitch, 12, dt);
+    if (skater.state === 'bail') this.bailSpin += dt * 7; else this.bailSpin = 0;
+
+    if (this.rig) {
+      this.rig.pose(this.root, {
+        dt, time: this.time,
+        charge: skater.crouch,
+        air: skater.state === 'air',
+        vert: !!skater.air?.vertNormal,
+        verticalVelocity: skater.velocity.y,
+        airTime: skater.air?.time ?? 0,
+        speedRatio: Math.min(1.3, skater.speed / SKATER.autoPushTarget),
+        steer: skater.steer,
+        landing: this.landing,
+        flip: flip ? { name: flip.trick.name, progress: flipProgress } : null,
+        grab: skater.air?.grab ? { name: skater.air.grab.trick.name } : null,
+        grind: skater.grind ? { name: skater.grind.trick.name, balance: skater.grind.lean } : null,
+        manual: skater.manual ? { kind: skater.manual.kind, balance: skater.manual.lean } : null,
+        wallride: !!skater.air?.wall,
+        bail: skater.state === 'bail' ? Math.min(1, this.bailSpin / 1.5) : 0,
+        switchStance: skater.switchStance,
+        deckTop: this.deckTop + this.board.position.y,
+        deckWidth: this.deckWidth,
+        deckLength: this.deckLength,
+      });
+      return;
+    }
+
+    // Placeholder body: crouch, tuck, lean, tumble.
+    const crouch = skater.crouch * 0.18 + (grab ? 0.3 : 0) + (skater.state === 'air' ? 0.08 : 0) + this.landing * 0.12;
+    this.body.position.y = THREE.MathUtils.damp(this.body.position.y, -crouch, 14, dt);
     if (skater.state === 'bail') {
-      this.bailSpin += dt * 7;
       this.body.rotation.set(0, Math.PI / 2, Math.min(Math.PI / 2, this.bailSpin));
       this.body.position.y = -0.5;
     } else {
-      this.bailSpin = 0;
       const tilt = skater.state === 'grind' ? lean * 0.6 : -skater.speed * 0.004;
       this.body.rotation.set(skater.manual ? lean * 0.4 : 0, Math.PI / 2, skater.grind ? 0 : tilt);
       if (skater.grind) this.body.rotation.x = lean * 0.6;
-    }
-    if (this.rig) {
-      this.rig.pose(this.root, this.deckTop + this.board.position.y, {
-        crouch: skater.crouch + (skater.state === 'air' ? 0.35 : 0) + (skater.state === 'grind' ? 0.25 : 0),
-        grab, lean, air: skater.state === 'air',
-        bail: skater.state === 'bail' ? Math.min(1, this.bailSpin / 1.5) : 0,
-        switchStance: skater.switchStance,
-      });
     }
   }
 }
