@@ -48,6 +48,7 @@ export class GameShell {
     this.smoothEdges=stored('streetskate.smoothEdges','on')==='on';
     this.songToastRemaining=4;
     this.sound=stored('streetskate.sound','on')!=='off';
+    this.hasSavedFinish=stored('streetskate.boardFinish',null)!==null;
     const savedFinish=Number(stored('streetskate.boardFinish',DEFAULT_BOARD_FINISH));
     this.finishIndex=Number.isInteger(savedFinish)&&savedFinish>=0&&savedFinish<BOARD_CHOICES.length?savedFinish:DEFAULT_BOARD_FINISH;
     this.inputGrace=0;
@@ -431,8 +432,22 @@ export class GameShell {
       heroIndex:this.heroIndex,boardIndex:this.boardIndex,locationIndex:this.locationIndex,finishIndex:this.finishIndex,
       heroConfirmed:this.heroConfirmed,boardConfirmed:this.boardConfirmed};
     this.pendingMode=practice?'practice':'timed';
-    this.selectError='';this.heroConfirmed=false;this.boardConfirmed=false;
-    this.focusHint={action:'hero',index:this.heroIndex};
+    this.selectError='';
+    // Quick start: the first loadout of a visit pre-selects The Hollow, the
+    // Grey deck and Skate Paradise; later visits keep the player's last picks.
+    if(!this.loadoutDefaultsApplied){
+      this.loadoutDefaultsApplied=true;
+      const hollow=(this.heroes||[]).findIndex(hero=>hero.id==='hollow');
+      if(hollow>=0)this.heroIndex=hollow;
+      // A deck the player saved before wins; new players start on Grey.
+      const grey=BOARD_CHOICES.findIndex(board=>board.id==='grey');
+      this.boardIndex=this.hasSavedFinish?this.finishIndex:Math.max(0,grey);
+      const paradise=LOCATIONS.findIndex(spot=>spot.id==='skate-paradise');
+      if(paradise>=0)this.locationIndex=paradise;
+    }
+    // Everything is already chosen, so LET'S SKATE works at once (A / Enter).
+    this.heroConfirmed=true;this.boardConfirmed=true;
+    this.focusHint={action:'confirmLoadout',index:0};
     this.setScreen('select');
   }
   loadPortrait(el){

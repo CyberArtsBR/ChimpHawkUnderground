@@ -288,3 +288,209 @@
   #game-shell button { transition: none !important; }
   #game-shell button:is(:hover, .selected) { transform: none !important; }
 }
+
+/* ── Rider, deck and spot cards: AAA hover, focus and selection ───────── */
+@property --holo-angle { syntax: '<angle>'; initial-value: 0deg; inherits: false; }
+
+#game-shell.loadout-screen .loadout-character,
+#game-shell.loadout-screen .loadout-deck,
+#game-shell.loadout-screen .loadout-location {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  border-radius: 16px !important;
+  border: 1px solid rgba(255, 255, 255, .12) !important;
+  box-shadow:
+    0 6px 0 rgba(6, 4, 12, .9),
+    0 14px 26px rgba(0, 0, 0, .45),
+    inset 0 1px 0 rgba(255, 255, 255, .1) !important;
+  transform: perspective(700px) translateY(0) rotateX(0) scale(1);
+  transition:
+    transform .28s cubic-bezier(.2, .9, .3, 1.25),
+    box-shadow .28s ease, border-color .2s ease, filter .2s ease !important;
+  animation: card-enter .5s cubic-bezier(.2, .9, .3, 1.1) both;
+  will-change: transform;
+}
+/* Cards slide in one after another when the screen opens. */
+#game-shell.loadout-screen .loadout-character:nth-child(1), #game-shell.loadout-screen .loadout-deck:nth-child(1), #game-shell.loadout-screen .loadout-location:nth-child(1) { animation-delay: .02s; }
+#game-shell.loadout-screen .loadout-character:nth-child(2), #game-shell.loadout-screen .loadout-deck:nth-child(2), #game-shell.loadout-screen .loadout-location:nth-child(2) { animation-delay: .07s; }
+#game-shell.loadout-screen .loadout-character:nth-child(3), #game-shell.loadout-screen .loadout-deck:nth-child(3), #game-shell.loadout-screen .loadout-location:nth-child(3) { animation-delay: .12s; }
+#game-shell.loadout-screen .loadout-character:nth-child(4), #game-shell.loadout-screen .loadout-deck:nth-child(4) { animation-delay: .17s; }
+#game-shell.loadout-screen .loadout-character:nth-child(5), #game-shell.loadout-screen .loadout-deck:nth-child(5) { animation-delay: .22s; }
+#game-shell.loadout-screen .loadout-character:nth-child(n+6), #game-shell.loadout-screen .loadout-deck:nth-child(n+6) { animation-delay: .27s; }
+@keyframes card-enter {
+  from { opacity: 0; transform: perspective(700px) translateY(18px) rotateX(12deg) scale(.96); }
+  to { opacity: 1; transform: perspective(700px) translateY(0) rotateX(0) scale(1); }
+}
+
+/* Light sweep that crosses the card on hover / focus. */
+#game-shell.loadout-screen .loadout-character::before,
+#game-shell.loadout-screen .loadout-location::before {
+  content: '';
+  position: absolute;
+  inset: -40% -60%;
+  z-index: 3;
+  pointer-events: none;
+  background: linear-gradient(105deg, transparent 40%, rgba(255, 255, 255, .28) 50%, transparent 60%);
+  transform: translateX(-70%);
+  opacity: 0;
+}
+
+/* Hover and controller focus: lift, tilt and glow in the rider's colour. */
+#game-shell.loadout-screen .loadout-character:is(:hover, .selected),
+#game-shell.loadout-screen .loadout-deck:is(:hover, .selected),
+#game-shell.loadout-screen .loadout-location:is(:hover, .selected):not(:disabled) {
+  transform: perspective(700px) translateY(-7px) rotateX(6deg) scale(1.035) !important;
+  border-color: color-mix(in srgb, var(--rider-accent, #ff5fae), white 25%) !important;
+  box-shadow:
+    0 10px 0 rgba(6, 4, 12, .9),
+    0 22px 38px rgba(0, 0, 0, .55),
+    0 0 28px color-mix(in srgb, var(--rider-accent, #ff3d9a), transparent 45%),
+    inset 0 1px 0 rgba(255, 255, 255, .22) !important;
+  z-index: 2;
+}
+#game-shell.loadout-screen .loadout-character:is(:hover, .selected)::before,
+#game-shell.loadout-screen .loadout-location:is(:hover, .selected)::before {
+  animation: card-shine .85s ease-out forwards;
+}
+@keyframes card-shine {
+  0% { opacity: 0; transform: translateX(-70%); }
+  20% { opacity: 1; }
+  100% { opacity: 0; transform: translateX(70%); }
+}
+
+/* Rider portraits zoom in slightly and the name lights up. */
+#game-shell.loadout-screen .loadout-character .rider-portrait img { transition: transform .35s cubic-bezier(.2, .9, .3, 1.2), filter .3s ease; }
+#game-shell.loadout-screen .loadout-character:is(:hover, .selected) .rider-portrait img {
+  transform: scale(1.12) translateY(-3%);
+  filter: drop-shadow(0 6px 10px rgba(0, 0, 0, .55)) brightness(1.08);
+}
+#game-shell.loadout-screen .loadout-character strong {
+  font-family: 'Bangers', Impact, sans-serif !important;
+  font-weight: 400 !important;
+  letter-spacing: .07em !important;
+  font-size: 1.12em;
+  transition: color .2s ease, text-shadow .2s ease;
+}
+#game-shell.loadout-screen .loadout-character:is(:hover, .selected, .is-chosen) strong {
+  color: #fff !important;
+  text-shadow: 0 2px 0 rgba(0, 0, 0, .6), 0 0 14px color-mix(in srgb, var(--rider-accent, #ff5fae), transparent 30%);
+}
+
+/* Chosen: gold frame, gentle pulse, holographic sweep and a gold check sticker. */
+#game-shell.loadout-screen .loadout-character.is-chosen,
+#game-shell.loadout-screen .loadout-deck.is-chosen,
+#game-shell.loadout-screen .loadout-location.is-chosen {
+  border-color: transparent !important;
+  outline: none !important;
+  box-shadow:
+    0 0 0 2px #ffd34f,
+    0 6px 0 rgba(6, 4, 12, .9),
+    0 14px 28px rgba(0, 0, 0, .5),
+    0 0 26px rgba(255, 196, 64, .45),
+    inset 0 1px 0 rgba(255, 255, 255, .18) !important;
+  animation: card-enter .5s cubic-bezier(.2, .9, .3, 1.1) both, chosen-pulse 2.4s ease-in-out .6s infinite;
+}
+@keyframes chosen-pulse {
+  0%, 100% { filter: brightness(1); }
+  50% { filter: brightness(1.12) saturate(1.1); }
+}
+#game-shell.loadout-screen .loadout-location.is-chosen::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  pointer-events: none;
+  border-radius: inherit;
+  padding: 2px;
+  background: conic-gradient(from var(--holo-angle), #ff5fae, #ffd34f, #7edcff, #b46cff, #ff5fae);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+  animation: holo-spin 3.2s linear infinite;
+}
+@keyframes holo-spin { to { --holo-angle: 360deg; } }
+#game-shell.loadout-screen .loadout-character.is-chosen::after,
+#game-shell.loadout-screen .loadout-deck.is-chosen::after {
+  content: '\2713' !important;
+  position: absolute;
+  z-index: 5;
+  top: 6px !important;
+  right: 6px !important;
+  width: 22px; height: 22px;
+  display: grid; place-items: center;
+  padding: 0 !important;
+  border-radius: 50% !important;
+  font: 400 14px/1 'Bangers', Impact, sans-serif !important;
+  color: #2a1600 !important;
+  background: linear-gradient(180deg, #fff08a, #f6a92c) !important;
+  box-shadow: 0 2px 0 #8a4f0c, 0 0 12px rgba(255, 200, 70, .7) !important;
+  animation: sticker-pop .35s cubic-bezier(.2, 1.6, .4, 1) both;
+}
+@keyframes sticker-pop { from { transform: scale(0) rotate(-40deg); } to { transform: scale(1) rotate(0); } }
+
+/* Decks: the board floats, and kick-flips a little on hover. */
+#game-shell.loadout-screen .loadout-deck .deck-thumb img {
+  transition: transform .35s cubic-bezier(.2, .9, .3, 1.3), filter .3s ease;
+}
+#game-shell.loadout-screen .loadout-deck:is(:hover, .selected) .deck-thumb img {
+  animation: deck-kick .7s cubic-bezier(.3, .8, .3, 1) both;
+  filter: drop-shadow(0 8px 6px rgba(0, 0, 0, .55)) brightness(1.1);
+}
+#game-shell.loadout-screen .loadout-deck.is-chosen .deck-thumb img {
+  animation: deck-float 2.6s ease-in-out infinite;
+  filter: drop-shadow(0 7px 6px rgba(0, 0, 0, .5)) drop-shadow(0 0 8px rgba(255, 210, 80, .45));
+}
+@keyframes deck-kick {
+  0% { transform: translateY(0) rotate(0); }
+  35% { transform: translateY(-16%) rotate(-8deg) rotateX(180deg); }
+  70% { transform: translateY(-6%) rotate(3deg) rotateX(360deg); }
+  100% { transform: translateY(-4%) rotate(0) rotateX(360deg); }
+}
+@keyframes deck-float {
+  0%, 100% { transform: translateY(0) rotate(-1deg); }
+  50% { transform: translateY(-7%) rotate(1.5deg); }
+}
+#game-shell.loadout-screen .loadout-deck b {
+  font-family: 'Bangers', Impact, sans-serif !important;
+  font-weight: 400 !important;
+  letter-spacing: .08em !important;
+}
+
+/* Spots: the map image slowly pushes in, the title glows. */
+#game-shell.loadout-screen .loadout-location .location-art {
+  transition: transform 1.6s cubic-bezier(.2, .8, .2, 1), filter .4s ease !important;
+}
+#game-shell.loadout-screen .loadout-location:is(:hover, .selected) .location-art {
+  transform: scale(1.1) !important;
+  filter: saturate(1.2) brightness(1.08) !important;
+}
+#game-shell.loadout-screen .loadout-location strong {
+  font-family: 'Bangers', Impact, sans-serif !important;
+  font-weight: 400 !important;
+  letter-spacing: .07em !important;
+  text-shadow: 0 2px 0 rgba(0, 0, 0, .7), 0 0 12px rgba(0, 0, 0, .5);
+}
+#game-shell.loadout-screen .loadout-location.is-chosen strong { color: #ffe17a !important; }
+
+/* Big rider preview breathes gently. */
+#game-shell.loadout-screen .selected-rider img {
+  animation: rider-idle 3.4s ease-in-out infinite;
+  transform-origin: 50% 90%;
+}
+@keyframes rider-idle {
+  0%, 100% { transform: translateY(0) rotate(0); }
+  50% { transform: translateY(-2.5%) rotate(-1deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #game-shell.loadout-screen .loadout-character,
+  #game-shell.loadout-screen .loadout-deck,
+  #game-shell.loadout-screen .loadout-location,
+  #game-shell.loadout-screen .selected-rider img,
+  #game-shell.loadout-screen .loadout-deck .deck-thumb img,
+  #game-shell.loadout-screen .loadout-location.is-chosen::after { animation: none !important; }
+  #game-shell.loadout-screen .loadout-character:is(:hover, .selected),
+  #game-shell.loadout-screen .loadout-deck:is(:hover, .selected),
+  #game-shell.loadout-screen .loadout-location:is(:hover, .selected) { transform: none !important; }
+}
