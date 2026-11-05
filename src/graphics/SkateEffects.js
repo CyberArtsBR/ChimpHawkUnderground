@@ -4,6 +4,18 @@ import { BailLiquid } from './BailLiquid.js';
 
 const finite = v => v && Number.isFinite(v.x) && Number.isFinite(v.y) && Number.isFinite(v.z);
 const clamp = THREE.MathUtils.clamp;
+/** Enhancement pass (2026-11): bigger, clearer dust and sparks. One place to tune them. */
+export const FX_TUNING = Object.freeze({
+  dustPool: 160, sparkPool: 260,
+  landingCount: [6, 18],       // puffs at soft … hard landings (times the surface's dust amount)
+  landingSize: [0.3, 0.3],     // base + severity
+  landingLife: [0.5, 0.4],     // base + random
+  landingOpacity: [0.16, 0.14],
+  bailDustCount: 26, bailDustSize: 0.45, bailDustLife: 1.0, bailDustOpacity: 0.2,
+  sparkRate: 2.2,              // multiplier on the original spark rate
+  sparkSize: [0.09, 0.06], sparkLife: [0.22, 0.28], sparkBack: [1.5, 2.5], sparkUp: [0.5, 1.9], sparkGravity: 12,
+});
+
 export const SURFACE_PARTICLES = Object.freeze({
   neutral: {dust:.35,tint:[.65,.66,.65],grind:.2,sparks:false},
   concrete: {dust:.4,tint:[.73,.74,.73],grind:.45,sparks:false},
@@ -70,8 +82,8 @@ function makePool(name,count,additive) {
 export class SkateEffects {
   constructor(scene=null) {
     this.root=new THREE.Group();this.root.name='Skating contact effects';this.root.userData.skateEffects=true;
-    this.dust=makePool('Soft landing dust',48,false);
-    this.glints=makePool('Grind sparks and trick traces',96,true);
+    this.dust=makePool('Soft landing dust',FX_TUNING.dustPool,false);
+    this.glints=makePool('Grind sparks and trick traces',FX_TUNING.sparkPool,true);
     this.root.add(this.dust.points,this.glints.points);scene?.add(this.root);
     this.previousPosition=new THREE.Vector3();this.previousVelocity=new THREE.Vector3();
     this.origin=new THREE.Vector3();this.forward=new THREE.Vector3();this.normal=new THREE.Vector3();this.side=new THREE.Vector3();this.tangent=new THREE.Vector3();
@@ -152,23 +164,39 @@ export class SkateEffects {
   landing(skater,impact,tag=surfaceTagFor(skater)) {
     const n=this.normal;const p=this.origin;const f=this.forward;
     const severity=clamp(impact/9,.15,1),profile=SURFACE_PARTICLES[validatedSurfaceTag(tag)];
-    const count=Math.round((3+severity*9)*profile.dust*this.scale*(this.performance ? .45 : 1));
+    const [baseCount,extraCount]=FX_TUNING.landingCount;
+    const count=Math.round((baseCount+severity*extraCount)*profile.dust*this.scale*(this.performance ? .45 : 1));
     this.tangent.copy(f).projectOnPlane(n).normalize();this.side.crossVectors(this.tangent,n).normalize();
     for(let i=0;i<count;i++) {
       const angle=Math.random()*Math.PI*2,spread=.25+Math.random()*.55;
       const side=(i%2?1:-1)*.11,along=(i%4<2?1:-1)*.22;
       const x=p.x+this.tangent.x*along+this.side.x*side+n.x*.025,y=p.y+this.tangent.y*along+this.side.y*side+n.y*.025,z=p.z+this.tangent.z*along+this.side.z*side+n.z*.025;
       this.emit(this.dust,x,y,z,Math.cos(angle)*spread+n.x*.25,.10+n.y*.12,Math.sin(angle)*spread+n.z*.25,
-        .18+severity*.14,.28+Math.random()*.22,.07+severity*.07,...profile.tint,0,-.12);
+        FX_TUNING.landingSize[0]+severity*FX_TUNING.landingSize[1],FX_TUNING.landingLife[0]+Math.random()*FX_TUNING.landingLife[1],
+        FX_TUNING.landingOpacity[0]+severity*FX_TUNING.landingOpacity[1],...profile.tint,0,-.12);
+    }
+  }
+
+  /** A dust cloud where the rider hits the ground in a bail (alongside the bail splat). */
+  bailDust(impact) {
+    const p=impact?.point;
+    if(!p||![p.x,p.y,p.z].every(Number.isFinite))return;
+    const t=FX_TUNING,count=Math.round(t.bailDustCount*this.scale*(this.performance ? .45 : 1));
+    const tint=SURFACE_PARTICLES.concrete.tint;
+    for(let i=0;i<count;i++) {
+      const angle=Math.random()*Math.PI*2,spread=.6+Math.random()*1.4;
+      this.emit(this.dust,p.x,p.y+.06,p.z,Math.cos(angle)*spread,.25+Math.random()*.7,Math.sin(angle)*spread,
+        t.bailDustSize*(0.7+Math.random()*0.6),t.bailDustLife*(0.7+Math.random()*0.6),t.bailDustOpacity,...tint,0,-.1);
     }
   }
 
   grindParticle(profile) {
-    const side=(Math.random()-.5)*1.1,back=.7+Math.random()*1.3;
+    const side=(Math.random()-.5)*1.4;
     if(profile.sparks) {
+      const t=FX_TUNING,back=t.sparkBack[0]+Math.random()*t.sparkBack[1];
       this.emit(this.glints,this.origin.x,this.origin.y+.025,this.origin.z,
-        -this.forward.x*back+this.forward.z*side,.2+Math.random()*.6,-this.forward.z*back-this.forward.x*side,
-        .055+Math.random()*.035,.12+Math.random()*.15,.6,1,.64+Math.random()*.2,.22,1,7);
+        -this.forward.x*back+this.forward.z*side,t.sparkUp[0]+Math.random()*t.sparkUp[1],-this.forward.z*back-this.forward.x*side,
+        t.sparkSize[0]+Math.random()*t.sparkSize[1],t.sparkLife[0]+Math.random()*t.sparkLife[1],.9,1,.66+Math.random()*.24,.26,1,t.sparkGravity);
     } else {
       this.emit(this.dust,this.origin.x,this.origin.y+.02,this.origin.z,
         -this.forward.x*.35+this.forward.z*side,.08,-this.forward.z*.35-this.forward.x*side,
@@ -186,7 +214,7 @@ export class SkateEffects {
     const tag=validatedSurfaceTag(event.surface||event.audioSurfaceTag);
     if(event.kind==='landing')this.landing(null,(Number(event.strength)||.4)*9,tag);
     else if(event.kind==='grind'&&!this.performance){const profile=SURFACE_PARTICLES[tag];for(let i=0;i<Math.round(profile.grind*4);i++)this.grindParticle(profile);}
-    else if(event.kind==='bail')this.bailLiquid.spawn({point:this.origin,normal:this.normal,speed:(Number(event.strength)||.4)*10},this.performance,surface);
+    else if(event.kind==='bail'){this.bailLiquid.spawn({point:this.origin,normal:this.normal,speed:(Number(event.strength)||.4)*10},this.performance,surface);this.bailDust({point:this.origin});}
     else return false;
     return true;
   }
@@ -211,6 +239,7 @@ export class SkateEffects {
     if(skater.bailTime>0&&impactEvent&&impactEvent!==this.lastBailImpact){
       this.lastBailImpact=impactEvent;
       this.bailLiquid.spawn(impactEvent,this.performance,skater.surface);
+      this.bailDust(impactEvent);
     }
     if(skater.bailTime>0){this.airDuration=0;this.grindBudget=0;this.traceBudget=0;this.remember(skater);return;}
     this.origin.copy(skater.position);
@@ -224,7 +253,7 @@ export class SkateEffects {
     if(grounded||skater.grind||skater.wallRide)this.airDuration=0;else this.airDuration+=dt;
     if(!this.performance&&skater.grind&&speed>2) {
       const tag=surfaceTagFor(skater),profile=SURFACE_PARTICLES[tag];
-      this.grindBudget+=dt*(7+Math.min(speed,20)*.6)*this.scale*profile.grind;
+      this.grindBudget+=dt*(7+Math.min(speed,20)*.6)*this.scale*profile.grind*FX_TUNING.sparkRate;
       while(this.grindBudget>=1) { this.grindBudget--;this.grindParticle(profile); }
     } else this.grindBudget=0;
     // Short, faint board-edge traces only during fast, active airborne tricks.

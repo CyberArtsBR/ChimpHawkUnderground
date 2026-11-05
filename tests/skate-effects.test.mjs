@@ -35,7 +35,7 @@ test('grind particles stay within the fixed pool; performance removes sparks and
   assert.equal(scene.children.length,1);
   const positionBuffer=fx.glints.arrays.position;
   for(let i=0;i<600;i++)fx.update(1/60,s);
-  assert.ok(count(fx.glints)>0);assert.ok(count(fx.glints)<=96);
+  assert.ok(count(fx.glints)>0);assert.ok(count(fx.glints)<=fx.glints.count);
   assert.equal(fx.glints.arrays.position,positionBuffer);
   assert.ok(fx.glints.arrays.position.every(Number.isFinite));
   fx.setQuality({name:'performance',vfxScale:.65});
@@ -90,4 +90,27 @@ test('recorded replay particles consume events without touching a player and exp
   for(let i=0;i<330;i++)fx.updateReplay(1/60);
   assert.equal(count(fx.dust),0);assert.equal(count(fx.glints),0);assert.equal(fx.puddles.some(p=>p.mesh.visible),false);
   fx.reset();fx.dispose();
+});
+
+test('enhancement pass: hard landings throw a visible dust cloud and bails add one',()=>{
+  const fx=new SkateEffects(),s=rider();
+  s.grounded=false;s.velocity.y=-9;
+  for(let i=0;i<20;i++)fx.update(1/60,s);
+  s.grounded=true;s.justLanded=true;s.velocity.y=0;
+  fx.update(1/60,s);
+  assert.ok(count(fx.dust)>=8,'a hard landing on neutral ground makes a cloud, not a wisp');
+  const before=count(fx.dust);
+  fx.bailDust({point:new THREE.Vector3(1,0,1)});
+  assert.ok(count(fx.dust)>=before+15,'bail impact adds its own dust cloud');
+  fx.bailDust(null);fx.bailDust({point:{x:NaN,y:0,z:0}});
+  assert.ok(fx.dust.arrays.position.every(Number.isFinite));
+  fx.dispose();
+});
+
+test('enhancement pass: metal grinds spray noticeably more sparks than before',()=>{
+  const fx=new SkateEffects(),s=rider();s.grind={rail:{audioSurfaceTag:'metal'}};
+  for(let i=0;i<30;i++)fx.update(1/60,s);
+  // The original emitted ~4 sparks in half a second at 12 m/s; the pass roughly doubles that (measured 8).
+  assert.ok(count(fx.glints)>=7);
+  fx.dispose();
 });
