@@ -1,5 +1,7 @@
 # Game Evolution — current project state
 
+**Portals manual-sync target: `fix/portals-bundled-fonts`.** This branch includes main `b53ec09` and preserves its own Party entry, map-load queue, focus simulation gate, identity, rankings, asset paths and bundled fonts. The integration passes 1,107 unit tests, the production asset checks and an explicitly verified `--base=./` build. Host synchronization remains manual. The previously updated `feat/portals-online-beta` is a separate branch.
+
 Updated 2026-11-03. **The Hollow local polish is ready:** fifth rider first in the roster, preserved source rig, calibrated palm reach on the existing crew, smoother grab gather, recording-length music ducks and first-bail/respawn shader preparation. Base: `66fcd65`. Branch: `codex/hollow-grip-mix-20261103`. [Current report and evidence](hollow-grip-mix-status-2026-11-03.md).
 
 Release follow-up: the owner authorized main deployment and a Portals branch update. Main runtime `401ee4b` is live on Render; the served JS bytes and original Hollow GLB match the verified local build. Main's full suite passes 1,078 tests plus board/vert/pump checks. The Portals integration preserves online/identity/host adapters and TuxR's ground clearance while allowing the calibrated airborne grabs; its full suite passes 1,083 tests and the relative-base build passes. The release browser gate now checks the five stock riders plus an uploaded sixth, visible clipped card bounds, and actual deformed torso clearance instead of a common pelvis-pivot height. Platform synchronization remains manual.

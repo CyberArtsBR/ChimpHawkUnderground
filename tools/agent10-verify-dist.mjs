@@ -15,6 +15,9 @@ for(const x of ['thehollowf.glb','The_Heretic.glb','The_AdolescentUR.glb','The_A
 await nonempty('assets/menu/riders/thehollowf.png');
 for(const x of ['title-screen.webp','trick-guide-16x9.webp'])await nonempty('media/'+x);
 for(const x of ['orbit.glb'])await nonempty('assets/spacepark/'+x);
+for(const x of ['insanity-inspired-park.glb','park-collision.glb','halfnew.glb'])await nonempty('assets/park/'+x);
+for(const x of ['808-bas.mp3','chimpion-drip.mp3','chimpion-slide.mp3','west-park.mp3','old-school-flip.mp3','aerial-flute.mp3','skate-vibe.mp3'])await nonempty('media/'+x);
+await nonempty('assets/rider/TheanchoURi.glb');
 await nonempty('assets/warehouse/granwarehouse.glb');
 for(const x of ['rooftop.webp','urban-warehouse.webp'])await nonempty('assets/menu/'+x);
 const expected = process.env.AGENT10_EXPECTED_SHA;

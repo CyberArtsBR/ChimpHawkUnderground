@@ -1,0 +1,26 @@
+name: Portals lightweight smoke
+on:
+  pull_request:
+    branches: [fix/portals-bundled-fonts]
+  push:
+    branches: [fix/portals-bundled-fonts]
+permissions:
+  contents: read
+jobs:
+  portals-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - name: Focused Portals network and gameplay regressions
+        run: node --test tests/portals-online-map-queue.test.mjs tests/portals-online-runtime.test.mjs tests/portals-party-auto-join.test.mjs tests/portals-online-server.test.mjs
+      - name: Build Vite for Portals relative base
+        run: npm run build -- --base=./
+      - name: Verify shipped assets and server referee
+        run: node tools/agent10-verify-dist.mjs

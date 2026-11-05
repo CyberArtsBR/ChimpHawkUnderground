@@ -1,0 +1,26 @@
+#portals-online[hidden]{display:none!important}
+#portals-online{position:fixed;inset:0;z-index:25000;display:grid;place-items:center;pointer-events:auto;color:#f5fcff;font:600 15px/1.4 "Barlow Condensed",sans-serif}
+.online-shade{position:absolute;inset:0;background:rgba(5,8,18,.92)}
+.online-panel{z-index:1;position:relative;display:flex;flex-direction:column;gap:14px;width:min(740px,95vw);max-height:92dvh;overflow:auto;padding:clamp(16px,3vw,30px);background:linear-gradient(145deg,#1c2a41,#0d1527);border:1px solid #7fcee7;border-radius:16px;box-shadow:0 20px 100px #000a}
+.online-panel header{display:flex;align-items:start;justify-content:space-between;gap:16px}
+.online-panel h2{font:400 clamp(30px,6vw,52px) "Bangers",sans-serif;margin:2px 0}
+.online-panel h2 em{font:700 13px sans-serif;color:#172031;background:#c6ee73;border-radius:3px;padding:4px 6px;vertical-align:middle}
+.online-panel small{letter-spacing:.05em;color:#a7d5e0}
+.online-body{display:grid;gap:14px}
+.online-body h3{font-size:16px;letter-spacing:.09em;margin:8px 0 0;color:#c6ee73}
+.online-body label{display:grid;gap:5px}
+.online-panel input,.online-panel select,.online-panel textarea{font:500 16px sans-serif;color:#111925;background:#f8fdff;border:1px solid #9eb4c5;border-radius:5px;padding:9px;min-width:0;width:100%;max-width:460px}
+.online-panel textarea{min-height:110px}
+.online-panel button{padding:10px 12px;color:#f1fbff;background:#18334b;border:1px solid #649cb8;border-radius:6px;font:700 14px/1.2 "Barlow Condensed",sans-serif;cursor:pointer;min-height:41px}
+.online-panel button:disabled{opacity:.45;cursor:not-allowed}
+.online-panel button:focus-visible{outline:3px solid #cbf87a;outline-offset:3px}
+.online-panel button:hover:not(:disabled){background:#275676}
+.online-actions{display:flex;flex-wrap:wrap;gap:8px}
+.online-roster{display:grid;gap:6px}
+.online-roster>div{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px;background:#172335;border-radius:6px}
+.online-roster b{overflow-wrap:anywhere}
+.online-roster span{margin-left:auto;font-variant-numeric:tabular-nums;color:#c7e8ba}
+.online-notice{padding:9px;background:#344056;border:1px solid #dfb76c;color:#ffe2ae;border-radius:5px}
+.online-nameplates{position:fixed;inset:0;pointer-events:none;z-index:100}
+.online-nameplate{position:absolute;transform:translate(-50%,-100%);padding:3px 9px;white-space:nowrap;border-radius:5px;background:#071727cd;border:1px solid #84daf7;font:700 14px/1.3 sans-serif;color:white;text-shadow:0 1px 2px #000}
+@media(max-width:560px){.online-panel{padding:13px}.online-panel header{gap:6px}.online-panel h2{font-size:30px}}

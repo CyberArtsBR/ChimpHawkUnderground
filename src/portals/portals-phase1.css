@@ -1,0 +1,25 @@
+#portals-phase1[hidden]{display:none!important}
+#portals-phase1{position:fixed;inset:0;z-index:20000;display:grid;place-items:center;padding:24px;font:600 14px "Barlow Condensed",sans-serif;color:#f8f6ff}
+.portals-phase1-shade{position:absolute;inset:0;background:rgba(6,7,16,.90)}
+.portals-phase1-card{position:relative;display:grid;gap:14px;max-width:650px;width:100%;max-height:min(88dvh,850px);overflow:auto;padding:clamp(18px,3vw,32px);background:linear-gradient(140deg,#20213b,#101323);border:1px solid #77d9eb;border-radius:15px;box-shadow:0 20px 80px #000b}
+.portals-phase1-card header{display:flex;justify-content:space-between;align-items:start;gap:12px}
+.portals-phase1-card h2{font:400 clamp(30px,6vw,48px) "Bangers",sans-serif;margin:3px 0}
+.portals-phase1-card h3{margin:0;color:#e1f87a;font-size:17px;letter-spacing:.07em}
+.portals-phase1-card p{margin:5px 0;line-height:1.35}
+.portals-phase1-card button{font:700 15px "Barlow Condensed",sans-serif;letter-spacing:.035em;padding:9px 12px;border-radius:6px;border:1px solid #8ad5dd;background:#19273c;color:#f9ffff;cursor:pointer}
+.portals-phase1-card button:hover,.portals-phase1-card button:focus-visible{background:#2a5770;outline:2px solid #ccf67d}
+.portals-phase1-card nav{display:flex;flex-wrap:wrap;gap:8px}
+.portals-phase1-card nav button[aria-pressed="true"]{background:#d5fa79;color:#15212a;border-color:#d5fa79}
+.portals-phase1-status{color:#a7dded;min-height:20px}
+.portals-phase1-body{padding:12px;background:#0d1423;border:1px solid #353c59;border-radius:8px}
+.portals-phase1-body ol{list-style:none;margin:10px 0 0;padding:0;display:grid;gap:5px}
+.portals-phase1-body li{display:grid;grid-template-columns:50px 1fr auto;gap:12px;padding:8px 10px;background:#1b263e;border-radius:5px}
+.portals-phase1-body li strong{overflow-wrap:anywhere}
+.portals-phase1-body li b{font-variant-numeric:tabular-nums}
+.portals-phase1-login{display:flex;gap:10px;flex-wrap:wrap;align-items:end}
+.portals-phase1-login p{width:100%}
+.portals-phase1-login label{display:grid;gap:4px}
+.portals-phase1-login input{font:600 16px sans-serif;padding:10px;background:#f8faff;color:#161a25;border:0;border-radius:4px;max-width:180px}
+.portals-phase1-card footer{display:flex;justify-content:flex-end;gap:10px}
+.portals-phase1-cloud{color:#d5fa79}
+@media(max-width:600px){#portals-phase1{padding:10px}.portals-phase1-card{max-height:94dvh;padding:15px}}

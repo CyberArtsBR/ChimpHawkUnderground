@@ -28,6 +28,10 @@ export class MusicPlayer {
     this._ended = () => this.next();
     this._error = () => {
       if (this.disposed || this.current < 0) return;
+      console.warn('StreetSkate music asset error', {
+        track: this.title, url: this.audio.currentSrc || this.audio.src,
+        code: this.audio.error?.code ?? null,
+      });
       this.failed.add(this.current);
       if (this.failed.size < TRACKS.length) this.next();
       else this.onChange(this.title, 'Soundtrack unavailable — reload to retry');

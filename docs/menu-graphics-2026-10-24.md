@@ -23,3 +23,5 @@ The title screen's markup, artwork, hit targets, and original styles are unchang
 Screenshots, test/build logs, and verification JSON are saved in `G:/Streetskate/artifacts/menu-graphics-2026-10-23/`. The build is in its `final-build/` folder.
 
 Release targets are `main` for Render and `fix/portals-bundled-fonts` for the owner's manual Portals sync. Preserve each branch's existing title screen and Portals-specific actions when integrating this pass.
+
+Portals integration: rankings, online-play buttons, and existing title markup are preserved. The relative-base production build and packaged-asset verification passed. The combined menu/Portals checks passed 78 of 79 tests; the unchanged graphics-default test expects `high` while the existing default is `cinematic`. No graphics settings or assertions were changed in this menu pass. Portals publication is handled manually by the owner.

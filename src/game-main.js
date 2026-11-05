@@ -18,6 +18,11 @@ import { SkateAudio } from './game/SkateAudio.js';
 import { SKATEBOARD_FINISHES } from './skateboard/BoardFinishes.js';
 import { loadSolarSky, createCloudBackdrop } from './park/SolarSky.js';
 import { GameShell } from './game/GameShell.js';
+import { gameAssetUrl } from './game/AssetPaths.js';
+import { PortalsPhase1 } from './portals/PortalsPhase1.js';
+import { PortalsOnlineBeta } from './portals/PortalsOnlineBeta.js';
+import { shouldAdvancePortalsFrame } from './portals/OnlineSimulationGate.js';
+import './portals/portals-phase1.css';
 import { CopingTrace } from './game/CopingTrace.js';
 import { RunSummary } from './game/RunSummary.js';
 import { sessionAttemptState } from './game/SessionFlow.js';
@@ -179,6 +184,8 @@ let highlightStatus = null;
 let sessionEventTime = 0;
 let comboStartTime = 0;
 let pendingReplayMoments = [];
+let portalsPhase1 = null;
+let portalsOnline = null;
 let previousPresentationEvent = null;
 let practiceMarker = null;
 const practiceDrills = new PracticeDrills();
@@ -284,11 +291,33 @@ const gameShell = new GameShell({
   sound: enabled => setSkateSound(enabled),
   deck: index => skater?.board?.setFinish(index),
   effectsVolume: value => skateAudio.setEffectsVolume(value),
+  portalsPlayer: () => portalsPhase1?.gateway?.player || null,
+  portalsOnlineAvailable: () => Boolean(portalsOnline?.available),
+  portalsOnlineConnected: () => Boolean(portalsOnline?.connected),
+  portalsOnlineOpen: () => portalsOnline?.open(),
+  portalsOnlineIsOpen: () => Boolean(portalsOnline?.visible),
+  portalsOnlineClose: () => portalsOnline?.close(),
+  portalsAvailable: () => Boolean(portalsPhase1?.available),
+  portalsIsOpen: () => Boolean(portalsPhase1?.isOpen),
+  portalsOpen: mapId => portalsPhase1?.open(mapId),
+  portalsClose: () => portalsPhase1?.close(),
+  portalsSettingsChanged: () => portalsPhase1?.settingsChanged(),
+  portalsFinish: (summary, mapId) => { void portalsPhase1?.finishedRun(summary, mapId); },
+  portalsStart: (mapId, practice) => portalsPhase1?.gateway.track('skate_run_start', { map: mapId || 'rooftop', practice }),
   cancelLoadout: () => { loadoutRequest++; skater?.cancelRiderSwap?.(); },
   loadout: ({hero,board,location}) => selectLocation(location?.id, {hero,finish:board.finishIndex}),
   testMap: ({file,hero,board,onProgress}) => selectLocation('test-map', {file,hero,finish:board.finishIndex,onProgress}),
 });
 skateAudio.onMusicDuck=({durationMs,amount,releaseMs})=>gameShell.music.duck(durationMs,amount,releaseMs);
+portalsPhase1 = new PortalsPhase1(gameShell);
+void portalsPhase1.start();
+portalsOnline = new PortalsOnlineBeta({
+  sdk:globalThis.Portals,scene,camera,shell:gameShell,
+  getSkater:()=>skater,getWorld:()=>currentWorld,
+  changeMap:id=>selectLocation(id),goToSpot:id=>goToSpot(id),
+});
+portalsOnline.restoreCamera=()=>{if(followCamera&&skater)followCamera.snap(skater)};
+if (portalsOnline.available) gameShell.render();
 
 // Observe the existing score banks without changing scoring or simulation rules.
 function observeRunScoring(controller) {
@@ -618,6 +647,12 @@ function updateHud() {
 
 function showError(error) {
   gameShell.loadError = true;
+  gameShell.loadErrorDetail = String(error?.message || 'Check the browser console for the failing asset.').slice(0,220);
+  console.error('StreetSkate startup failure; resolved game asset URLs:', {
+    sampleTrack: gameAssetUrl('/media/808-bas.mp3'),
+    rider: gameAssetUrl('/assets/rider/TheanchoURi.glb'),
+    orbit: gameAssetUrl('/assets/spacepark/orbit.glb'),
+  }, error);
   gameShell.render();
   const loading = document.querySelector('#loading');
   loading.querySelector('p').innerHTML = 'The game could not continue.<span id="load-progress"></span>';
@@ -826,17 +861,20 @@ async function loadGame() {
       const button = document.createElement('button'); button.style.background = finish.cssGradient;
       button.title = finishNames[i]; button.setAttribute('aria-label', `Skate ${finishNames[i]}`);
       button.setAttribute('aria-pressed', String(skater.board.finishIndex === i));
-      button.onclick = () => { skater.board.setFinish(i); finishes.querySelectorAll('button').forEach((b,j) => b.setAttribute('aria-pressed',String(i===j))); button.blur(); };
+      button.onclick = () => { skater.board.setFinish(i); gameShell.boardIndex=i; portalsPhase1?.settingsChanged(); finishes.querySelectorAll('button').forEach((b,j) => b.setAttribute('aria-pressed',String(i===j))); button.blur(); };
       finishes.append(button);
     });
     const soundButton = document.querySelector('#sound-toggle');
     setSkateSound(skateAudio.enabled);
-    soundButton.onclick = () => { setSkateSound(!skateAudio.enabled); soundButton.blur(); };
+    soundButton.onclick = () => { setSkateSound(!skateAudio.enabled); portalsPhase1?.settingsChanged(); soundButton.blur(); };
     document.querySelector('#loading').classList.add('done');
     loaded = true;
     setMode('skate');
     setPaused(true);
     gameShell.setReady();
+    portalsPhase1.onGameReady();
+    // A managed Portals Party launches online immediately, no manual sub-lobby.
+    void portalsOnline?.autoJoinHostedSession();
     window.streetSkate = {
       ready: true, scene, renderer, camera, manifest, park, collision, skater,
       currentLocation: currentWorld.id, selectLocation,
@@ -934,6 +972,7 @@ window.addEventListener('resize', () => {
 function suspendSkating() {
   skateAudio.silence();
   input.clear();
+  if (portalsOnline?.connected) return; // server clock keeps running while unfocused
   if (loaded && mode === 'skate') setPaused(true);
 }
 window.addEventListener('blur', suspendSkating);
@@ -960,10 +999,16 @@ renderer.setAnimationLoop(() => {
 
   // Never silently freeze on the last airborne frame when another overlay/window
   // takes focus. Make the suspension explicit and require a deliberate resume.
-  if (loaded && mode === 'skate' && !document.hasFocus() && !paused) setPaused(true);
-  if (loaded && mode === 'skate' && document.hasFocus() && !document.hidden) {
-    const state = input.read({practice:gameShell.practice && gameShell.active && !paused});
-    const inputDisplayActive=practiceInputsEnabled && gameShell.practice && gameShell.active && !paused;
+  if (loaded && mode === 'skate' && !document.hasFocus() && !paused && !portalsOnline?.connected) setPaused(true);
+  // Portals Party sessions must keep simulating while the host iframe briefly
+  // loses DOM focus. Read controls only while focused; input remains cleared
+  // during focus loss so no phantom steering/jumps leak into the simulation.
+  if (shouldAdvancePortalsFrame({ loaded, mode, hidden: document.hidden,
+    focused: document.hasFocus(), connected: Boolean(portalsOnline?.connected) })) {
+    const focused = document.hasFocus();
+    if (!focused) input.clear();
+    const state = focused ? input.read({practice:gameShell.practice && gameShell.active && !paused}) : {};
+    const inputDisplayActive=focused && practiceInputsEnabled && gameShell.practice && gameShell.active && !paused && !portalsOnline?.visible && !portalsOnline?.watchId;
     if (inputDisplayActive) {
       const actions=[];
       if(state.ollieReleased)actions.push('POP');else if(state.ollieHeld)actions.push('CHARGE');
@@ -981,11 +1026,14 @@ renderer.setAnimationLoop(() => {
       ...state,
       directionTaps: [...(state.directionTaps || [])],
     };
-    if (state.pausePressed && gameShell.active && wasPlaying) setPaused(true);
-    if (state.cameraModePressed && gameShell.active) toggleCameraMode();
+    if (state.pausePressed && gameShell.active && wasPlaying) {
+      if (portalsOnline?.connected) { portalsOnline.open(); input.clear(); }
+      else setPaused(true);
+    }
+    if (state.cameraModePressed && gameShell.active && !portalsOnline?.visible) toggleCameraMode();
     if (state.cameraModeIndex != null && gameShell.active) setCameraMode(CAMERA_SHORTCUTS[state.cameraModeIndex] || 'follow');
     if (!paused && gameShell.simulating) {
-      if (gameShell.practice && gameShell.inputGrace <= 0) {
+      if (gameShell.practice && gameShell.inputGrace <= 0 && !portalsOnline?.visible && !portalsOnline?.watchId) {
         if (state.practiceMark) {
           if (skater.grounded && !skater.bailTime) {
             practiceMarker = { position: skater.position.clone(), heading: skater.heading,
@@ -1009,7 +1057,7 @@ renderer.setAnimationLoop(() => {
       }
       const respawn = skater.respawnSerial;
       sessionEventTime = highlightRecorder.time + realDelta;
-      skater.update(dt, gameShell.inputGrace > 0 ? {} : state, elapsed);
+      skater.update(dt, gameShell.inputGrace > 0 || portalsOnline?.visible || portalsOnline?.watchId ? {} : state, elapsed);
       if(gameShell.practice)practiceDrills.observe(skater,dt);
       if (runInProgress) {
         runSummary.update(skater, realDelta);
@@ -1062,6 +1110,7 @@ renderer.setAnimationLoop(() => {
   });
   transitionDebug?.update(skater);
   skateAudio.update(skater, loaded && mode === 'skate' && !paused && gameShell.simulating && document.hasFocus());
+  portalsOnline?.tick(dt);
   const effectsActive = loaded && mode === 'skate' && !paused && gameShell.active && document.hasFocus();
   if (!effectsActive && effectsWereActive) skateEffects.reset(skater);
   skateEffects.root.visible = Boolean(effectsActive||(gameShell.phase==='highlights'&&highlightPlayback.active));

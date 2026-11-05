@@ -248,7 +248,7 @@ export class GameShell {
     if(this.active)return;
     let title='',body='';
     if(this.phase==='title') {
-      body=`<button class="art-hit art-start" data-menu data-action="start" aria-label="Start Game — 90 seconds" ${this.ready?'':'disabled'}><span>START GAME</span></button><button class="art-hit art-back" data-menu data-action="launcher" aria-label="Back to Game Selection"><span>BACK TO GAME SELECTION</span></button><div class="title-tools">${this.button('PRACTICE','practice',!this.ready)}${this.button('TUTORIAL','tutorial')}${this.button('OPTIONS','options')}</div><p class="title-status" role="status">${this.ready?'':this.loadError?'Unable to load the park. Reload to retry.':'Loading Skate Paradise…'}</p>`;
+      body=`<button class="art-hit art-start" data-menu data-action="start" aria-label="Start Game — 90 seconds" ${this.ready?'':'disabled'}><span>START GAME</span></button><button class="art-hit art-back" data-menu data-action="launcher" aria-label="Back to Game Selection"><span>BACK TO GAME SELECTION</span></button><div class="title-tools">${this.button('PRACTICE','practice',!this.ready)}${this.button('TUTORIAL','tutorial')}${this.button('OPTIONS','options')}${this.actions.portalsAvailable?.()?this.button('PORTALS RANKINGS','portals'):''}${this.actions.portalsOnlineAvailable?.()?this.button('PLAY ONLINE · BETA','online'):''}</div><p class="title-status" role="status">${this.ready?'':this.loadError?`Unable to load the park: ${safe(this.loadErrorDetail||'Reload to retry.')}`:'Loading Skate Paradise…'}</p>`;
     } else if(this.phase==='select') {
       const cards=this.heroes.map((hero,i)=>`<button data-menu data-action="hero" data-index="${i}" class="loadout-character ${this.heroConfirmed&&i===this.heroIndex?'is-chosen':''}"
         style="--rider-accent:${hero.accent}" aria-pressed="${this.heroConfirmed&&i===this.heroIndex}">
@@ -289,6 +289,7 @@ export class GameShell {
         +this.volumeControl('effects','EFFECTS',this.effectsVolume)
         +'<div class="menu-setting-pair">'+this.button('SKATE SOUNDS · '+(this.sound?'ON':'OFF'),'sound')
         +this.button('DECK · '+BOARD_CHOICES[this.finishIndex].label,'deck')+'</div></div>'
+        +(this.actions.portalsAvailable?.()?this.button('PORTALS / TOP 10','portals'):'')+(this.actions.portalsOnlineAvailable?.()?this.button('PLAY ONLINE · BETA','online'):'')
         +this.button('EXTRAS / CREATOR TOOLS','creator')+this.button('BACK','back');
     } else if(this.phase==='settings') {
       title='PLAYER SETTINGS';body=renderPlayerSettings(this.playerPreferences,this.actions.input,this.flipInputMode)+this.button('BACK TO OPTIONS','back');
@@ -380,7 +381,7 @@ export class GameShell {
       <header class="run-results-header"><div><span class="session-eyebrow">CHIMP HAWK / SESSION COMPLETE</span><h2>${graffitiLettering('YOUR RUN','gold')}</h2><p>${safe(run.mapName||LOCATIONS[this.locationIndex]?.name||'')} <span>·</span> ${Math.round(number(run.durationSeconds??90))} SEC SESSION</p></div><div class="run-loadout"><strong>${safe(run.riderName||this.heroes[this.heroIndex]?.name||'')}</strong><span>${safe(run.deckName||BOARD_CHOICES[this.boardIndex]?.label||'')}</span>${this.button('▶ Watch the Highlights','watchHighlights',!canReplay)}</div></header>
       <div class="run-results-grid"><section class="run-score-panel"><span class="session-eyebrow">FINAL SCORE</span><p class="run-total-score result-score"><strong data-final-score>${points(finalScore)}</strong><span>FINAL POINTS${run.scoreBreakdown?' · RUN WEIGHTS APPLIED':''}</span></p>${this.renderPersonalBest(run)}<div class="run-best-combo"><span class="session-eyebrow">BEST COMBO</span><strong>${points(best.points)} <small>PTS</small></strong><p>${number(best.points)>0?safe(best.label||'Landed combo'):'No combo banked this run'}</p>${number(best.trickCount)>0?`<span>${points(best.trickCount)} ${number(best.trickCount)===1?'trick':'tricks'} linked</span>`:''}</div>${this.renderScoreBreakdown(run)}<h3>THE RUN IN NUMBERS</h3><dl class="run-stats">${stats}</dl></section>
       <div class="run-detail-column"><section class="run-achievements"><h3>SESSION ACHIEVEMENTS</h3><ol>${achievementRows}</ol></section><section class="run-top-tricks"><h3>HIGHEST SCORING TRICK MOMENTS</h3><ol>${topRows}</ol></section><section class="run-highlights"><span class="session-eyebrow">THE HIGHLIGHT REEL</span><p>${canReplay?`${highlightCount} best scored moment${highlightCount===1?'':'s'} · cinematic cameras & slow motion`:'Land a scored trick to capture your highlights.'}</p><small>${canReplay?'2.5 seconds before and after each moment, where the session allows.':'Highlights are recorded during this session only.'}</small></section></div></div>
-      <footer class="run-results-actions">${this.button('RUN IT AGAIN · 90 SEC','restart')}${this.button('CHANGE RIDER / SPOT','start')}${this.button('PRACTICE','practice')}${this.button('MAIN MENU','title')}</footer></article>`;
+      <footer class="run-results-actions">${this.button('RUN IT AGAIN · 90 SEC','restart')}${this.button('CHANGE RIDER / SPOT','start')}${this.button('PRACTICE','practice')}${this.actions.portalsAvailable?.()?this.button('PORTALS TOP 10','portals'):''}${this.button('MAIN MENU','title')}</footer></article>`;
   }
   renderScoreBreakdown(run){
     const score=run.scoreBreakdown;
@@ -415,6 +416,7 @@ export class GameShell {
     this.timeupEndsAt=this.timeupStartedAt+(!this.timeupSeen||this.runSummary.parkRecord?.isNewBest?3000:1400);
     this.timeupSeen=true;this.actions.cue?.('roundOver');this.music.duck(900,.5);
     this.setScreen('timeup');
+    this.actions.portalsFinish?.(this.runSummary, LOCATIONS[this.locationIndex]?.id);
   }
   showResults(){this.setScreen('results');}
   updateReplayCaption(){
@@ -569,8 +571,9 @@ export class GameShell {
     this.sessionFlow.begin({practice});this.goRemaining=0;
     this.music.unlock();this.setScreen('playing');this.actions.start(practice);
     if(!practice)this.actions.cue?.('ready');this.actions.camera(CAMERA_MODES[this.cameraIndex]);
+    this.actions.portalsStart?.(LOCATIONS[this.locationIndex]?.id,practice);
   }
-  pause(){if(this.active){this.setScreen('pause');this.actions.pause(true);}}
+  pause(){if(this.active){if(this.actions.portalsOnlineConnected?.()){this.actions.portalsOnlineOpen?.();return;}this.setScreen('pause');this.actions.pause(true);}}
   resume(){this.setScreen('playing');this.inputGrace=.18;this.actions.pause(false);}
   syncPause(value){if(value&&this.active)this.setScreen('pause');else if(!value&&this.phase==='pause')this.setScreen('playing');}
   openTutorial(){this.tutorialReturn=this.phase;this.page=0;this.flipTutorial=true;this.actions.pause(true);this.setScreen('flipSchool');}
@@ -597,6 +600,8 @@ export class GameShell {
     if(this.selectBusy&&['hero','board','location','upload','confirmLoadout'].includes(action))return;
     switch(action){
       // Same game-selection destination used by CyberArtsBR/Skate's launcher.
+      case 'portals':this.actions.portalsOpen?.(LOCATIONS[this.locationIndex]?.id);break;
+      case 'online':this.actions.portalsOnlineOpen?.();break;
       case 'launcher':window.location.assign('https://chimp-jump.onrender.com/');break;
       case 'start':this.begin(false);break;case 'practice':this.begin(true);break;
       case 'hero':this.heroIndex=index;this.heroConfirmed=true;this.updateLoadoutSelection(action,index);break;
@@ -651,6 +656,7 @@ export class GameShell {
       case 'closeTutorial':this.closeTutorial();break;
       case 'skipTutorial':this.closeTutorial();break;
     }
+    if(['camera','graphicsSet','bloomToggle','musicDown','musicUp','effectsDown','effectsUp','sound','deck','hero','board','location'].includes(action))this.actions.portalsSettingsChanged?.();
   }
   adjustVolume(channel,step){
     const current=channel==='music'?this.music.musicVolume:this.effectsVolume;
@@ -669,6 +675,14 @@ export class GameShell {
     if(this.roundCue.textContent!==label)this.roundCue.textContent=label;
   }
   key(event){
+    if(this.actions?.portalsOnlineIsOpen?.()){
+      if(event.code==='Escape'){event.preventDefault();event.stopImmediatePropagation();this.actions.portalsOnlineClose?.();}
+      return;
+    }
+    if(this.actions?.portalsIsOpen?.()){
+      if(event.code==='Escape'){event.preventDefault();event.stopImmediatePropagation();this.actions.portalsClose?.();}
+      return;
+    }
     if(this.settingsPanel?.capturing)return;
     if(this.active&&this.sessionFlow?.phase==='ready'&&['Enter','Space'].includes(event.code)){event.preventDefault();event.stopImmediatePropagation();if(!event.repeat)this.skipReady();return;}
     if(/INPUT|TEXTAREA|SELECT/.test(event.target?.tagName))return;
@@ -736,6 +750,14 @@ export class GameShell {
     // synthesize a stale edge from a button held while the tab was inactive.
     if(!focused){this.padFocused=false;this.previousPad=keys;this.navRepeat=.22;return;}
     if(!this.padFocused||padChanged){this.previousPad=keys;this.padFocused=true;}
+    if(this.actions?.portalsOnlineIsOpen?.()) {
+      if(keys.back&&!this.previousPad.back)this.actions?.portalsOnlineClose?.();
+      this.previousPad=keys;return;
+    }
+    if(this.actions?.portalsIsOpen?.()) {
+      if(keys.back&&!this.previousPad.back)this.actions?.portalsClose?.();
+      this.previousPad=keys;return;
+    }
     const edge=k=>keys[k]&&!this.previousPad[k];
     const capturing=this.settingsPanel?.capturing;this.settingsPanel?.update();
     if(capturing){this.previousPad=keys;return;}

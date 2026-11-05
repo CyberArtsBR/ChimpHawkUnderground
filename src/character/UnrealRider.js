@@ -607,7 +607,11 @@ export class UnrealRider {
         // during full crouch. The shoe-contact calibration is independent:
         // corrected feet remain anchored by the following two-leg IK solve.
         ensurePelvisDeckClearance(this.model, this.bones.pelvis, board,
-          Math.max(.19, this.poseCalibration.pelvisClearance));
+          // TuxR's unusually compact pelvis pivot reaches the deck on a full
+          // squat even with rig-relative calibration. Raise just this rider's
+          // pelvis, without modifying foot anchors, proportions or board scale.
+          Math.max(this.url?.endsWith('/TuxR.glb') && !inAir ? .355 : .19,
+            this.poseCalibration.pelvisClearance));
       }
     }
     for (const side of SIDES) {
