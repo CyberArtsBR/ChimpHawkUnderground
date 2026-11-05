@@ -1,0 +1,185 @@
+/* Owner-supplied bitmap graffiti, with readable text for assistive technology. */
+.sr-only{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important}
+.graffiti-lettering{position:relative;display:inline-block;--letter-height:1em;vertical-align:middle;max-width:100%}
+.graffiti-art{display:flex;flex-wrap:wrap;justify-content:inherit;gap:.18em .38em;line-height:1}
+.graffiti-word{display:inline-flex;align-items:center;white-space:nowrap}
+.graffiti-word img{width:calc(var(--letter-height)*.79);height:var(--letter-height);object-fit:contain;margin-right:calc(var(--letter-height)*-.09);filter:drop-shadow(0 3px 2px #0008)}
+.graffiti-punctuation{font:900 .7em Impact,sans-serif;color:#e5faff;-webkit-text-fill-color:#e5faff;padding:.1em}
+.graffiti-failed .graffiti-art,.graffiti-loading .graffiti-art{visibility:hidden}
+.graffiti-ready:not(.graffiti-failed)>.graffiti-fallback{display:none}
+.graffiti-fallback{position:absolute;inset:0;display:flex;align-items:center;font:900 1em/1.1 'Barlow Condensed',Impact,Arial,sans-serif;letter-spacing:.04em;color:#fff1b5;-webkit-text-fill-color:#fff1b5;text-shadow:0 2px 3px #101421}
+#game-shell.menu-screen .menu-card h2{font-size:clamp(30px,4vw,48px);-webkit-text-fill-color:initial;background:none;transform:none;letter-spacing:0}
+#trick-feedback{--letter-height:clamp(24px,3vw,38px);font-size:var(--letter-height);padding:0;text-shadow:none;-webkit-text-stroke:0;line-height:1.15}
+#trick-feedback::after{display:none}
+#trick-feedback .graffiti-art{justify-content:center;row-gap:5px}
+#game-shell.loadout-screen{background:radial-gradient(ellipse at 20% 0,#29424c,#151121 60%);isolation:isolate;backdrop-filter:none}
+.loadout-backdrop{position:absolute;inset:0;width:100%;height:100%;z-index:-2;pointer-events:none}
+.loadout-backdrop[hidden]{display:none}
+#game-shell.loadout-screen::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,#070b1420,#11121f36 35%,#0b0a1699);z-index:-1;pointer-events:none}
+#game-shell.loadout-screen .shell-content{position:relative;width:min(1420px,94vw);max-height:calc(100dvh - 74px);aspect-ratio:auto;border:0;background:none;box-shadow:none;overflow-x:hidden;overflow-y:auto;border-radius:0;scrollbar-gutter:auto;container-type:inline-size}
+#game-shell.loadout-screen .loadout-shell{height:auto;min-height:0;padding:16px 8px;gap:18px;justify-content:flex-start}
+#game-shell.loadout-screen .loadout-shell header{position:relative;padding:0 6px}
+#game-shell.loadout-screen .loadout-shell header small{font:800 11px/1.5 'DM Sans',sans-serif;letter-spacing:.24em;color:#8eedf4}
+#game-shell.loadout-screen .loadout-shell header h2{font-size:clamp(35px,4.5cqw,66px);margin:10px 0 9px;background:none;-webkit-text-fill-color:initial;transform:none;filter:none;text-shadow:none;line-height:1;letter-spacing:0}
+#game-shell.loadout-screen .loadout-shell header p{font-size:11px;letter-spacing:.16em;color:#c3c8dd;line-height:1.5;margin:0}
+.loadout-edition{position:absolute;right:8px;bottom:12px;color:#cdd0df;font:700 10px 'DM Sans',sans-serif;letter-spacing:.2em;writing-mode:vertical-rl}
+.loadout-panels{display:grid;grid-template-columns:1.16fr 1fr 1fr;gap:18px;align-items:stretch}
+#game-shell.loadout-screen .loadout-section{position:relative;display:flex;flex-direction:column;min-width:0;min-height:0;gap:13px;padding:20px;overflow:hidden;border:1px solid #9495be47;border-radius:26px;background:linear-gradient(155deg,#232433eb,#12131edb);box-shadow:inset 0 1px 0 #ffffff12,0 16px 32px #04051044;backdrop-filter:blur(12px)}
+#game-shell.loadout-screen .rider-panel{border-top-color:#54e6f493}
+#game-shell.loadout-screen .deck-panel{border-top-color:#b391edb0}
+#game-shell.loadout-screen .spot-panel{border-top-color:#ffc56885}
+#game-shell.loadout-screen .loadout-heading{gap:10px;align-items:center;justify-content:flex-start;flex-wrap:wrap;min-height:32px;margin-bottom:4px}
+#game-shell.loadout-screen .loadout-heading h3 span{font-size:inherit}
+.loadout-heading h3{font-size:31px;line-height:1;margin:0;letter-spacing:0}
+.section-number{font:800 12px 'DM Sans',sans-serif;color:#9194ad;border:1px solid #5c6078;border-radius:50%;width:29px;height:29px;display:grid;place-items:center}
+#game-shell.loadout-screen .panel-kicker{margin-left:auto;font-size:10px;letter-spacing:.15em;color:#a6abc5}
+#game-shell.loadout-screen .loadout-roster{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;flex:1;align-content:start}
+#game-shell.loadout-screen .loadout-character{padding:7px 7px 10px!important;border:1px solid #787b994d;border-radius:16px;background:linear-gradient(145deg,#36334788,#161922ad);gap:4px;min-height:0;text-align:center;box-shadow:none}
+#game-shell.loadout-screen .rider-portrait{position:relative;display:block;height:clamp(100px,14vh,130px);border-radius:11px;background:radial-gradient(ellipse at 50% 67%,color-mix(in srgb,var(--rider-accent),transparent 78%),transparent 70%)}
+#game-shell.loadout-screen .rider-portrait img{position:absolute;inset:0;height:100%;width:100%;object-fit:contain}
+#game-shell.loadout-screen .rider-initial{font-size:65px}
+.preview-status{position:absolute;bottom:4px;left:0;right:0;font:600 10px/1.3 'DM Sans',Arial,sans-serif;color:#d3dce9;text-align:center}
+[data-preview-state='loading'] .rider-initial{opacity:.4}
+[data-preview-state='unavailable'] .rider-initial{opacity:.65}
+/* Tiny roster portraits keep a fixed silhouette; loading prose belongs to the large preview. */
+#game-shell.loadout-screen .loadout-character .preview-status{font-size:0;inset:0;display:grid;place-items:center;pointer-events:none}
+#game-shell.loadout-screen .loadout-character [data-preview-state='loading'] .preview-status::after{content:'';width:12px;height:12px;border:2px solid #b8cbd54d;border-top-color:#b8cbd5;border-radius:50%}
+#game-shell.loadout-screen .loadout-character [data-preview-state='unavailable'] .preview-status::after{content:'?';font:700 18px/1 'DM Sans',Arial,sans-serif;color:#e2eaf2}
+#game-shell.loadout-screen .selected-rider .preview-status{font-size:var(--ui-label,12px);padding:4px;box-sizing:border-box}
+#game-shell.loadout-screen .loadout-character strong{font:800 clamp(13px,1.5cqw,19px)/1.2 'Barlow Condensed',sans-serif;letter-spacing:.06em;text-shadow:none;-webkit-text-stroke:0;color:#f2f2ff}
+#game-shell.loadout-screen .loadout-character small{font:600 10px/1.4 'DM Sans',sans-serif;color:#c0c8da;letter-spacing:.05em}
+#game-shell.loadout-screen .loadout-character.is-chosen{background:linear-gradient(145deg,#2b4652c9,#1b223bc9);border-color:var(--rider-accent)!important;box-shadow:inset 0 0 20px #66e9ff09!important}
+#game-shell.loadout-screen .loadout-character.is-chosen::after{content:'✓';right:8px;top:8px;border-radius:50%;font-size:10px;padding:3px 5px;background:#7ee6e4;color:#172329}
+#game-shell.loadout-screen .loadout-boards{grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:repeat(4,minmax(0,1fr));gap:9px;flex:1}
+#game-shell.loadout-screen .loadout-deck{position:relative;display:flex;flex-direction:column;gap:2px;border:1px solid #72728e62;border-radius:15px;background:#34314455;padding:4px 8px 9px!important;min-height:78px;text-align:center;overflow:hidden}
+#game-shell.loadout-screen .loadout-deck b{font:800 10px/1.5 'DM Sans',sans-serif;letter-spacing:.045em;color:#dce4f4}
+.deck-thumb{position:relative;display:grid;place-items:center;width:100%;height:clamp(45px,6.8vh,63px);min-height:0}
+.deck-thumb img{position:absolute;inset:0;display:block;width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 5px 4px #0008)}
+#game-shell.loadout-screen .deck-thumb .deck-preview{width:75%;height:17px;flex:none;transform:rotate(-12deg);border-radius:45%;border:1px solid #e6e6eb;box-shadow:0 3px 0 #909099}
+.deck-swatch{display:block;width:28px;height:3px;border-radius:3px;background:var(--deck-gradient)}
+#game-shell.loadout-screen .loadout-deck.is-chosen{border-color:#dba8ff;box-shadow:inset 0 0 20px #cd6aff11;background:#48365088}
+#game-shell.loadout-screen .loadout-deck.is-chosen::after{position:absolute;right:7px;top:5px;font-size:11px;color:#f0d0ff}
+#game-shell.loadout-screen .loadout-locations{display:grid;grid-template-columns:1fr;gap:13px;flex:1;grid-template-rows:repeat(2,minmax(0,1fr))}
+#game-shell.loadout-screen .loadout-location{display:flex;flex-direction:column;justify-content:flex-start;gap:6px;border:1px solid #71758c66;background:#232533!important;border-radius:17px;min-height:154px;padding:0 0 14px!important;overflow:hidden;text-align:left}
+.location-art{position:relative;display:block;width:100%;height:clamp(95px,14vh,128px);flex:1;min-height:80px;overflow:hidden;background:linear-gradient(160deg,#c57a90 0%,#de9d73 45%,#646780 46%,#363751 85%)}
+.location-art::before{content:'';position:absolute;left:-10%;bottom:-30%;width:110%;height:65%;background:#1e2535;transform:rotate(-8deg);box-shadow:30px -22px 0 -6px #45415c,90px -39px 0 -13px #605374}
+.location-art::after{content:'';position:absolute;left:12%;bottom:15%;width:65%;height:12%;border:2px solid #efb999;transform:skewY(-8deg);border-radius:10px 10px 0 0;background:#584860}
+.map-number{position:absolute;left:12px;top:12px;z-index:1;padding:5px 8px;border-radius:6px;background:#101624ae;color:#fff2cd;font:800 9px 'DM Sans',sans-serif;letter-spacing:.12em}
+.location-stamp{position:absolute;right:12px;bottom:11px;z-index:1;color:#ffddb7;font:800 9px 'DM Sans',sans-serif;letter-spacing:.08em;text-shadow:0 2px 4px #000}
+#game-shell.loadout-screen [data-location='rooftop'] .location-art{background:linear-gradient(0deg,#25252666,#15151900),url('/assets/menu/iron-district-current.webp') center/cover}
+#game-shell.loadout-screen [data-location='orbit'] .location-art{background:linear-gradient(0deg,#25252666,#15151900),url('/assets/menu/orbit-current.webp') center/cover}
+#game-shell.loadout-screen [data-location='grand-warehouse'] .location-art{background:linear-gradient(0deg,#25252666,#15151900),url('/assets/menu/grand-warehouse-current.webp') center/cover}
+#game-shell.loadout-screen .location-art::before,#game-shell.loadout-screen .location-art::after{display:none}
+#game-shell.loadout-screen .loadout-location strong{font:800 17px 'Barlow Condensed',sans-serif;letter-spacing:.06em;padding:0 13px;color:#f9eddb}
+#game-shell.loadout-screen .loadout-location small{font:500 10px/1.4 'DM Sans',sans-serif;letter-spacing:0;padding:0 13px;color:#b2b7ca}
+#game-shell.loadout-screen .loadout-location.is-chosen{border-color:#ffcd7e!important;box-shadow:inset 0 0 24px #ffd27b0a}
+.selection-note{display:flex;flex-direction:column;gap:5px;padding-top:13px;margin-top:auto;border-top:1px solid #9f9daf26}
+.selection-note span{font:700 8px 'DM Sans',sans-serif;letter-spacing:.15em;color:#949bb9}
+.selection-note strong{font:700 11px 'DM Sans',sans-serif;letter-spacing:.045em;color:#d7ddee;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#game-shell.loadout-screen [data-action='upload']{background:#4a425450;border:1px dashed #a5a0c46b;border-radius:10px;padding:9px!important;font:700 9px 'DM Sans',sans-serif;text-align:center;min-height:34px}
+#game-shell.loadout-screen .loadout-shell footer{margin:0;display:flex;align-items:center;gap:12px}
+#game-shell.loadout-screen .loadout-shell footer button{font:800 12px 'DM Sans',sans-serif;padding:14px 20px;border-radius:12px;min-height:46px;background:#1d2030d9}
+#game-shell.loadout-screen .loadout-shell footer [data-action='confirmLoadout']{background:#f6cf7f;color:#261f27;border-color:#ffe2a4;min-width:190px;text-align:center;box-shadow:0 5px 24px #ffb95126}
+.loadout-recap{flex:1;text-align:center;font:600 10px 'DM Sans',sans-serif;color:#c3c8dd;letter-spacing:.06em}
+.loadout-recap i{padding:0 9px;color:#776e95;font-style:normal}
+#game-shell.loadout-screen .loadout-status{font:500 10px/1.4 'DM Sans',sans-serif;text-align:right;color:#c2a77d;margin:-8px 0 0;min-height:14px}
+#game-shell.loadout-screen button.selected:not(.is-chosen):not([disabled]){outline:2px solid #e8ecff;outline-offset:-2px;background-color:#3b3a50!important;box-shadow:none!important}
+#game-shell.loadout-screen button.is-chosen.selected{outline:2px solid #faffff;outline-offset:3px}
+#game-shell.loadout-screen .menu-footnote{background:#0a0d17ad;border:1px solid #5c607438;border-radius:20px;font-size:11px;bottom:12px;padding:8px 20px}
+@media(max-width:1000px){.loadout-panels{gap:10px}#game-shell.loadout-screen .loadout-section{padding:13px;gap:10px;border-radius:20px}.loadout-heading h3{font-size:25px}#game-shell.loadout-screen .panel-kicker{display:none}.loadout-recap{font-size:10px}.loadout-recap i{padding:0 3px}}
+@media(max-width:720px){#game-shell.loadout-screen .shell-content{width:100vw;max-height:calc(100dvh - 45px);height:calc(100dvh - 45px)}#game-shell.loadout-screen .loadout-shell{padding:15px;gap:17px}.loadout-panels{grid-template-columns:1fr;gap:15px}#game-shell.loadout-screen .loadout-section{padding:17px;border-radius:23px}#game-shell.loadout-screen .loadout-shell header h2{font-size:clamp(28px,7.7vw,52px)}#game-shell.loadout-screen .loadout-shell header p{font-size:10px;letter-spacing:.07em}.loadout-edition{display:none}#game-shell.loadout-screen .loadout-shell header small{font-size:11px}#game-shell.loadout-screen .rider-portrait{height:150px}#game-shell.loadout-screen .loadout-character strong{font-size:19px}#game-shell.loadout-screen .loadout-boards{grid-template-columns:repeat(2,minmax(0,1fr))}.deck-thumb{height:70px}#game-shell.loadout-screen .loadout-deck b{font-size:11px}#game-shell.loadout-screen .loadout-locations{grid-template-rows:auto}.location-art{height:145px;flex:none}#game-shell.loadout-screen .loadout-shell footer{flex-wrap:wrap}.loadout-recap{order:3;flex-basis:100%;font-size:11px}#game-shell.loadout-screen .loadout-shell footer [data-action='confirmLoadout']{flex:1;min-width:0}#game-shell.loadout-screen .loadout-status{text-align:center}#game-shell.loadout-screen .menu-footnote{bottom:6px;font-size:10px;padding:7px}}
+@media(max-height:600px) and (min-width:721px){#game-shell.loadout-screen .shell-content{max-height:calc(100dvh - 45px)}#game-shell.loadout-screen .loadout-shell header h2{font-size:38px}#game-shell.loadout-screen .rider-portrait{height:83px}#game-shell.loadout-screen .menu-footnote{bottom:3px}}
+
+/* Agent 08: never hide Map 03 in an implicit overflowing two-row grid. */
+#game-shell.loadout-screen .loadout-locations{
+  grid-template-rows:none;
+  grid-auto-rows:minmax(145px,auto);
+  align-content:start;
+  flex:0 0 auto;
+}
+#game-shell.loadout-screen .shell-content{
+  overscroll-behavior:contain;
+  scroll-behavior:auto;
+}
+#game-shell.loadout-screen button[data-menu]:focus-visible,
+#game-shell.loadout-screen button[data-menu].selected{
+  outline:3px solid #fff4ba;
+  outline-offset:2px;
+  position:relative;
+  z-index:1;
+}
+#game-shell.loadout-screen .loadout-status{font-size:clamp(11px,.9vw,13px);line-height:1.5}
+#game-shell.loadout-screen .loadout-section{scroll-margin-block:16px}
+#game-shell.loadout-screen button[data-menu]{scroll-margin:14px}
+@media(max-width:720px){
+  #game-shell.loadout-screen .loadout-locations{grid-auto-rows:minmax(178px,auto)}
+  #game-shell.loadout-screen .loadout-shell{padding-bottom:38px}
+  #game-shell.loadout-screen .menu-footnote{
+    max-width:calc(100vw - 16px);
+    text-align:center;
+    white-space:normal;
+    line-height:1.45;
+  }
+}
+@media(max-height:600px){
+  #game-shell.loadout-screen .shell-content{scrollbar-gutter:stable}
+}
+@media(prefers-reduced-motion:reduce){
+  #game-shell.loadout-screen *,#game-shell.loadout-screen *::before,
+  #game-shell.loadout-screen *::after{scroll-behavior:auto!important;transition:none!important}
+}
+
+#game-shell.loadout-screen [data-location='skate-paradise'] .location-art{background:linear-gradient(0deg,#25252666,#15151900),url('/assets/menu/skate-paradise.webp') center/cover}
+
+/* Give the whole crew one readable row, including an optional uploaded rider. */
+#game-shell.loadout-screen .loadout-roster.loadout-roster-band{
+  grid-template-columns:repeat(5,minmax(0,1fr));
+  gap:8px;
+  flex:0 0 auto;
+}
+#game-shell.loadout-screen .loadout-roster-band .loadout-character{
+  min-height:80px;
+  grid-template-columns:48px minmax(0,1fr);
+  padding:7px!important;
+  text-align:left;
+}
+#game-shell.loadout-screen .loadout-roster-band .loadout-character.is-chosen{
+  border-color:var(--rider-accent)!important;
+  box-shadow:inset 3px 0 var(--rider-accent)!important;
+}
+#game-shell.loadout-screen .loadout-roster-band .loadout-character strong,
+#game-shell.loadout-screen .loadout-roster-band .loadout-character small{
+  overflow:visible;
+  overflow-wrap:normal;
+}
+#game-shell.loadout-screen .loadout-roster-band .loadout-character .rider-portrait{
+  width:48px;
+  height:58px;
+}
+@media(min-width:1000px) and (min-height:650px){
+  #game-shell.loadout-screen .loadout-shell:has(.loadout-roster-band){
+    grid-template-rows:auto auto minmax(0,1fr) auto auto;
+  }
+  #game-shell.loadout-screen .loadout-roster-band ~ .loadout-panels .selected-rider{
+    min-height:130px;
+  }
+}
+@media(max-width:999px){
+  #game-shell.loadout-screen .loadout-roster.loadout-roster-band{
+    grid-template-columns:repeat(3,minmax(0,1fr));
+  }
+}
+@media(max-width:620px){
+  #game-shell.loadout-screen .loadout-roster.loadout-roster-band{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+}
+@media(max-width:380px){
+  #game-shell.loadout-screen .loadout-roster-band .loadout-character{
+    grid-template-columns:34px minmax(0,1fr);
+    padding:5px!important;
+  }
+  #game-shell.loadout-screen .loadout-roster-band .loadout-character .rider-portrait{
+    width:34px;
+  }
+}

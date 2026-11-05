@@ -1,0 +1,3605 @@
+{
+  "sheets": [
+    {
+      "riderName": "The_Heretic",
+      "stance": 1,
+      "angle": "front",
+      "type": "motion",
+      "file": "The_Heretic-regular-front-motion.png",
+      "contacts": [
+        {
+          "name": "Indy",
+          "side": "r",
+          "wristDistance": 0.5487221884498672
+        },
+        {
+          "name": "Nosegrab",
+          "side": "l",
+          "wristDistance": 0.39742195021521903
+        },
+        {
+          "name": "Melon",
+          "side": "l",
+          "wristDistance": 0.4894961164600038
+        },
+        {
+          "name": "Tailgrab",
+          "side": "r",
+          "wristDistance": 0.3791533163606585
+        }
+      ],
+      "cells": 16
+    },
+    {
+      "riderName": "The_Heretic",
+      "stance": 1,
+      "angle": "front",
+      "type": "grabs",
+      "file": "The_Heretic-regular-front-grabs.png",
+      "contacts": [
+        {
+          "name": "Indy",
+          "side": "r",
+          "wristDistance": 0.5487221884498672
+        },
+        {
+          "name": "Melon",
+          "side": "l",
+          "wristDistance": 0.4894961164600038
+        },
+        {
+          "name": "Nosegrab",
+          "side": "l",
+          "wristDistance": 0.39742195021521903
+        },
+        {
+          "name": "Tailgrab",
+          "side": "r",
+          "wristDistance": 0.3791533163606585
+        },
+        {
+          "name": "Japan",
+          "side": "l",
+          "wristDistance": 0.4552776989497601
+        },
+        {
+          "name": "Madonna",
+          "side": "l",
+          "wristDistance": 0.500900330949613
+        },
+        {
+          "name": "Benihana",
+          "side": "r",
+          "wristDistance": 0.4141894934879803
+        },
+        {
+          "name": "Method",
+          "side": "l",
+          "wristDistance": 0.483445927334095
+        },
+        {
+          "name": "Stalefish",
+          "side": "r",
+          "wristDistance": 0.4116230750726894
+        },
+        {
+          "name": "Rocket Air",
+          "side": "l",
+          "wristDistance": 0.2148002171045181
+        },
+        {
+          "name": "Rocket Air",
+          "side": "r",
+          "wristDistance": 0.7278922280554531
+        },
+        {
+          "name": "Seatbelt",
+          "side": "l",
+          "wristDistance": 0.7895153258719338
+        },
+        {
+          "name": "Mute",
+          "side": "l",
+          "wristDistance": 0.49233375568643967
+        },
+        {
+          "name": "Judo",
+          "side": "l",
+          "wristDistance": 0.3762918538706974
+        },
+        {
+          "name": "Crail",
+          "side": "r",
+          "wristDistance": 0.8315673938883862
+        },
+        {
+          "name": "Christ Air",
+          "side": "l",
+          "wristDistance": 0.5032063198837685
+        }
+      ],
+      "cells": 16
+    },
+    {
+      "riderName": "The_Heretic",
+      "stance": 1,
+      "angle": "side",
+      "type": "motion",
+      "file": "The_Heretic-regular-side-motion.png",
+      "contacts": [
+        {
+          "name": "Indy",
+          "side": "r",
+          "wristDistance": 0.5487221884498672
+        },
+        {
+          "name": "Nosegrab",
+          "side": "l",
+          "wristDistance": 0.39742195021521903
+        },
+        {
+          "name": "Melon",
+          "side": "l",
+          "wristDistance": 0.4894961164600038
+        },
+        {
+          "name": "Tailgrab",
+          "side": "r",
+          "wristDistance": 0.3791533163606585
+        }
+      ],
+      "cells": 16
+    },
+    {
+      "riderName": "The_Heretic",
+      "stance": 1,
+      "angle": "side",
+      "type": "grabs",
+      "file": "The_Heretic-regular-side-grabs.png",
+      "contacts": [
+        {
+          "name": "Indy",
+          "side": "r",
+          "wristDistance": 0.5487221884498672
+        },
+        {
+          "name": "Melon",
+          "side": "l",
+          "wristDistance": 0.4894961164600038
+        },
+        {
+          "name": "Nosegrab",
+          "side": "l",
+          "wristDistance": 0.39742195021521903
+        },
+        {
+          "name": "Tailgrab",
+          "side": "r",
+          "wristDistance": 0.3791533163606585
+        },
+        {
+          "name": "Japan",
+          "side": "l",
+          "wristDistance": 0.4552776989497601
+        },
+        {
+          "name": "Madonna",
+          "side": "l",
+          "wristDistance": 0.500900330949613
+        },
+        {
+          "name": "Benihana",
+          "side": "r",
+          "wristDistance": 0.4141894934879803
+        },
+        {
+          "name": "Method",
+          "side": "l",
+          "wristDistance": 0.483445927334095
+        },
+        {
+          "name": "Stalefish",
+          "side": "r",
+          "wristDistance": 0.4116230750726894
+        },
+        {
+          "name": "Rocket Air",
+          "side": "l",
+          "wristDistance": 0.2148002171045181
+        },
+        {
+          "name": "Rocket Air",
+          "side": "r",
+          "wristDistance": 0.7278922280554531
+        },
+        {
+          "name": "Seatbelt",
+          "side": "l",
+          "wristDistance": 0.7895153258719338
+        },
+        {
+          "name": "Mute",
+          "side": "l",
+          "wristDistance": 0.49233375568643967
+        },
+        {
+          "name": "Judo",
+          "side": "l",
+          "wristDistance": 0.3762918538706974
+        },
+        {
+          "name": "Crail",
+          "side": "r",
+          "wristDistance": 0.8315673938883862
+        },
+        {
+          "name": "Christ Air",
+          "side": "l",
+          "wristDistance": 0.5032063198837685
+        }
+      ],
+      "cells": 16
+    },
+    {
+      "riderName": "The_Heretic",
+      "stance": 1,
+      "angle": "rear",
+      "type": "motion",
+      "file": "The_Heretic-regular-rear-motion.png",
+      "contacts": [
+        {
+          "name": "Indy",
+          "side": "r",
+          "wristDistance": 0.5487221884498672
+        },
+        {
+          "name": "Nosegrab",
+          "side": "l",
+          "wristDistance": 0.39742195021521903
+        },
+        {
+          "name": "Melon",
+          "side": "l",
+          "wristDistance": 0.4894961164600038
+        },
+        {
+          "name": "Tailgrab",
+          "side": "r",
+          "wristDistance": 0.3791533163606585
+        }
+      ],
+      "cells": 16
+    },
+    {
+      "riderName": "The_Heretic",
+      "stance": 1,
+      "angle": "rear",
+      "type": "grabs",
+      "file": "The_Heretic-regular-rear-grabs.png",
+      "contacts": [
+        {
+          "name": "Indy",
+          "side": "r",
+          "wristDistance": 0.5487221884498672
+        },
+        {
+          "name": "Melon",
+          "side": "l",
+          "wristDistance": 0.4894961164600038
+        },
+        {
+          "name": "Nosegrab",
+          "side": "l",
+          "wristDistance": 0.39742195021521903
+        },
+        {
+          "name": "Tailgrab",
+          "side": "r",
+          "wristDistance": 0.3791533163606585
+        },
+        {
+          "name": "Japan",
+          "side": "l",
+          "wristDistance": 0.4552776989497601
+        },
+        {
+          "name": "Madonna",
+          "side": "l",
+          "wristDistance": 0.500900330949613
+        },
+        {
+          "name": "Benihana",
+          "side": "r",
+          "wristDistance": 0.4141894934879803
+        },
+        {
+          "name": "Method",
+          "side": "l",
+          "wristDistance": 0.483445927334095
+        },
+        {
+          "name": "Stalefish",
+          "side": "r",
+          "wristDistance": 0.4116230750726894
+        },
+        {
+          "name": "Rocket Air",
+          "side": "l",
+          "wristDistance": 0.2148002171045181
+        },
+        {
+          "name": "Rocket Air",
+          "side": "r",
+          "wristDistance": 0.7278922280554531
+        },
+        {
+          "name": "Seatbelt",
+          "side": "l",
+          "wristDistance": 0.7895153258719338
+        },
+        {
+          "name": "Mute",
+          "side": "l",
+          "wristDistance": 0.49233375568643967
+        },
+        {
+          "name": "Judo",
+          "side": "l",
+          "wristDistance": 0.3762918538706974
+        },
+        {
+          "name": "Crail",
+          "side": "r",
+          "wristDistance": 0.8315673938883862
+        },
+        {
+          "name": "Christ Air",
+          "side": "l",
+          "wristDistance": 0.5032063198837685
+        }
+      ],
+      "cells": 16
+    },
+    {
+      "riderName": "The_Heretic",
+      "stance": -1,
+      "angle": "front",
+      "type": "motion",
+      "file": "The_Heretic-switch-front-motion.png",
+      "contacts": [
+        {
+          "name": "Indy",
+          "side": "l",
+          "wristDistance": 0.49171756663461963
+        },
+        {
+          "name": "Nosegrab",
+          "side": "r",
+          "wristDistance": 0.6507397477060173
+        },
+        {
+          "name": "Melon",
+          "side": "r",
+          "wristDistance": 0.5357420485170059
+        },
+        {
+          "name": "Tailgrab",
+          "side": "l",
+          "wristDistance": 0.621455147467048
+        }
+      ],
+      "cells": 16
+    },
+    {
+      "riderName": "The_Heretic",
+      "stance": -1,
+      "angle": "front",
+      "type": "grabs",
+      "file": "The_Heretic-switch-front-grabs.png",
+      "contacts": [
+        {
+          "name": "Indy",
+          "side": "l",
+          "wristDistance": 0.49171756663461963
+        },
+        {
+          "name": "Melon",
+          "side": "r",
+          "wristDistance": 0.5357420485170059
+        },
+        {
+          "name": "Nosegrab",
+          "side": "r",
+          "wristDistance": 0.6507397477060173
+        },
+        {
+          "name": "Tailgrab",
+          "side": "l",
+          "wristDistance": 0.621455147467048
+        },
+        {
+          "name": "Japan",
+          "side": "r",
+          "wristDistance": 0.6066011346785413
+        },
+        {
+          "name": "Madonna",
+          "side": "r",
+          "wristDistance": 0.6446899218604094
+        },
+        {
+          "name": "Benihana",
+          "side": "l",
+          "wristDistance": 0.5643780319868181
+        },
+        {
+          "name": "Method",
+          "side": "r",
+          "wristDistance": 0.6611813110476941
+        },
+        {
+          "name": "Stalefish",
+          "side": "l",
+          "wristDistance": 0.42433294922743503
+        },
+        {
+          "name": "Rocket Air",
+          "side": "l",
+          "wristDistance": 1.001886583555597
+        },
+        {
+          "name": "Rocket Air",
+          "side": "r",
+          "wristDistance": 0.7041541734881268
+        },
+        {
+          "name": "Seatbelt",
+          "side": "r",
+          "wristDistance": 0.9719861049534944
+        },
+        {
+          "name": "Mute",
+          "side": "r",
+          "wristDistance": 0.5021547579191264
+        },
+        {
+          "name": "Judo",
+          "side": "r",
+          "wristDistance": 0.6189797639973073
+        },
+        {
+          "name": "Crail",
+          "side": "l",
+          "wristDistance": 0.9656702509153343
+        },
+        {
+          "name": "Christ Air",
+          "side": "r",
+          "wristDistance": 0.49784060036427513
+        }
+      ],
+      "cells": 16
+    },
+    {
+      "riderName": "The_Heretic",
+      "stance": -1,
+      "angle": "side",
+      "type": "motion",
+      "file": "The_Heretic-switch-side-motion.png",
+      "contacts": [
+        {
+          "name": "Indy",
+          "side": "l",
+          "wristDistance": 0.49171756663461963
+        },
+        {
+          "name": "Nosegrab",
+          "side": "r",
+          "wristDistance": 0.6507397477060173
+        },
+        {
+          "name": "Melon",
+          "side": "r",
+          "wristDistance": 0.5357420485170059
+        },
+        {
+          "name": "Tailgrab",
+          "side": "l",
+          "wristDistance": 0.621455147467048
+        }
+      ],
+      "cells": 16
+    },
+    {
+      "riderName": "The_Heretic",
+      "stance": -1,
+      "angle": "side",
+      "type": "grabs",
+      "file": "The_Heretic-switch-side-grabs.png",
+      "contacts": [
+        {
+          "name": "Indy",
+          "side": "l",
+          "wristDistance": 0.49171756663461963
+        },
+        {
+          "name": "Melon",
+          "side": "r",
+          "wristDistance": 0.5357420485170059
+        },
+        {
+          "name": "Nosegrab",
+          "side": "r",
+          "wristDistance": 0.6507397477060173
+        },
+        {
+          "name": "Tailgrab",
+          "side": "l",
+          "wristDistance": 0.621455147467048
+        },
+        {
+          "name": "Japan",
+          "side": "r",
+          "wristDistance": 0.6066011346785413
+        },
+        {
+          "name": "Madonna",
+          "side": "r",
+          "wristDistance": 0.6446899218604094
+        },
+        {
+          "name": "Benihana",
+          "side": "l",
+          "wristDistance": 0.5643780319868181
+        },
+        {
+          "name": "Method",
+          "side": "r",
+          "wristDistance": 0.6611813110476941
+        },
+        {
+          "name": "Stalefish",
+          "side": "l",
+          "wristDistance": 0.42433294922743503
+        },
+        {
+          "name": "Rocket Air",
+          "side": "l",
+          "wristDistance": 1.001886583555597
+        },
+        {
+          "name": "Rocket Air",
+          "side": "r",
+          "wristDistance": 0.7041541734881268
+        },
+        {
+          "name": "Seatbelt",
+          "side": "r",
+          "wristDistance": 0.9719861049534944
+        },
+        {
+          "name": "Mute",
+          "side": "r",
+          "wristDistance": 0.5021547579191264
+        },
+        {
+          "name": "Judo",
+          "side": "r",
+          "wristDistance": 0.6189797639973073
+        },
+        {
+          "name": "Crail",
+          "side": "l",
+          "wristDistance": 0.9656702509153343
+        },
+        {
+          "name": "Christ Air",
+          "side": "r",
+          "wristDistance": 0.49784060036427513
+        }
+      ],
+      "cells": 16
+    },
+    {
+      "riderName": "The_Heretic",
+      "stance": -1,
+      "angle": "rear",
+      "type": "motion",
+      "file": "The_Heretic-switch-rear-motion.png",
+      "contacts": [
+        {
+          "name": "Indy",
+          "side": "l",
+          "wristDistance": 0.49171756663461963
+        },
+        {
+          "name": "Nosegrab",
+          "side": "r",
+          "wristDistance": 0.6507397477060173
+        },
+        {
+          "name": "Melon",
+          "side": "r",
+          "wristDistance": 0.5357420485170059
+        },
+        {
+          "name": "Tailgrab",
+          "side": "l",
+          "wristDistance": 0.621455147467048
+        }
+      ],
+      "cells": 16
+    },
+    {
+      "riderName": "The_Heretic",
+      "stance": -1,
+      "angle": "rear",
+      "type": "grabs",
+      "file": "The_Heretic-switch-rear-grabs.png",
+      "contacts": [
+        {
+          "name": "Indy",
+          "side": "l",
+          "wristDistance": 0.49171756663461963
+        },
+        {
+          "name": "Melon",
+          "side": "r",
+          "wristDistance": 0.5357420485170059
+        },
+        {
+          "name": "Nosegrab",
+          "side": "r",
+          "wristDistance": 0.6507397477060173
+        },
+        {
+          "name": "Tailgrab",
+          "side": "l",
+          "wristDistance": 0.621455147467048
+        },
+        {
+          "name": "Japan",
+          "side": "r",
+          "wristDistance": 0.6066011346785413
+        },
+        {
+          "name": "Madonna",
+          "side": "r",
+          "wristDistance": 0.6446899218604094
+        },
+        {
+          "name": "Benihana",
+          "side": "l",
+          "wristDistance": 0.5643780319868181
+        },
+        {
+          "name": "Method",
+          "side": "r",
+          "wristDistance": 0.6611813110476941
+        },
+        {
+          "name": "Stalefish",
+          "side": "l",
+          "wristDistance": 0.42433294922743503
+        },
+        {
+          "name": "Rocket Air",
+          "side": "l",
+          "wristDistance": 1.001886583555597
+        },
+        {
+          "name": "Rocket Air",
+          "side": "r",
+          "wristDistance": 0.7041541734881268
+        },
+        {
+          "name": "Seatbelt",
+          "side": "r",
+          "wristDistance": 0.9719861049534944
+        },
+        {
+          "name": "Mute",
+          "side": "r",
+          "wristDistance": 0.5021547579191264
+        },
+        {
+          "name": "Judo",
+          "side": "r",
+          "wristDistance": 0.6189797639973073
+        },
+        {
+          "name": "Crail",
+          "side": "l",
+          "wristDistance": 0.9656702509153343
+        },
+        {
+          "name": "Christ Air",
+          "side": "r",
+          "wristDistance": 0.49784060036427513
+        }
+      ],
+      "cells": 16
+    },
+    {
+      "riderName": "The_AdolescentUR",
+      "stance": 1,
+      "angle": "front",
+      "type": "motion",
+      "file": "The_AdolescentUR-regular-front-motion.png",
+      "contacts": [
+        {
+          "name": "Indy",
+          "side": "r",
+          "wristDistance": 0.40088985545862266
+        },
+        {
+          "name": "Nosegrab",
+          "side": "l",
+          "wristDistance": 0.2303649550702009
+        },
+        {
+          "name": "Melon",
+          "side": "l",
+          "wristDistance": 0.3588404192723369
+        },
+        {
+          "name": "Tailgrab",
+          "side": "r",
+          "wristDistance": 0.23404867019332298
+        }
+      ],
+      "cells": 16
+    },
+    {
+      "riderName": "The_AdolescentUR",
+      "stance": 1,
+      "angle": "front",
+      "type": "grabs",
+      "file": "The_AdolescentUR-regular-front-grabs.png",
+      "contacts": [
+        {
+          "name": "Indy",
+          "side": "r",
+          "wristDistance": 0.40088985545862266
+        },
+        {
+          "name": "Melon",
+          "side": "l",
+          "wristDistance": 0.3588404192723369
+        },
+        {
+          "name": "Nosegrab",
+          "side": "l",
+          "wristDistance": 0.2303649550702009
+        },
+        {
+          "name": "Tailgrab",
+          "side": "r",
+          "wristDistance": 0.23404867019332298
+        },
+        {
+          "name": "Japan",
+          "side": "l",
+          "wristDistance": 0.31866104592676536
+        },
+        {
+          "name": "Madonna",
+          "side": "l",
+          "wristDistance": 0.2656396901544906
+        },
+        {
+          "name": "Benihana",
+          "side": "r",
+          "wristDistance": 0.2932384993192981
+        },
+        {
+          "name": "Method",
+          "side": "l",
+          "wristDistance": 0.37086533934684873
+        },
+        {
+          "name": "Stalefish",
+          "side": "r",
+          "wristDistance": 0.24939751022716988
+        },
+        {
+          "name": "Rocket Air",
+          "side": "l",
+          "wristDistance": 0.04989402021387298
+        },
+        {
+          "name": "Rocket Air",
+          "side": "r",
+          "wristDistance": 0.6788282760879991
+        },
+        {
+          "name": "Seatbelt",
+          "side": "l",
+          "wristDistance": 0.7440566690998848
+        },
+        {
+          "name": "Mute",
+          "side": "l",
+          "wristDistance": 0.3368875387934298
+        },
+        {
+          "name": "Judo",
+          "side": "l",
+          "wristDistance": 0.2396316773158444
+        },
+        {
+          "name": "Crail",
+          "side": "r",
+          "wristDistance": 0.7556032632417156
+        },
+        {
+          "name": "Christ Air",
+          "side": "l",
+          "wristDistance": 0.4013091885813546
+        }
+      ],
+      "cells": 16
+    },
+    {
+      "riderName": "The_AdolescentUR",
+      "stance": 1,
+      "angle": "side",
+      "type": "motion",
+      "file": "The_AdolescentUR-regular-side-motion.png",
+      "contacts": [
+        {
+          "name": "Indy",
+          "side": "r",
+          "wristDistance": 0.40088985545862266
+        },
+        {
+          "name": "Nosegrab",
+          "side": "l",
+          "wristDistance": 0.2303649550702009
+        },
+        {
+          "name": "Melon",
+          "side": "l",
+          "wristDistance": 0.3588404192723369
+        },
+        {
+          "name": "Tailgrab",
+          "side": "r",
+          "wristDistance": 0.23404867019332298
+        }
+      ],
+      "cells": 16
+    },
+    {
+      "riderName": "The_AdolescentUR",
+      "stance": 1,
+      "angle": "side",
+      "type": "grabs",
+      "file": "The_AdolescentUR-regular-side-grabs.png",
+      "contacts": [
+        {
+          "name": "Indy",
+          "side": "r",
+          "wristDistance": 0.40088985545862266
+        },
+        {
+          "name": "Melon",
+          "side": "l",
+          "wristDistance": 0.3588404192723369
+        },
+        {
+          "name": "Nosegrab",
+          "side": "l",
+          "wristDistance": 0.2303649550702009
+        },
+        {
+          "name": "Tailgrab",
+          "side": "r",
+          "wristDistance": 0.23404867019332298
+        },
+        {
+          "name": "Japan",
+          "side": "l",
+          "wristDistance": 0.31866104592676536
+        },
+        {
+          "name": "Madonna",
+          "side": "l",
+          "wristDistance": 0.2656396901544906
+        },
+        {
+          "name": "Benihana",
+          "side": "r",
+          "wristDistance": 0.2932384993192981
+        },
+        {
+          "name": "Method",
+          "side": "l",
+          "wristDistance": 0.37086533934684873
+        },
+        {
+          "name": "Stalefish",
+          "side": "r",
+          "wristDistance": 0.24939751022716988
+        },
+        {
+          "name": "Rocket Air",
+          "side": "l",
+          "wristDistance": 0.04989402021387298
+        },
+        {
+          "name": "Rocket Air",
+          "side": "r",
+          "wristDistance": 0.6788282760879991
+        },
+        {
+          "name": "Seatbelt",
+          "side": "l",
+          "wristDistance": 0.7440566690998848
+        },
+        {
+          "name": "Mute",
+          "side": "l",
+          "wristDistance": 0.3368875387934298
+        },
+        {
+          "name": "Judo",
+          "side": "l",
+          "wristDistance": 0.2396316773158444
+        },
+        {
+          "name": "Crail",
+          "side": "r",
+          "wristDistance": 0.7556032632417156
+        },
+        {
+          "name": "Christ Air",
+          "side": "l",
+          "wristDistance": 0.4013091885813546
+        }
+      ],
+      "cells": 16
+    },
+    {
+      "riderName": "The_AdolescentUR",
+      "stance": 1,
+      "angle": "rear",
+      "type": "motion",
+      "file": "The_AdolescentUR-regular-rear-motion.png",
+      "contacts": [
+        {
+          "name": "Indy",
+          "side": "r",
+          "wristDistance": 0.40088985545862266
+        },
+        {
+          "name": "Nosegrab",
+          "side": "l",
+          "wristDistance": 0.2303649550702009
+        },
+        {
+          "name": "Melon",
+          "side": "l",
+          "wristDistance": 0.3588404192723369
+        },
+        {
+          "name": "Tailgrab",
+          "side": "r",
+          "wristDistance": 0.23404867019332298
+        }
+      ],
+      "cells": 16
+    },
+    {
+      "riderName": "The_AdolescentUR",
+      "stance": 1,
+      "angle": "rear",
+      "type": "grabs",
+      "file": "The_AdolescentUR-regular-rear-grabs.png",
+      "contacts": [
+        {
+          "name": "Indy",
+          "side": "r",
+          "wristDistance": 0.40088985545862266
+        },
+        {
+          "name": "Melon",
+          "side": "l",
+          "wristDistance": 0.3588404192723369
+        },
+        {
+          "name": "Nosegrab",
+          "side": "l",
+          "wristDistance": 0.2303649550702009
+        },
+        {
+          "name": "Tailgrab",
+          "side": "r",
+          "wristDistance": 0.23404867019332298
+        },
+        {
+          "name": "Japan",
+          "side": "l",
+          "wristDistance": 0.31866104592676536
+        },
+        {
+          "name": "Madonna",
+          "side": "l",
+          "wristDistance": 0.2656396901544906
+        },
+        {
+          "name": "Benihana",
+          "side": "r",
+          "wristDistance": 0.2932384993192981
+        },
+        {
+          "name": "Method",
+          "side": "l",
+          "wristDistance": 0.37086533934684873
+        },
+        {
+          "name": "Stalefish",
+          "side": "r",
+          "wristDistance": 0.24939751022716988
+        },
+        {
+          "name": "Rocket Air",
+          "side": "l",
+          "wristDistance": 0.04989402021387298
+        },
+        {
+          "name": "Rocket Air",
+          "side": "r",
+          "wristDistance": 0.6788282760879991
+        },
+        {
+          "name": "Seatbelt",
+          "side": "l",
+          "wristDistance": 0.7440566690998848
+        },
+        {
+          "name": "Mute",
+          "side": "l",
+          "wristDistance": 0.3368875387934298
+        },
+        {
+          "name": "Judo",
+          "side": "l",
+          "wristDistance": 0.2396316773158444
+        },
+        {
+          "name": "Crail",
+          "side": "r",
+          "wristDistance": 0.7556032632417156
+        },
+        {
+          "name": "Christ Air",
+          "side": "l",
+          "wristDistance": 0.4013091885813546
+        }
+      ],
+      "cells": 16
+    },
+    {
+      "riderName": "The_AdolescentUR",
+      "stance": -1,
+      "angle": "front",
+      "type": "motion",
+      "file": "The_AdolescentUR-switch-front-motion.png",
+      "contacts": [
+        {
+          "name": "Indy",
+          "side": "l",
+          "wristDistance": 0.35643500384344423
+        },
+        {
+          "name": "Nosegrab",
+          "side": "r",
+          "wristDistance": 0.4899815123954808
+        },
+        {
+          "name": "Melon",
+          "side": "r",
+          "wristDistance": 0.38456223877801854
+        },
+        {
+          "name": "Tailgrab",
+          "side": "l",
+          "wristDistance": 0.462052435871472
+        }
+      ],
+      "cells": 16
+    },
+    {
+      "riderName": "The_AdolescentUR",
+      "stance": -1,
+      "angle": "front",
+      "type": "grabs",
+      "file": "The_AdolescentUR-switch-front-grabs.png",
+      "contacts": [
+        {
+          "name": "Indy",
+          "side": "l",
+          "wristDistance": 0.35643500384344423
+        },
+        {
+          "name": "Melon",
+          "side": "r",
+          "wristDistance": 0.38456223877801854
+        },
+        {
+          "name": "Nosegrab",
+          "side": "r",
+          "wristDistance": 0.4899815123954808
+        },
+        {
+          "name": "Tailgrab",
+          "side": "l",
+          "wristDistance": 0.462052435871472
+        },
+        {
+          "name": "Japan",
+          "side": "r",
+          "wristDistance": 0.4299004352579039
+        },
+        {
+          "name": "Madonna",
+          "side": "r",
+          "wristDistance": 0.4893894363160514
+        },
+        {
+          "name": "Benihana",
+          "side": "l",
+          "wristDistance": 0.4018493565191481
+        },
+        {
+          "name": "Method",
+          "side": "r",
+          "wristDistance": 0.503701797940574
+        },
+        {
+          "name": "Stalefish",
+          "side": "l",
+          "wristDistance": 0.27022481421477523
+        },
+        {
+          "name": "Rocket Air",
+          "side": "l",
+          "wristDistance": 0.9180758160423829
+        },
+        {
+          "name": "Rocket Air",
+          "side": "r",
+          "wristDistance": 0.5467140311130936
+        },
+        {
+          "name": "Seatbelt",
+          "side": "r",
+          "wristDistance": 0.8768312254878745
+        },
+        {
+          "name": "Mute",
+          "side": "r",
+          "wristDistance": 0.34612516752055617
+        },
+        {
+          "name": "Judo",
+          "side": "r",
+          "wristDistance": 0.4562919527448589
+        },
+        {
+          "name": "Crail",
+          "side": "l",
+          "wristDistance": 0.8884888791378743
+        },
+        {
+          "name": "Christ Air",
+          "side": "r",
+          "wristDistance": 0.3725671317528708
+        }
+      ],
+      "cells": 16
+    },
+    {
+      "riderName": "The_AdolescentUR",
+      "stance": -1,
+      "angle": "side",
+      "type": "motion",
+      "file": "The_AdolescentUR-switch-side-motion.png",
+      "contacts": [
+        {
+          "name": "Indy",
+          "side": "l",
+          "wristDistance": 0.35643500384344423
+        },
+        {
+          "name": "Nosegrab",
+          "side": "r",
+          "wristDistance": 0.4899815123954808
+        },
+        {
+          "name": "Melon",
+          "side": "r",
+          "wristDistance": 0.38456223877801854
+        },
+        {
+          "name": "Tailgrab",
+          "side": "l",
+          "wristDistance": 0.462052435871472
+        }
+      ],
+      "cells": 16
+    },
+    {
+      "riderName": "The_AdolescentUR",
+      "stance": -1,
+      "angle": "side",
+      "type": "grabs",
+      "file": "The_AdolescentUR-switch-side-grabs.png",
+      "contacts": [
+        {
+          "name": "Indy",
+          "side": "l",
+          "wristDistance": 0.35643500384344423
+        },
+        {
+          "name": "Melon",
+          "side": "r",
+          "wristDistance": 0.38456223877801854
+        },
+        {
+          "name": "Nosegrab",
+          "side": "r",
+          "wristDistance": 0.4899815123954808
+        },
+        {
+          "name": "Tailgrab",
+          "side": "l",
+          "wristDistance": 0.462052435871472
+        },
+        {
+          "name": "Japan",
+          "side": "r",
+          "wristDistance": 0.4299004352579039
+        },
+        {
+          "name": "Madonna",
+          "side": "r",
+          "wristDistance": 0.4893894363160514
+        },
+        {
+          "name": "Benihana",
+          "side": "l",
+          "wristDistance": 0.4018493565191481
+        },
+        {
+          "name": "Method",
+          "side": "r",
+          "wristDistance": 0.503701797940574
+        },
+        {
+          "name": "Stalefish",
+          "side": "l",
+          "wristDistance": 0.27022481421477523
+        },
+        {
+          "name": "Rocket Air",
+          "side": "l",
+          "wristDistance": 0.9180758160423829
+        },
+        {
+          "name": "Rocket Air",
+          "side": "r",
+          "wristDistance": 0.5467140311130936
+        },
+        {
+          "name": "Seatbelt",
+          "side": "r",
+          "wristDistance": 0.8768312254878745
+        },
+        {
+          "name": "Mute",
+          "side": "r",
+          "wristDistance": 0.34612516752055617
+        },
+        {
+          "name": "Judo",
+          "side": "r",
+          "wristDistance": 0.4562919527448589
+        },
+        {
+          "name": "Crail",
+          "side": "l",
+          "wristDistance": 0.8884888791378743
+        },
+        {
+          "name": "Christ Air",
+          "side": "r",
+          "wristDistance": 0.3725671317528708
+        }
+      ],
+      "cells": 16
+    },
+    {
+      "riderName": "The_AdolescentUR",
+      "stance": -1,
+      "angle": "rear",
+      "type": "motion",
+      "file": "The_AdolescentUR-switch-rear-motion.png",
+      "contacts": [
+        {
+          "name": "Indy",
+          "side": "l",
+          "wristDistance": 0.35643500384344423
+        },
+        {
+          "name": "Nosegrab",
+          "side": "r",
+          "wristDistance": 0.4899815123954808
+        },
+        {
+          "name": "Melon",
+          "side": "r",
+          "wristDistance": 0.38456223877801854
+        },
+        {
+          "name": "Tailgrab",
+          "side": "l",
+          "wristDistance": 0.462052435871472
+        }
+      ],
+      "cells": 16
+    },
+    {
+      "riderName": "The_AdolescentUR",
+      "stance": -1,
+      "angle": "rear",
+      "type": "grabs",
+      "file": "The_AdolescentUR-switch-rear-grabs.png",
+      "contacts": [
+        {
+          "name": "Indy",
+          "side": "l",
+          "wristDistance": 0.35643500384344423
+        },
+        {
+          "name": "Melon",
+          "side": "r",
+          "wristDistance": 0.38456223877801854
+        },
+        {
+          "name": "Nosegrab",
+          "side": "r",
+          "wristDistance": 0.4899815123954808
+        },
+        {
+          "name": "Tailgrab",
+          "side": "l",
+          "wristDistance": 0.462052435871472
+        },
+        {
+          "name": "Japan",
+          "side": "r",
+          "wristDistance": 0.4299004352579039
+        },
+        {
+          "name": "Madonna",
+          "side": "r",
+          "wristDistance": 0.4893894363160514
+        },
+        {
+          "name": "Benihana",
+          "side": "l",
+          "wristDistance": 0.4018493565191481
+        },
+        {
+          "name": "Method",
+          "side": "r",
+          "wristDistance": 0.503701797940574
+        },
+        {
+          "name": "Stalefish",
+          "side": "l",
+          "wristDistance": 0.27022481421477523
+        },
+        {
+          "name": "Rocket Air",
+          "side": "l",
+          "wristDistance": 0.9180758160423829
+        },
+        {
+          "name": "Rocket Air",
+          "side": "r",
+          "wristDistance": 0.5467140311130936
+        },
+        {
+          "name": "Seatbelt",
+          "side": "r",
+          "wristDistance": 0.8768312254878745
+        },
+        {
+          "name": "Mute",
+          "side": "r",
+          "wristDistance": 0.34612516752055617
+        },
+        {
+          "name": "Judo",
+          "side": "r",
+          "wristDistance": 0.4562919527448589
+        },
+        {
+          "name": "Crail",
+          "side": "l",
+          "wristDistance": 0.8884888791378743
+        },
+        {
+          "name": "Christ Air",
+          "side": "r",
+          "wristDistance": 0.3725671317528708
+        }
+      ],
+      "cells": 16
+    },
+    {
+      "riderName": "The_Anchor",
+      "stance": 1,
+      "angle": "front",
+      "type": "motion",
+      "file": "The_Anchor-regular-front-motion.png",
+      "contacts": [
+        {
+          "name": "Indy",
+          "side": "r",
+          "wristDistance": 0.47155663451118773
+        },
+        {
+          "name": "Nosegrab",
+          "side": "l",
+          "wristDistance": 0.25108566480850486
+        },
+        {
+          "name": "Melon",
+          "side": "l",
+          "wristDistance": 0.41940712384017376
+        },
+        {
+          "name": "Tailgrab",
+          "side": "r",
+          "wristDistance": 0.2697823965769617
+        }
+      ],
+      "cells": 16
+    },
+    {
+      "riderName": "The_Anchor",
+      "stance": 1,
+      "angle": "front",
+      "type": "grabs",
+      "file": "The_Anchor-regular-front-grabs.png",
+      "contacts": [
+        {
+          "name": "Indy",
+          "side": "r",
+          "wristDistance": 0.47155663451118773
+        },
+        {
+          "name": "Melon",
+          "side": "l",
+          "wristDistance": 0.41940712384017376
+        },
+        {
+          "name": "Nosegrab",
+          "side": "l",
+          "wristDistance": 0.25108566480850486
+        },
+        {
+          "name": "Tailgrab",
+          "side": "r",
+          "wristDistance": 0.2697823965769617
+        },
+        {
+          "name": "Japan",
+          "side": "l",
+          "wristDistance": 0.37922505546196633
+        },
+        {
+          "name": "Madonna",
+          "side": "l",
+          "wristDistance": 0.3046087545094604
+        },
+        {
+          "name": "Benihana",
+          "side": "r",
+          "wristDistance": 0.3487707793355521
+        },
+        {
+          "name": "Method",
+          "side": "l",
+          "wristDistance": 0.4307750683367828
+        },
+        {
+          "name": "Stalefish",
+          "side": "r",
+          "wristDistance": 0.3045709223824164
+        },
+        {
+          "name": "Rocket Air",
+          "side": "l",
+          "wristDistance": 0.0744893094530379
+        },
+        {
+          "name": "Rocket Air",
+          "side": "r",
+          "wristDistance": 0.7271238313649747
+        },
+        {
+          "name": "Seatbelt",
+          "side": "l",
+          "wristDistance": 0.7818120437118158
+        },
+        {
+          "name": "Mute",
+          "side": "l",
+          "wristDistance": 0.38110695330041766
+        },
+        {
+          "name": "Judo",
+          "side": "l",
+          "wristDistance": 0.2832110554072664
+        },
+        {
+          "name": "Crail",
+          "side": "r",
+          "wristDistance": 0.7973614351510351
+        },
+        {
+          "name": "Christ Air",
+          "side": "l",
+          "wristDistance": 0.48345609391588484
+        }
+      ],
+      "cells": 16
+    },
+    {
+      "riderName": "The_Anchor",
+      "stance": 1,
+      "angle": "side",
+      "type": "motion",
+      "file": "The_Anchor-regular-side-motion.png",
+      "contacts": [
+        {
+          "name": "Indy",
+          "side": "r",
+          "wristDistance": 0.47155663451118773
+        },
+        {
+          "name": "Nosegrab",
+          "side": "l",
+          "wristDistance": 0.25108566480850486
+        },
+        {
+          "name": "Melon",
+          "side": "l",
+          "wristDistance": 0.41940712384017376
+        },
+        {
+          "name": "Tailgrab",
+          "side": "r",
+          "wristDistance": 0.2697823965769617
+        }
+      ],
+      "cells": 16
+    },
+    {
+      "riderName": "The_Anchor",
+      "stance": 1,
+      "angle": "side",
+      "type": "grabs",
+      "file": "The_Anchor-regular-side-grabs.png",
+      "contacts": [
+        {
+          "name": "Indy",
+          "side": "r",
+          "wristDistance": 0.47155663451118773
+        },
+        {
+          "name": "Melon",
+          "side": "l",
+          "wristDistance": 0.41940712384017376
+        },
+        {
+          "name": "Nosegrab",
+          "side": "l",
+          "wristDistance": 0.25108566480850486
+        },
+        {
+          "name": "Tailgrab",
+          "side": "r",
+          "wristDistance": 0.2697823965769617
+        },
+        {
+          "name": "Japan",
+          "side": "l",
+          "wristDistance": 0.37922505546196633
+        },
+        {
+          "name": "Madonna",
+          "side": "l",
+          "wristDistance": 0.3046087545094604
+        },
+        {
+          "name": "Benihana",
+          "side": "r",
+          "wristDistance": 0.3487707793355521
+        },
+        {
+          "name": "Method",
+          "side": "l",
+          "wristDistance": 0.4307750683367828
+        },
+        {
+          "name": "Stalefish",
+          "side": "r",
+          "wristDistance": 0.3045709223824164
+        },
+        {
+          "name": "Rocket Air",
+          "side": "l",
+          "wristDistance": 0.0744893094530379
+        },
+        {
+          "name": "Rocket Air",
+          "side": "r",
+          "wristDistance": 0.7271238313649747
+        },
+        {
+          "name": "Seatbelt",
+          "side": "l",
+          "wristDistance": 0.7818120437118158
+        },
+        {
+          "name": "Mute",
+          "side": "l",
+          "wristDistance": 0.38110695330041766
+        },
+        {
+          "name": "Judo",
+          "side": "l",
+          "wristDistance": 0.2832110554072664
+        },
+        {
+          "name": "Crail",
+          "side": "r",
+          "wristDistance": 0.7973614351510351
+        },
+        {
+          "name": "Christ Air",
+          "side": "l",
+          "wristDistance": 0.48345609391588484
+        }
+      ],
+      "cells": 16
+    },
+    {
+      "riderName": "The_Anchor",
+      "stance": 1,
+      "angle": "rear",
+      "type": "motion",
+      "file": "The_Anchor-regular-rear-motion.png",
+      "contacts": [
+        {
+          "name": "Indy",
+          "side": "r",
+          "wristDistance": 0.47155663451118773
+        },
+        {
+          "name": "Nosegrab",
+          "side": "l",
+          "wristDistance": 0.25108566480850486
+        },
+        {
+          "name": "Melon",
+          "side": "l",
+          "wristDistance": 0.41940712384017376
+        },
+        {
+          "name": "Tailgrab",
+          "side": "r",
+          "wristDistance": 0.2697823965769617
+        }
+      ],
+      "cells": 16
+    },
+    {
+      "riderName": "The_Anchor",
+      "stance": 1,
+      "angle": "rear",
+      "type": "grabs",
+      "file": "The_Anchor-regular-rear-grabs.png",
+      "contacts": [
+        {
+          "name": "Indy",
+          "side": "r",
+          "wristDistance": 0.47155663451118773
+        },
+        {
+          "name": "Melon",
+          "side": "l",
+          "wristDistance": 0.41940712384017376
+        },
+        {
+          "name": "Nosegrab",
+          "side": "l",
+          "wristDistance": 0.25108566480850486
+        },
+        {
+          "name": "Tailgrab",
+          "side": "r",
+          "wristDistance": 0.2697823965769617
+        },
+        {
+          "name": "Japan",
+          "side": "l",
+          "wristDistance": 0.37922505546196633
+        },
+        {
+          "name": "Madonna",
+          "side": "l",
+          "wristDistance": 0.3046087545094604
+        },
+        {
+          "name": "Benihana",
+          "side": "r",
+          "wristDistance": 0.3487707793355521
+        },
+        {
+          "name": "Method",
+          "side": "l",
+          "wristDistance": 0.4307750683367828
+        },
+        {
+          "name": "Stalefish",
+          "side": "r",
+          "wristDistance": 0.3045709223824164
+        },
+        {
+          "name": "Rocket Air",
+          "side": "l",
+          "wristDistance": 0.0744893094530379
+        },
+        {
+          "name": "Rocket Air",
+          "side": "r",
+          "wristDistance": 0.7271238313649747
+        },
+        {
+          "name": "Seatbelt",
+          "side": "l",
+          "wristDistance": 0.7818120437118158
+        },
+        {
+          "name": "Mute",
+          "side": "l",
+          "wristDistance": 0.38110695330041766
+        },
+        {
+          "name": "Judo",
+          "side": "l",
+          "wristDistance": 0.2832110554072664
+        },
+        {
+          "name": "Crail",
+          "side": "r",
+          "wristDistance": 0.7973614351510351
+        },
+        {
+          "name": "Christ Air",
+          "side": "l",
+          "wristDistance": 0.48345609391588484
+        }
+      ],
+      "cells": 16
+    },
+    {
+      "riderName": "The_Anchor",
+      "stance": -1,
+      "angle": "front",
+      "type": "motion",
+      "file": "The_Anchor-switch-front-motion.png",
+      "contacts": [
+        {
+          "name": "Indy",
+          "side": "l",
+          "wristDistance": 0.4054418275440684
+        },
+        {
+          "name": "Nosegrab",
+          "side": "r",
+          "wristDistance": 0.5302463604361858
+        },
+        {
+          "name": "Melon",
+          "side": "r",
+          "wristDistance": 0.44810293942551316
+        },
+        {
+          "name": "Tailgrab",
+          "side": "l",
+          "wristDistance": 0.4887379340888508
+        }
+      ],
+      "cells": 16
+    },
+    {
+      "riderName": "The_Anchor",
+      "stance": -1,
+      "angle": "front",
+      "type": "grabs",
+      "file": "The_Anchor-switch-front-grabs.png",
+      "contacts": [
+        {
+          "name": "Indy",
+          "side": "l",
+          "wristDistance": 0.4054418275440684
+        },
+        {
+          "name": "Melon",
+          "side": "r",
+          "wristDistance": 0.44810293942551316
+        },
+        {
+          "name": "Nosegrab",
+          "side": "r",
+          "wristDistance": 0.5302463604361858
+        },
+        {
+          "name": "Tailgrab",
+          "side": "l",
+          "wristDistance": 0.4887379340888508
+        },
+        {
+          "name": "Japan",
+          "side": "r",
+          "wristDistance": 0.500929909894059
+        },
+        {
+          "name": "Madonna",
+          "side": "r",
+          "wristDistance": 0.5334890239196769
+        },
+        {
+          "name": "Benihana",
+          "side": "l",
+          "wristDistance": 0.4297494386309007
+        },
+        {
+          "name": "Method",
+          "side": "r",
+          "wristDistance": 0.5708642405433977
+        },
+        {
+          "name": "Stalefish",
+          "side": "l",
+          "wristDistance": 0.3205878120917983
+        },
+        {
+          "name": "Rocket Air",
+          "side": "l",
+          "wristDistance": 0.9648447336661857
+        },
+        {
+          "name": "Rocket Air",
+          "side": "r",
+          "wristDistance": 0.5945387964083277
+        },
+        {
+          "name": "Seatbelt",
+          "side": "r",
+          "wristDistance": 0.9352685611237913
+        },
+        {
+          "name": "Mute",
+          "side": "r",
+          "wristDistance": 0.4149433377149899
+        },
+        {
+          "name": "Judo",
+          "side": "r",
+          "wristDistance": 0.5015888433332409
+        },
+        {
+          "name": "Crail",
+          "side": "l",
+          "wristDistance": 0.936794723851123
+        },
+        {
+          "name": "Christ Air",
+          "side": "r",
+          "wristDistance": 0.4571362189435827
+        }
+      ],
+      "cells": 16
+    },
+    {
+      "riderName": "The_Anchor",
+      "stance": -1,
+      "angle": "side",
+      "type": "motion",
+      "file": "The_Anchor-switch-side-motion.png",
+      "contacts": [
+        {
+          "name": "Indy",
+          "side": "l",
+          "wristDistance": 0.4054418275440684
+        },
+        {
+          "name": "Nosegrab",
+          "side": "r",
+          "wristDistance": 0.5302463604361858
+        },
+        {
+          "name": "Melon",
+          "side": "r",
+          "wristDistance": 0.44810293942551316
+        },
+        {
+          "name": "Tailgrab",
+          "side": "l",
+          "wristDistance": 0.4887379340888508
+        }
+      ],
+      "cells": 16
+    },
+    {
+      "riderName": "The_Anchor",
+      "stance": -1,
+      "angle": "side",
+      "type": "grabs",
+      "file": "The_Anchor-switch-side-grabs.png",
+      "contacts": [
+        {
+          "name": "Indy",
+          "side": "l",
+          "wristDistance": 0.4054418275440684
+        },
+        {
+          "name": "Melon",
+          "side": "r",
+          "wristDistance": 0.44810293942551316
+        },
+        {
+          "name": "Nosegrab",
+          "side": "r",
+          "wristDistance": 0.5302463604361858
+        },
+        {
+          "name": "Tailgrab",
+          "side": "l",
+          "wristDistance": 0.4887379340888508
+        },
+        {
+          "name": "Japan",
+          "side": "r",
+          "wristDistance": 0.500929909894059
+        },
+        {
+          "name": "Madonna",
+          "side": "r",
+          "wristDistance": 0.5334890239196769
+        },
+        {
+          "name": "Benihana",
+          "side": "l",
+          "wristDistance": 0.4297494386309007
+        },
+        {
+          "name": "Method",
+          "side": "r",
+          "wristDistance": 0.5708642405433977
+        },
+        {
+          "name": "Stalefish",
+          "side": "l",
+          "wristDistance": 0.3205878120917983
+        },
+        {
+          "name": "Rocket Air",
+          "side": "l",
+          "wristDistance": 0.9648447336661857
+        },
+        {
+          "name": "Rocket Air",
+          "side": "r",
+          "wristDistance": 0.5945387964083277
+        },
+        {
+          "name": "Seatbelt",
+          "side": "r",
+          "wristDistance": 0.9352685611237913
+        },
+        {
+          "name": "Mute",
+          "side": "r",
+          "wristDistance": 0.4149433377149899
+        },
+        {
+          "name": "Judo",
+          "side": "r",
+          "wristDistance": 0.5015888433332409
+        },
+        {
+          "name": "Crail",
+          "side": "l",
+          "wristDistance": 0.936794723851123
+        },
+        {
+          "name": "Christ Air",
+          "side": "r",
+          "wristDistance": 0.4571362189435827
+        }
+      ],
+      "cells": 16
+    },
+    {
+      "riderName": "The_Anchor",
+      "stance": -1,
+      "angle": "rear",
+      "type": "motion",
+      "file": "The_Anchor-switch-rear-motion.png",
+      "contacts": [
+        {
+          "name": "Indy",
+          "side": "l",
+          "wristDistance": 0.4054418275440684
+        },
+        {
+          "name": "Nosegrab",
+          "side": "r",
+          "wristDistance": 0.5302463604361858
+        },
+        {
+          "name": "Melon",
+          "side": "r",
+          "wristDistance": 0.44810293942551316
+        },
+        {
+          "name": "Tailgrab",
+          "side": "l",
+          "wristDistance": 0.4887379340888508
+        }
+      ],
+      "cells": 16
+    },
+    {
+      "riderName": "The_Anchor",
+      "stance": -1,
+      "angle": "rear",
+      "type": "grabs",
+      "file": "The_Anchor-switch-rear-grabs.png",
+      "contacts": [
+        {
+          "name": "Indy",
+          "side": "l",
+          "wristDistance": 0.4054418275440684
+        },
+        {
+          "name": "Melon",
+          "side": "r",
+          "wristDistance": 0.44810293942551316
+        },
+        {
+          "name": "Nosegrab",
+          "side": "r",
+          "wristDistance": 0.5302463604361858
+        },
+        {
+          "name": "Tailgrab",
+          "side": "l",
+          "wristDistance": 0.4887379340888508
+        },
+        {
+          "name": "Japan",
+          "side": "r",
+          "wristDistance": 0.500929909894059
+        },
+        {
+          "name": "Madonna",
+          "side": "r",
+          "wristDistance": 0.5334890239196769
+        },
+        {
+          "name": "Benihana",
+          "side": "l",
+          "wristDistance": 0.4297494386309007
+        },
+        {
+          "name": "Method",
+          "side": "r",
+          "wristDistance": 0.5708642405433977
+        },
+        {
+          "name": "Stalefish",
+          "side": "l",
+          "wristDistance": 0.3205878120917983
+        },
+        {
+          "name": "Rocket Air",
+          "side": "l",
+          "wristDistance": 0.9648447336661857
+        },
+        {
+          "name": "Rocket Air",
+          "side": "r",
+          "wristDistance": 0.5945387964083277
+        },
+        {
+          "name": "Seatbelt",
+          "side": "r",
+          "wristDistance": 0.9352685611237913
+        },
+        {
+          "name": "Mute",
+          "side": "r",
+          "wristDistance": 0.4149433377149899
+        },
+        {
+          "name": "Judo",
+          "side": "r",
+          "wristDistance": 0.5015888433332409
+        },
+        {
+          "name": "Crail",
+          "side": "l",
+          "wristDistance": 0.936794723851123
+        },
+        {
+          "name": "Christ Air",
+          "side": "r",
+          "wristDistance": 0.4571362189435827
+        }
+      ],
+      "cells": 16
+    },
+    {
+      "riderName": "TheanchoURi",
+      "stance": 1,
+      "angle": "front",
+      "type": "motion",
+      "file": "TheanchoURi-regular-front-motion.png",
+      "contacts": [
+        {
+          "name": "Indy",
+          "side": "r",
+          "wristDistance": 0.47155663451118773
+        },
+        {
+          "name": "Nosegrab",
+          "side": "l",
+          "wristDistance": 0.25108566480850486
+        },
+        {
+          "name": "Melon",
+          "side": "l",
+          "wristDistance": 0.41940712384017376
+        },
+        {
+          "name": "Tailgrab",
+          "side": "r",
+          "wristDistance": 0.2697823965769617
+        }
+      ],
+      "cells": 16
+    },
+    {
+      "riderName": "TheanchoURi",
+      "stance": 1,
+      "angle": "front",
+      "type": "grabs",
+      "file": "TheanchoURi-regular-front-grabs.png",
+      "contacts": [
+        {
+          "name": "Indy",
+          "side": "r",
+          "wristDistance": 0.47155663451118773
+        },
+        {
+          "name": "Melon",
+          "side": "l",
+          "wristDistance": 0.41940712384017376
+        },
+        {
+          "name": "Nosegrab",
+          "side": "l",
+          "wristDistance": 0.25108566480850486
+        },
+        {
+          "name": "Tailgrab",
+          "side": "r",
+          "wristDistance": 0.2697823965769617
+        },
+        {
+          "name": "Japan",
+          "side": "l",
+          "wristDistance": 0.37922505546196633
+        },
+        {
+          "name": "Madonna",
+          "side": "l",
+          "wristDistance": 0.3046087545094604
+        },
+        {
+          "name": "Benihana",
+          "side": "r",
+          "wristDistance": 0.3487707793355521
+        },
+        {
+          "name": "Method",
+          "side": "l",
+          "wristDistance": 0.4307750683367828
+        },
+        {
+          "name": "Stalefish",
+          "side": "r",
+          "wristDistance": 0.3045709223824164
+        },
+        {
+          "name": "Rocket Air",
+          "side": "l",
+          "wristDistance": 0.0744893094530379
+        },
+        {
+          "name": "Rocket Air",
+          "side": "r",
+          "wristDistance": 0.7271238313649747
+        },
+        {
+          "name": "Seatbelt",
+          "side": "l",
+          "wristDistance": 0.7818120437118158
+        },
+        {
+          "name": "Mute",
+          "side": "l",
+          "wristDistance": 0.38110695330041766
+        },
+        {
+          "name": "Judo",
+          "side": "l",
+          "wristDistance": 0.2832110554072664
+        },
+        {
+          "name": "Crail",
+          "side": "r",
+          "wristDistance": 0.7973614351510351
+        },
+        {
+          "name": "Christ Air",
+          "side": "l",
+          "wristDistance": 0.48345609391588484
+        }
+      ],
+      "cells": 16
+    },
+    {
+      "riderName": "TheanchoURi",
+      "stance": 1,
+      "angle": "side",
+      "type": "motion",
+      "file": "TheanchoURi-regular-side-motion.png",
+      "contacts": [
+        {
+          "name": "Indy",
+          "side": "r",
+          "wristDistance": 0.47155663451118773
+        },
+        {
+          "name": "Nosegrab",
+          "side": "l",
+          "wristDistance": 0.25108566480850486
+        },
+        {
+          "name": "Melon",
+          "side": "l",
+          "wristDistance": 0.41940712384017376
+        },
+        {
+          "name": "Tailgrab",
+          "side": "r",
+          "wristDistance": 0.2697823965769617
+        }
+      ],
+      "cells": 16
+    },
+    {
+      "riderName": "TheanchoURi",
+      "stance": 1,
+      "angle": "side",
+      "type": "grabs",
+      "file": "TheanchoURi-regular-side-grabs.png",
+      "contacts": [
+        {
+          "name": "Indy",
+          "side": "r",
+          "wristDistance": 0.47155663451118773
+        },
+        {
+          "name": "Melon",
+          "side": "l",
+          "wristDistance": 0.41940712384017376
+        },
+        {
+          "name": "Nosegrab",
+          "side": "l",
+          "wristDistance": 0.25108566480850486
+        },
+        {
+          "name": "Tailgrab",
+          "side": "r",
+          "wristDistance": 0.2697823965769617
+        },
+        {
+          "name": "Japan",
+          "side": "l",
+          "wristDistance": 0.37922505546196633
+        },
+        {
+          "name": "Madonna",
+          "side": "l",
+          "wristDistance": 0.3046087545094604
+        },
+        {
+          "name": "Benihana",
+          "side": "r",
+          "wristDistance": 0.3487707793355521
+        },
+        {
+          "name": "Method",
+          "side": "l",
+          "wristDistance": 0.4307750683367828
+        },
+        {
+          "name": "Stalefish",
+          "side": "r",
+          "wristDistance": 0.3045709223824164
+        },
+        {
+          "name": "Rocket Air",
+          "side": "l",
+          "wristDistance": 0.0744893094530379
+        },
+        {
+          "name": "Rocket Air",
+          "side": "r",
+          "wristDistance": 0.7271238313649747
+        },
+        {
+          "name": "Seatbelt",
+          "side": "l",
+          "wristDistance": 0.7818120437118158
+        },
+        {
+          "name": "Mute",
+          "side": "l",
+          "wristDistance": 0.38110695330041766
+        },
+        {
+          "name": "Judo",
+          "side": "l",
+          "wristDistance": 0.2832110554072664
+        },
+        {
+          "name": "Crail",
+          "side": "r",
+          "wristDistance": 0.7973614351510351
+        },
+        {
+          "name": "Christ Air",
+          "side": "l",
+          "wristDistance": 0.48345609391588484
+        }
+      ],
+      "cells": 16
+    },
+    {
+      "riderName": "TheanchoURi",
+      "stance": 1,
+      "angle": "rear",
+      "type": "motion",
+      "file": "TheanchoURi-regular-rear-motion.png",
+      "contacts": [
+        {
+          "name": "Indy",
+          "side": "r",
+          "wristDistance": 0.47155663451118773
+        },
+        {
+          "name": "Nosegrab",
+          "side": "l",
+          "wristDistance": 0.25108566480850486
+        },
+        {
+          "name": "Melon",
+          "side": "l",
+          "wristDistance": 0.41940712384017376
+        },
+        {
+          "name": "Tailgrab",
+          "side": "r",
+          "wristDistance": 0.2697823965769617
+        }
+      ],
+      "cells": 16
+    },
+    {
+      "riderName": "TheanchoURi",
+      "stance": 1,
+      "angle": "rear",
+      "type": "grabs",
+      "file": "TheanchoURi-regular-rear-grabs.png",
+      "contacts": [
+        {
+          "name": "Indy",
+          "side": "r",
+          "wristDistance": 0.47155663451118773
+        },
+        {
+          "name": "Melon",
+          "side": "l",
+          "wristDistance": 0.41940712384017376
+        },
+        {
+          "name": "Nosegrab",
+          "side": "l",
+          "wristDistance": 0.25108566480850486
+        },
+        {
+          "name": "Tailgrab",
+          "side": "r",
+          "wristDistance": 0.2697823965769617
+        },
+        {
+          "name": "Japan",
+          "side": "l",
+          "wristDistance": 0.37922505546196633
+        },
+        {
+          "name": "Madonna",
+          "side": "l",
+          "wristDistance": 0.3046087545094604
+        },
+        {
+          "name": "Benihana",
+          "side": "r",
+          "wristDistance": 0.3487707793355521
+        },
+        {
+          "name": "Method",
+          "side": "l",
+          "wristDistance": 0.4307750683367828
+        },
+        {
+          "name": "Stalefish",
+          "side": "r",
+          "wristDistance": 0.3045709223824164
+        },
+        {
+          "name": "Rocket Air",
+          "side": "l",
+          "wristDistance": 0.0744893094530379
+        },
+        {
+          "name": "Rocket Air",
+          "side": "r",
+          "wristDistance": 0.7271238313649747
+        },
+        {
+          "name": "Seatbelt",
+          "side": "l",
+          "wristDistance": 0.7818120437118158
+        },
+        {
+          "name": "Mute",
+          "side": "l",
+          "wristDistance": 0.38110695330041766
+        },
+        {
+          "name": "Judo",
+          "side": "l",
+          "wristDistance": 0.2832110554072664
+        },
+        {
+          "name": "Crail",
+          "side": "r",
+          "wristDistance": 0.7973614351510351
+        },
+        {
+          "name": "Christ Air",
+          "side": "l",
+          "wristDistance": 0.48345609391588484
+        }
+      ],
+      "cells": 16
+    },
+    {
+      "riderName": "TheanchoURi",
+      "stance": -1,
+      "angle": "front",
+      "type": "motion",
+      "file": "TheanchoURi-switch-front-motion.png",
+      "contacts": [
+        {
+          "name": "Indy",
+          "side": "l",
+          "wristDistance": 0.4054418275440684
+        },
+        {
+          "name": "Nosegrab",
+          "side": "r",
+          "wristDistance": 0.5302463604361858
+        },
+        {
+          "name": "Melon",
+          "side": "r",
+          "wristDistance": 0.44810293942551316
+        },
+        {
+          "name": "Tailgrab",
+          "side": "l",
+          "wristDistance": 0.4887379340888508
+        }
+      ],
+      "cells": 16
+    },
+    {
+      "riderName": "TheanchoURi",
+      "stance": -1,
+      "angle": "front",
+      "type": "grabs",
+      "file": "TheanchoURi-switch-front-grabs.png",
+      "contacts": [
+        {
+          "name": "Indy",
+          "side": "l",
+          "wristDistance": 0.4054418275440684
+        },
+        {
+          "name": "Melon",
+          "side": "r",
+          "wristDistance": 0.44810293942551316
+        },
+        {
+          "name": "Nosegrab",
+          "side": "r",
+          "wristDistance": 0.5302463604361858
+        },
+        {
+          "name": "Tailgrab",
+          "side": "l",
+          "wristDistance": 0.4887379340888508
+        },
+        {
+          "name": "Japan",
+          "side": "r",
+          "wristDistance": 0.500929909894059
+        },
+        {
+          "name": "Madonna",
+          "side": "r",
+          "wristDistance": 0.5334890239196769
+        },
+        {
+          "name": "Benihana",
+          "side": "l",
+          "wristDistance": 0.4297494386309007
+        },
+        {
+          "name": "Method",
+          "side": "r",
+          "wristDistance": 0.5708642405433977
+        },
+        {
+          "name": "Stalefish",
+          "side": "l",
+          "wristDistance": 0.3205878120917983
+        },
+        {
+          "name": "Rocket Air",
+          "side": "l",
+          "wristDistance": 0.9648447336661857
+        },
+        {
+          "name": "Rocket Air",
+          "side": "r",
+          "wristDistance": 0.5945387964083277
+        },
+        {
+          "name": "Seatbelt",
+          "side": "r",
+          "wristDistance": 0.9352685611237913
+        },
+        {
+          "name": "Mute",
+          "side": "r",
+          "wristDistance": 0.4149433377149899
+        },
+        {
+          "name": "Judo",
+          "side": "r",
+          "wristDistance": 0.5015888433332409
+        },
+        {
+          "name": "Crail",
+          "side": "l",
+          "wristDistance": 0.936794723851123
+        },
+        {
+          "name": "Christ Air",
+          "side": "r",
+          "wristDistance": 0.4571362189435827
+        }
+      ],
+      "cells": 16
+    },
+    {
+      "riderName": "TheanchoURi",
+      "stance": -1,
+      "angle": "side",
+      "type": "motion",
+      "file": "TheanchoURi-switch-side-motion.png",
+      "contacts": [
+        {
+          "name": "Indy",
+          "side": "l",
+          "wristDistance": 0.4054418275440684
+        },
+        {
+          "name": "Nosegrab",
+          "side": "r",
+          "wristDistance": 0.5302463604361858
+        },
+        {
+          "name": "Melon",
+          "side": "r",
+          "wristDistance": 0.44810293942551316
+        },
+        {
+          "name": "Tailgrab",
+          "side": "l",
+          "wristDistance": 0.4887379340888508
+        }
+      ],
+      "cells": 16
+    },
+    {
+      "riderName": "TheanchoURi",
+      "stance": -1,
+      "angle": "side",
+      "type": "grabs",
+      "file": "TheanchoURi-switch-side-grabs.png",
+      "contacts": [
+        {
+          "name": "Indy",
+          "side": "l",
+          "wristDistance": 0.4054418275440684
+        },
+        {
+          "name": "Melon",
+          "side": "r",
+          "wristDistance": 0.44810293942551316
+        },
+        {
+          "name": "Nosegrab",
+          "side": "r",
+          "wristDistance": 0.5302463604361858
+        },
+        {
+          "name": "Tailgrab",
+          "side": "l",
+          "wristDistance": 0.4887379340888508
+        },
+        {
+          "name": "Japan",
+          "side": "r",
+          "wristDistance": 0.500929909894059
+        },
+        {
+          "name": "Madonna",
+          "side": "r",
+          "wristDistance": 0.5334890239196769
+        },
+        {
+          "name": "Benihana",
+          "side": "l",
+          "wristDistance": 0.4297494386309007
+        },
+        {
+          "name": "Method",
+          "side": "r",
+          "wristDistance": 0.5708642405433977
+        },
+        {
+          "name": "Stalefish",
+          "side": "l",
+          "wristDistance": 0.3205878120917983
+        },
+        {
+          "name": "Rocket Air",
+          "side": "l",
+          "wristDistance": 0.9648447336661857
+        },
+        {
+          "name": "Rocket Air",
+          "side": "r",
+          "wristDistance": 0.5945387964083277
+        },
+        {
+          "name": "Seatbelt",
+          "side": "r",
+          "wristDistance": 0.9352685611237913
+        },
+        {
+          "name": "Mute",
+          "side": "r",
+          "wristDistance": 0.4149433377149899
+        },
+        {
+          "name": "Judo",
+          "side": "r",
+          "wristDistance": 0.5015888433332409
+        },
+        {
+          "name": "Crail",
+          "side": "l",
+          "wristDistance": 0.936794723851123
+        },
+        {
+          "name": "Christ Air",
+          "side": "r",
+          "wristDistance": 0.4571362189435827
+        }
+      ],
+      "cells": 16
+    },
+    {
+      "riderName": "TheanchoURi",
+      "stance": -1,
+      "angle": "rear",
+      "type": "motion",
+      "file": "TheanchoURi-switch-rear-motion.png",
+      "contacts": [
+        {
+          "name": "Indy",
+          "side": "l",
+          "wristDistance": 0.4054418275440684
+        },
+        {
+          "name": "Nosegrab",
+          "side": "r",
+          "wristDistance": 0.5302463604361858
+        },
+        {
+          "name": "Melon",
+          "side": "r",
+          "wristDistance": 0.44810293942551316
+        },
+        {
+          "name": "Tailgrab",
+          "side": "l",
+          "wristDistance": 0.4887379340888508
+        }
+      ],
+      "cells": 16
+    },
+    {
+      "riderName": "TheanchoURi",
+      "stance": -1,
+      "angle": "rear",
+      "type": "grabs",
+      "file": "TheanchoURi-switch-rear-grabs.png",
+      "contacts": [
+        {
+          "name": "Indy",
+          "side": "l",
+          "wristDistance": 0.4054418275440684
+        },
+        {
+          "name": "Melon",
+          "side": "r",
+          "wristDistance": 0.44810293942551316
+        },
+        {
+          "name": "Nosegrab",
+          "side": "r",
+          "wristDistance": 0.5302463604361858
+        },
+        {
+          "name": "Tailgrab",
+          "side": "l",
+          "wristDistance": 0.4887379340888508
+        },
+        {
+          "name": "Japan",
+          "side": "r",
+          "wristDistance": 0.500929909894059
+        },
+        {
+          "name": "Madonna",
+          "side": "r",
+          "wristDistance": 0.5334890239196769
+        },
+        {
+          "name": "Benihana",
+          "side": "l",
+          "wristDistance": 0.4297494386309007
+        },
+        {
+          "name": "Method",
+          "side": "r",
+          "wristDistance": 0.5708642405433977
+        },
+        {
+          "name": "Stalefish",
+          "side": "l",
+          "wristDistance": 0.3205878120917983
+        },
+        {
+          "name": "Rocket Air",
+          "side": "l",
+          "wristDistance": 0.9648447336661857
+        },
+        {
+          "name": "Rocket Air",
+          "side": "r",
+          "wristDistance": 0.5945387964083277
+        },
+        {
+          "name": "Seatbelt",
+          "side": "r",
+          "wristDistance": 0.9352685611237913
+        },
+        {
+          "name": "Mute",
+          "side": "r",
+          "wristDistance": 0.4149433377149899
+        },
+        {
+          "name": "Judo",
+          "side": "r",
+          "wristDistance": 0.5015888433332409
+        },
+        {
+          "name": "Crail",
+          "side": "l",
+          "wristDistance": 0.936794723851123
+        },
+        {
+          "name": "Christ Air",
+          "side": "r",
+          "wristDistance": 0.4571362189435827
+        }
+      ],
+      "cells": 16
+    },
+    {
+      "riderName": "TuxR",
+      "stance": 1,
+      "angle": "front",
+      "type": "motion",
+      "file": "TuxR-regular-front-motion.png",
+      "contacts": [
+        {
+          "name": "Indy",
+          "side": "r",
+          "wristDistance": 0.31940717677636155
+        },
+        {
+          "name": "Nosegrab",
+          "side": "l",
+          "wristDistance": 0.23002486744963271
+        },
+        {
+          "name": "Melon",
+          "side": "l",
+          "wristDistance": 0.29557815028165757
+        },
+        {
+          "name": "Tailgrab",
+          "side": "r",
+          "wristDistance": 0.2228074491378322
+        }
+      ],
+      "cells": 16
+    },
+    {
+      "riderName": "TuxR",
+      "stance": 1,
+      "angle": "front",
+      "type": "grabs",
+      "file": "TuxR-regular-front-grabs.png",
+      "contacts": [
+        {
+          "name": "Indy",
+          "side": "r",
+          "wristDistance": 0.31940717677636155
+        },
+        {
+          "name": "Melon",
+          "side": "l",
+          "wristDistance": 0.29557815028165757
+        },
+        {
+          "name": "Nosegrab",
+          "side": "l",
+          "wristDistance": 0.23002486744963271
+        },
+        {
+          "name": "Tailgrab",
+          "side": "r",
+          "wristDistance": 0.2228074491378322
+        },
+        {
+          "name": "Japan",
+          "side": "l",
+          "wristDistance": 0.27926141691352635
+        },
+        {
+          "name": "Madonna",
+          "side": "l",
+          "wristDistance": 0.25326584021389487
+        },
+        {
+          "name": "Benihana",
+          "side": "r",
+          "wristDistance": 0.23720943856014196
+        },
+        {
+          "name": "Method",
+          "side": "l",
+          "wristDistance": 0.3434878988833906
+        },
+        {
+          "name": "Stalefish",
+          "side": "r",
+          "wristDistance": 0.21421877434338882
+        },
+        {
+          "name": "Rocket Air",
+          "side": "l",
+          "wristDistance": 0.09508209986189341
+        },
+        {
+          "name": "Rocket Air",
+          "side": "r",
+          "wristDistance": 0.646937781774313
+        },
+        {
+          "name": "Seatbelt",
+          "side": "l",
+          "wristDistance": 0.669214926720576
+        },
+        {
+          "name": "Mute",
+          "side": "l",
+          "wristDistance": 0.24245161018586758
+        },
+        {
+          "name": "Judo",
+          "side": "l",
+          "wristDistance": 0.2309307949290777
+        },
+        {
+          "name": "Crail",
+          "side": "r",
+          "wristDistance": 0.6886336007458185
+        },
+        {
+          "name": "Christ Air",
+          "side": "l",
+          "wristDistance": 0.36833994689395905
+        }
+      ],
+      "cells": 16
+    },
+    {
+      "riderName": "TuxR",
+      "stance": 1,
+      "angle": "side",
+      "type": "motion",
+      "file": "TuxR-regular-side-motion.png",
+      "contacts": [
+        {
+          "name": "Indy",
+          "side": "r",
+          "wristDistance": 0.31940717677636155
+        },
+        {
+          "name": "Nosegrab",
+          "side": "l",
+          "wristDistance": 0.23002486744963271
+        },
+        {
+          "name": "Melon",
+          "side": "l",
+          "wristDistance": 0.29557815028165757
+        },
+        {
+          "name": "Tailgrab",
+          "side": "r",
+          "wristDistance": 0.2228074491378322
+        }
+      ],
+      "cells": 16
+    },
+    {
+      "riderName": "TuxR",
+      "stance": 1,
+      "angle": "side",
+      "type": "grabs",
+      "file": "TuxR-regular-side-grabs.png",
+      "contacts": [
+        {
+          "name": "Indy",
+          "side": "r",
+          "wristDistance": 0.31940717677636155
+        },
+        {
+          "name": "Melon",
+          "side": "l",
+          "wristDistance": 0.29557815028165757
+        },
+        {
+          "name": "Nosegrab",
+          "side": "l",
+          "wristDistance": 0.23002486744963271
+        },
+        {
+          "name": "Tailgrab",
+          "side": "r",
+          "wristDistance": 0.2228074491378322
+        },
+        {
+          "name": "Japan",
+          "side": "l",
+          "wristDistance": 0.27926141691352635
+        },
+        {
+          "name": "Madonna",
+          "side": "l",
+          "wristDistance": 0.25326584021389487
+        },
+        {
+          "name": "Benihana",
+          "side": "r",
+          "wristDistance": 0.23720943856014196
+        },
+        {
+          "name": "Method",
+          "side": "l",
+          "wristDistance": 0.3434878988833906
+        },
+        {
+          "name": "Stalefish",
+          "side": "r",
+          "wristDistance": 0.21421877434338882
+        },
+        {
+          "name": "Rocket Air",
+          "side": "l",
+          "wristDistance": 0.09508209986189341
+        },
+        {
+          "name": "Rocket Air",
+          "side": "r",
+          "wristDistance": 0.646937781774313
+        },
+        {
+          "name": "Seatbelt",
+          "side": "l",
+          "wristDistance": 0.669214926720576
+        },
+        {
+          "name": "Mute",
+          "side": "l",
+          "wristDistance": 0.24245161018586758
+        },
+        {
+          "name": "Judo",
+          "side": "l",
+          "wristDistance": 0.2309307949290777
+        },
+        {
+          "name": "Crail",
+          "side": "r",
+          "wristDistance": 0.6886336007458185
+        },
+        {
+          "name": "Christ Air",
+          "side": "l",
+          "wristDistance": 0.36833994689395905
+        }
+      ],
+      "cells": 16
+    },
+    {
+      "riderName": "TuxR",
+      "stance": 1,
+      "angle": "rear",
+      "type": "motion",
+      "file": "TuxR-regular-rear-motion.png",
+      "contacts": [
+        {
+          "name": "Indy",
+          "side": "r",
+          "wristDistance": 0.31940717677636155
+        },
+        {
+          "name": "Nosegrab",
+          "side": "l",
+          "wristDistance": 0.23002486744963271
+        },
+        {
+          "name": "Melon",
+          "side": "l",
+          "wristDistance": 0.29557815028165757
+        },
+        {
+          "name": "Tailgrab",
+          "side": "r",
+          "wristDistance": 0.2228074491378322
+        }
+      ],
+      "cells": 16
+    },
+    {
+      "riderName": "TuxR",
+      "stance": 1,
+      "angle": "rear",
+      "type": "grabs",
+      "file": "TuxR-regular-rear-grabs.png",
+      "contacts": [
+        {
+          "name": "Indy",
+          "side": "r",
+          "wristDistance": 0.31940717677636155
+        },
+        {
+          "name": "Melon",
+          "side": "l",
+          "wristDistance": 0.29557815028165757
+        },
+        {
+          "name": "Nosegrab",
+          "side": "l",
+          "wristDistance": 0.23002486744963271
+        },
+        {
+          "name": "Tailgrab",
+          "side": "r",
+          "wristDistance": 0.2228074491378322
+        },
+        {
+          "name": "Japan",
+          "side": "l",
+          "wristDistance": 0.27926141691352635
+        },
+        {
+          "name": "Madonna",
+          "side": "l",
+          "wristDistance": 0.25326584021389487
+        },
+        {
+          "name": "Benihana",
+          "side": "r",
+          "wristDistance": 0.23720943856014196
+        },
+        {
+          "name": "Method",
+          "side": "l",
+          "wristDistance": 0.3434878988833906
+        },
+        {
+          "name": "Stalefish",
+          "side": "r",
+          "wristDistance": 0.21421877434338882
+        },
+        {
+          "name": "Rocket Air",
+          "side": "l",
+          "wristDistance": 0.09508209986189341
+        },
+        {
+          "name": "Rocket Air",
+          "side": "r",
+          "wristDistance": 0.646937781774313
+        },
+        {
+          "name": "Seatbelt",
+          "side": "l",
+          "wristDistance": 0.669214926720576
+        },
+        {
+          "name": "Mute",
+          "side": "l",
+          "wristDistance": 0.24245161018586758
+        },
+        {
+          "name": "Judo",
+          "side": "l",
+          "wristDistance": 0.2309307949290777
+        },
+        {
+          "name": "Crail",
+          "side": "r",
+          "wristDistance": 0.6886336007458185
+        },
+        {
+          "name": "Christ Air",
+          "side": "l",
+          "wristDistance": 0.36833994689395905
+        }
+      ],
+      "cells": 16
+    },
+    {
+      "riderName": "TuxR",
+      "stance": -1,
+      "angle": "front",
+      "type": "motion",
+      "file": "TuxR-switch-front-motion.png",
+      "contacts": [
+        {
+          "name": "Indy",
+          "side": "l",
+          "wristDistance": 0.26298148067620003
+        },
+        {
+          "name": "Nosegrab",
+          "side": "r",
+          "wristDistance": 0.4640910413676459
+        },
+        {
+          "name": "Melon",
+          "side": "r",
+          "wristDistance": 0.3026937599344715
+        },
+        {
+          "name": "Tailgrab",
+          "side": "l",
+          "wristDistance": 0.4611351237466622
+        }
+      ],
+      "cells": 16
+    },
+    {
+      "riderName": "TuxR",
+      "stance": -1,
+      "angle": "front",
+      "type": "grabs",
+      "file": "TuxR-switch-front-grabs.png",
+      "contacts": [
+        {
+          "name": "Indy",
+          "side": "l",
+          "wristDistance": 0.26298148067620003
+        },
+        {
+          "name": "Melon",
+          "side": "r",
+          "wristDistance": 0.3026937599344715
+        },
+        {
+          "name": "Nosegrab",
+          "side": "r",
+          "wristDistance": 0.4640910413676459
+        },
+        {
+          "name": "Tailgrab",
+          "side": "l",
+          "wristDistance": 0.4611351237466622
+        },
+        {
+          "name": "Japan",
+          "side": "r",
+          "wristDistance": 0.31061568417243435
+        },
+        {
+          "name": "Madonna",
+          "side": "r",
+          "wristDistance": 0.4586797679138785
+        },
+        {
+          "name": "Benihana",
+          "side": "l",
+          "wristDistance": 0.3861624003650333
+        },
+        {
+          "name": "Method",
+          "side": "r",
+          "wristDistance": 0.4683185712765662
+        },
+        {
+          "name": "Stalefish",
+          "side": "l",
+          "wristDistance": 0.2777912926948687
+        },
+        {
+          "name": "Rocket Air",
+          "side": "l",
+          "wristDistance": 0.884613154618758
+        },
+        {
+          "name": "Rocket Air",
+          "side": "r",
+          "wristDistance": 0.5870626052613672
+        },
+        {
+          "name": "Seatbelt",
+          "side": "r",
+          "wristDistance": 0.8277095123552671
+        },
+        {
+          "name": "Mute",
+          "side": "r",
+          "wristDistance": 0.29268892432890775
+        },
+        {
+          "name": "Judo",
+          "side": "r",
+          "wristDistance": 0.43585217256523373
+        },
+        {
+          "name": "Crail",
+          "side": "l",
+          "wristDistance": 0.8277177570050194
+        },
+        {
+          "name": "Christ Air",
+          "side": "r",
+          "wristDistance": 0.30663091447666224
+        }
+      ],
+      "cells": 16
+    },
+    {
+      "riderName": "TuxR",
+      "stance": -1,
+      "angle": "side",
+      "type": "motion",
+      "file": "TuxR-switch-side-motion.png",
+      "contacts": [
+        {
+          "name": "Indy",
+          "side": "l",
+          "wristDistance": 0.26298148067620003
+        },
+        {
+          "name": "Nosegrab",
+          "side": "r",
+          "wristDistance": 0.4640910413676459
+        },
+        {
+          "name": "Melon",
+          "side": "r",
+          "wristDistance": 0.3026937599344715
+        },
+        {
+          "name": "Tailgrab",
+          "side": "l",
+          "wristDistance": 0.4611351237466622
+        }
+      ],
+      "cells": 16
+    },
+    {
+      "riderName": "TuxR",
+      "stance": -1,
+      "angle": "side",
+      "type": "grabs",
+      "file": "TuxR-switch-side-grabs.png",
+      "contacts": [
+        {
+          "name": "Indy",
+          "side": "l",
+          "wristDistance": 0.26298148067620003
+        },
+        {
+          "name": "Melon",
+          "side": "r",
+          "wristDistance": 0.3026937599344715
+        },
+        {
+          "name": "Nosegrab",
+          "side": "r",
+          "wristDistance": 0.4640910413676459
+        },
+        {
+          "name": "Tailgrab",
+          "side": "l",
+          "wristDistance": 0.4611351237466622
+        },
+        {
+          "name": "Japan",
+          "side": "r",
+          "wristDistance": 0.31061568417243435
+        },
+        {
+          "name": "Madonna",
+          "side": "r",
+          "wristDistance": 0.4586797679138785
+        },
+        {
+          "name": "Benihana",
+          "side": "l",
+          "wristDistance": 0.3861624003650333
+        },
+        {
+          "name": "Method",
+          "side": "r",
+          "wristDistance": 0.4683185712765662
+        },
+        {
+          "name": "Stalefish",
+          "side": "l",
+          "wristDistance": 0.2777912926948687
+        },
+        {
+          "name": "Rocket Air",
+          "side": "l",
+          "wristDistance": 0.884613154618758
+        },
+        {
+          "name": "Rocket Air",
+          "side": "r",
+          "wristDistance": 0.5870626052613672
+        },
+        {
+          "name": "Seatbelt",
+          "side": "r",
+          "wristDistance": 0.8277095123552671
+        },
+        {
+          "name": "Mute",
+          "side": "r",
+          "wristDistance": 0.29268892432890775
+        },
+        {
+          "name": "Judo",
+          "side": "r",
+          "wristDistance": 0.43585217256523373
+        },
+        {
+          "name": "Crail",
+          "side": "l",
+          "wristDistance": 0.8277177570050194
+        },
+        {
+          "name": "Christ Air",
+          "side": "r",
+          "wristDistance": 0.30663091447666224
+        }
+      ],
+      "cells": 16
+    },
+    {
+      "riderName": "TuxR",
+      "stance": -1,
+      "angle": "rear",
+      "type": "motion",
+      "file": "TuxR-switch-rear-motion.png",
+      "contacts": [
+        {
+          "name": "Indy",
+          "side": "l",
+          "wristDistance": 0.26298148067620003
+        },
+        {
+          "name": "Nosegrab",
+          "side": "r",
+          "wristDistance": 0.4640910413676459
+        },
+        {
+          "name": "Melon",
+          "side": "r",
+          "wristDistance": 0.3026937599344715
+        },
+        {
+          "name": "Tailgrab",
+          "side": "l",
+          "wristDistance": 0.4611351237466622
+        }
+      ],
+      "cells": 16
+    },
+    {
+      "riderName": "TuxR",
+      "stance": -1,
+      "angle": "rear",
+      "type": "grabs",
+      "file": "TuxR-switch-rear-grabs.png",
+      "contacts": [
+        {
+          "name": "Indy",
+          "side": "l",
+          "wristDistance": 0.26298148067620003
+        },
+        {
+          "name": "Melon",
+          "side": "r",
+          "wristDistance": 0.3026937599344715
+        },
+        {
+          "name": "Nosegrab",
+          "side": "r",
+          "wristDistance": 0.4640910413676459
+        },
+        {
+          "name": "Tailgrab",
+          "side": "l",
+          "wristDistance": 0.4611351237466622
+        },
+        {
+          "name": "Japan",
+          "side": "r",
+          "wristDistance": 0.31061568417243435
+        },
+        {
+          "name": "Madonna",
+          "side": "r",
+          "wristDistance": 0.4586797679138785
+        },
+        {
+          "name": "Benihana",
+          "side": "l",
+          "wristDistance": 0.3861624003650333
+        },
+        {
+          "name": "Method",
+          "side": "r",
+          "wristDistance": 0.4683185712765662
+        },
+        {
+          "name": "Stalefish",
+          "side": "l",
+          "wristDistance": 0.2777912926948687
+        },
+        {
+          "name": "Rocket Air",
+          "side": "l",
+          "wristDistance": 0.884613154618758
+        },
+        {
+          "name": "Rocket Air",
+          "side": "r",
+          "wristDistance": 0.5870626052613672
+        },
+        {
+          "name": "Seatbelt",
+          "side": "r",
+          "wristDistance": 0.8277095123552671
+        },
+        {
+          "name": "Mute",
+          "side": "r",
+          "wristDistance": 0.29268892432890775
+        },
+        {
+          "name": "Judo",
+          "side": "r",
+          "wristDistance": 0.43585217256523373
+        },
+        {
+          "name": "Crail",
+          "side": "l",
+          "wristDistance": 0.8277177570050194
+        },
+        {
+          "name": "Christ Air",
+          "side": "r",
+          "wristDistance": 0.30663091447666224
+        }
+      ],
+      "cells": 16
+    }
+  ],
+  "errors": []
+}

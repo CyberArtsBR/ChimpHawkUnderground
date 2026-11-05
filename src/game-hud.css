@@ -1,0 +1,121 @@
+/* Shared gameplay instruments; keep banked score, speed and charge legible. */
+.skate-hud .session-score,.skate-hud .ride-state{display:none}
+.skate-hud{left:24px;bottom:24px!important;padding:14px 19px 12px;border:1px solid #d5dfff25;border-radius:18px;background:linear-gradient(145deg,#161a2cce,#101423a6);box-shadow:0 8px 30px #0003;backdrop-filter:blur(10px)}
+.skate-hud .speed{align-items:baseline;gap:9px}
+.skate-hud .speed>span{font:400 clamp(42px,4.4vw,60px)/.9 'Bangers',Impact,sans-serif;letter-spacing:.015em;color:#fff1b5;-webkit-text-stroke:.5px #191028;text-shadow:1px 2px 0 #100816,2px 3px 0 #170828}
+.skate-hud .speed small{font:800 11px/1 'DM Sans',sans-serif;color:#a9edf1;letter-spacing:.12em;margin:0}
+#run-timer{top:22px;right:24px;min-width:106px;padding:13px 18px 10px;border:1px solid #d5dfff25;border-radius:18px;background:linear-gradient(145deg,#161a2cce,#101423a6);box-shadow:0 8px 30px #0003;backdrop-filter:blur(10px);font:400 clamp(36px,3.6vw,48px)/1 'Bangers',Impact,sans-serif;letter-spacing:.04em;color:#fff1b5;-webkit-text-stroke:.5px #191028;text-shadow:1px 2px 0 #100816,2px 3px 0 #170828}
+#run-timer::after{display:none}
+#run-timer.time-low{color:#ffc885;border-color:#f8c47266}
+#run-timer.time-critical{color:#fff4d7;background:#982143d9;border-color:#ffadb780}
+/* The title has its own visual hierarchy; skip instructions stay readable. */
+#now-playing{position:fixed;left:24px;top:22px;z-index:70;display:flex;align-items:center;gap:13px;width:370px;max-width:calc(100vw - 170px);padding:13px 16px;border:1px solid #aab4de38;border-radius:18px;background:linear-gradient(120deg,#20203bea,#101b2be8);color:#f4f1ff;box-shadow:0 8px 30px #0004,inset 0 1px 0 #fff1;backdrop-filter:blur(12px);letter-spacing:0;pointer-events:none}
+.song-emblem{display:grid;place-items:center;flex:0 0 46px;height:46px;border:1px solid #dbb3ff55;border-radius:13px;color:#a7f5f2;background:linear-gradient(140deg,#75509c70,#22476680);box-shadow:inset 0 0 18px #9c79d01a}
+.song-emblem svg{width:26px;height:26px}
+.song-copy{display:flex;flex-direction:column;gap:5px;min-width:0;flex:1}
+#now-playing .song-label{font:800 9px/1 'DM Sans',sans-serif;letter-spacing:.19em;color:#b3aed1}
+#now-playing .song-title{font:800 21px/1.15 'DM Sans',sans-serif;letter-spacing:.005em;white-space:nowrap;text-overflow:ellipsis;overflow:hidden;color:#fff7e5}
+#now-playing .song-skip{font:500 11px/1.5 'DM Sans',sans-serif;color:#bfc8dd;white-space:normal}
+#now-playing kbd{font:inherit;font-weight:700;color:#dcecf6;border:1px solid #adb9d532;background:#8c9aa41b;border-radius:4px;padding:2px 4px}
+#now-playing .song-note{font:500 10px/1.4 'DM Sans',sans-serif;color:#f3c091}
+#now-playing .song-note[hidden]{display:none}
+.music-menu-slot{position:absolute;top:0;right:0;width:340px}
+.music-menu-slot #now-playing{position:static;width:100%;max-width:none}
+#game-shell.loadout-screen .loadout-shell header{padding-right:360px;min-height:96px}
+#game-shell.loadout-screen .loadout-shell header h2{font-size:clamp(35px,4.2cqw,60px)}
+@media(max-width:1050px){.music-menu-slot{width:280px}.music-menu-slot #now-playing{padding:11px;gap:10px}.music-menu-slot .song-emblem{flex-basis:34px;height:34px}.music-menu-slot #now-playing .song-title{font-size:17px}#game-shell.loadout-screen .loadout-shell header{padding-right:298px}#game-shell.loadout-screen .loadout-shell header h2{font-size:32px}}
+
+@media(max-height:500px) and (min-width:721px){#now-playing{top:10px;left:14px;padding:10px 12px;width:330px}#run-timer{top:10px;right:14px;font-size:34px;padding:10px 15px}.song-emblem{flex-basis:37px;height:37px}#now-playing .song-title{font-size:18px}}
+
+/* Agent 08: make earned points visible without hiding the existing speed gauge. */
+.skate-hud .session-score{display:flex;min-width:100px;padding-right:14px;margin-right:0;border-right:1px solid #a8bdd041}
+.skate-hud .session-score small{font:800 9px/1.3 'DM Sans',sans-serif;letter-spacing:.11em;color:#a9edf1}
+.skate-hud .session-score strong{font:700 clamp(22px,2.1vw,33px)/1 'Barlow Condensed',Impact,sans-serif;color:#fff3d1;font-variant-numeric:tabular-nums}
+.skate-hud .ride-state{display:flex;flex-direction:column;min-width:72px;gap:5px;align-self:center}
+.skate-hud .ride-state>span{font:800 10px/1.2 'DM Sans',Arial,sans-serif;letter-spacing:.08em;color:#b9cadb}
+.skate-hud .ride-state>span.air{color:#ffdf90}
+.skate-hud .charge{width:72px;height:4px;margin:0;border-radius:4px;background:#8ba2b633}
+.skate-hud .charge i{background:#72e2e6}
+.skate-hud .speed small{letter-spacing:.02em}
+/* Gameplay keeps music in its own top-left lane, above centered trick text. */
+body[data-screen='playing'] #now-playing{width:260px;max-width:calc(100vw - 150px);padding:9px 12px;gap:9px;border-radius:12px;backdrop-filter:none;background:#151b2eea}
+body[data-screen='playing'] #now-playing .song-emblem{flex-basis:28px;height:28px;border-radius:8px}
+body[data-screen='playing'] #now-playing .song-emblem svg{width:18px;height:18px}
+body[data-screen='playing'] #now-playing .song-title{font-size:14px}
+body[data-screen='playing'] #now-playing .song-label,
+body[data-screen='playing'] #now-playing .song-skip{display:none}
+body[data-screen='playing'] #now-playing.song-compact{width:auto;max-width:min(225px,calc(100vw - 150px));padding:6px 9px;border-color:#aab4de20;background:#151b2ec9}
+body[data-screen='playing'] #now-playing.song-compact .song-title{font-size:12px}
+body[data-screen='playing'] #now-playing.song-compact .song-emblem{flex-basis:22px;height:22px}
+body[data-screen='playing'] #trick-feedback{top:clamp(125px,18vh,190px)}
+body[data-screen='playing'] .skate-hud,body[data-screen='playing'] #run-timer{backdrop-filter:none}
+#trick-feedback:not(:empty){
+  box-sizing:border-box;
+  position:fixed;
+  left:50%;
+  right:auto;
+  /* Painted letters have ascenders/drop shadows outside their line boxes.
+     Reserve a safe top lane instead of placing the first row on the edge. */
+  top:clamp(125px,18vh,190px);
+  width:max-content;
+  max-width:calc(100vw - 40px);
+  margin:0;
+  transform:translateX(-50%);
+  overflow:visible;
+  white-space:normal;
+  overflow-wrap:anywhere;
+  /* The graffiti lettering stands on its own: no solid rectangular panel. */
+  padding:0;
+  background:none;
+  border:0;
+  border-radius:0;
+  box-shadow:none;
+  backdrop-filter:none;
+}
+#trick-feedback .graffiti-lettering{display:block;max-width:100%;overflow:visible;--letter-height:inherit}
+#trick-feedback .graffiti-art{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:7px 12px;max-width:100%;overflow:visible;padding:8px 12px 14px}
+#trick-feedback .graffiti-word{display:inline-flex;align-items:center;flex-wrap:nowrap;min-width:0;max-width:100%;overflow:visible}
+#trick-feedback .graffiti-word img{display:block;width:calc(var(--letter-height)*.79);height:var(--letter-height);max-width:none;max-height:none;min-width:0;object-fit:contain;filter:drop-shadow(0 2px 2px #000c)}
+/* HUD-only scaled bitmap digits; loadout titles retain their normal sizing. */
+#trick-feedback .graffiti-punctuation{line-height:1.25;padding:.12em .04em;flex-shrink:0}
+/* The legacy duplicate ::after text was independently positioned inside a
+   max-content box, clipping the left score digits on long gold/fire combos. */
+#trick-feedback::after{content:none!important}
+#run-timer,#now-playing,.skate-hud{font-variant-numeric:tabular-nums}
+
+@media(max-height:480px){
+  #now-playing{max-width:245px}
+  #run-timer{padding:8px 12px}
+  #trick-feedback:not(:empty){top:clamp(90px,19vh,140px);padding:0}
+}
+
+/* Functional menus use real type; decorative loadout graffiti stays intact. */
+#game-shell.menu-screen .menu-card h2{font:900 clamp(30px,4vw,46px)/1 'Barlow Condensed',Impact,sans-serif;color:#fff1b5;-webkit-text-fill-color:#fff1b5;letter-spacing:.04em;text-shadow:none}
+#game-shell.menu-screen .graphics-card{width:min(520px,94vw);max-width:94vw;padding:24px;gap:9px;border-color:#838bb74d;background:linear-gradient(145deg,#1c2136f5,#111525f7)}
+body[data-screen='graphics'] #now-playing{display:none}
+body[data-screen='capture'] #now-playing{display:none}
+body[data-screen='graphics'] #game-shell .shell-content{width:min(540px,94vw);max-height:none;overflow:visible}
+body[data-screen='graphics'] #game-shell .graphics-card{width:100%;max-width:100%;max-height:calc(100dvh - 84px);overflow-x:hidden;overflow-y:auto;scrollbar-gutter:stable}
+.graphics-intro{font:500 14px/1.5 'DM Sans',Arial,sans-serif;color:#c7d1e3;margin:2px 0 7px}
+#game-shell .graphics-preset{display:flex;flex-direction:column;gap:5px;text-align:left;padding:12px 15px;min-height:64px;transform:none;border-color:#838bb74d;background:#242a405c}
+#game-shell .graphics-preset strong{font:800 17px/1.2 'DM Sans',Arial,sans-serif;color:#f6efdc;letter-spacing:0}
+#game-shell .graphics-card .graphics-preset{min-height:56px;padding:10px 13px}
+#game-shell .graphics-preset span{font:500 12px/1.4 'DM Sans',Arial,sans-serif;color:#bdcadf;letter-spacing:0}
+#game-shell .graphics-preset[aria-pressed='true']{border-color:#72dce2;background:#21434b99;box-shadow:inset 3px 0 #72dce2}
+#game-shell .graphics-toggle{font:800 13px/1.3 'DM Sans',Arial,sans-serif;letter-spacing:.04em;min-height:44px}
+#game-shell .graphics-details{font:500 12px/1.5 'DM Sans',Arial,sans-serif;color:#b9c7dc;margin:3px 0}
+.graphics-advanced{font:500 12px/1.5 'DM Sans',Arial,sans-serif;color:#bac9df}
+.graphics-advanced summary{cursor:pointer;padding:7px 0;color:#93dce5}
+.graphics-advanced summary:focus-visible{outline:2px solid #ffdf90;outline-offset:3px}
+.graphics-advanced p{margin:0 0 8px}
+
+
+#trick-feedback .combo-caption{display:block;flex-basis:100%;font:800 11px/1.4 'DM Sans',Arial,sans-serif;
+  letter-spacing:.12em;color:#f6efdc;-webkit-text-fill-color:currentColor;-webkit-text-stroke:0;
+  text-shadow:0 1px 4px #000;margin-bottom:4px}
+#trick-feedback[data-combo-phase='banked'] .combo-caption{color:#b3edc2}
+#trick-feedback[data-combo-phase='bail'] .combo-caption{color:#ffccd1}
+.practice-drill{position:fixed;top:82px;left:24px;z-index:20;max-width:min(360px,45vw);padding:9px 13px;border:1px solid #c5ed7480;border-radius:8px;background:#10252dea;color:#f5ffd9;font:700 13px/1.3 'DM Sans',sans-serif;pointer-events:none}
+.practice-drill[hidden]{display:none}
+.practice-input{position:fixed;top:125px;left:24px;z-index:20;padding:7px 12px;border:1px solid #a7dfff77;border-radius:8px;background:#10252dea;color:#e7faff;font:700 12px/1.3 'DM Sans',sans-serif;pointer-events:none}
+.practice-input[hidden]{display:none}

@@ -1,0 +1,359 @@
+{
+  "url": "http://127.0.0.1:5182/",
+  "checks": [
+    "360 Flip: 2.769s, differs from nominal 3.2s timeline",
+    "Laser Flip: 2.776s, differs from nominal 3.2s timeline",
+    "12 lesson videos decoded, including four two-tap upgrades",
+    "Try This Trick opens practice with selected 360 Flip target",
+    "Settings size/high contrast controls work without 720p–1440p horizontal overflow",
+    "Real-time round: READY/GO, pause, 10/5 warnings, zero, skippable TIME UP, results and retry",
+    "Played and exited a real scored highlight"
+  ],
+  "clips": [
+    {
+      "name": "Kickflip",
+      "duration": 3.17286,
+      "width": 960,
+      "height": 540,
+      "src": "http://127.0.0.1:5182/media/flip-school/kickflip.webm"
+    },
+    {
+      "name": "Heelflip",
+      "duration": 3.174771,
+      "width": 960,
+      "height": 540,
+      "src": "http://127.0.0.1:5182/media/flip-school/heelflip.webm"
+    },
+    {
+      "name": "Impossible",
+      "duration": 3.176871,
+      "width": 960,
+      "height": 540,
+      "src": "http://127.0.0.1:5182/media/flip-school/impossible.webm"
+    },
+    {
+      "name": "Pop Shove-It",
+      "duration": 3.179424,
+      "width": 960,
+      "height": 540,
+      "src": "http://127.0.0.1:5182/media/flip-school/pop-shove-it.webm"
+    },
+    {
+      "name": "Hardflip",
+      "duration": 3.176876,
+      "width": 960,
+      "height": 540,
+      "src": "http://127.0.0.1:5182/media/flip-school/hardflip.webm"
+    },
+    {
+      "name": "Inward Heelflip",
+      "duration": 3.175239,
+      "width": 960,
+      "height": 540,
+      "src": "http://127.0.0.1:5182/media/flip-school/inward-heelflip.webm"
+    },
+    {
+      "name": "Varial Kickflip",
+      "duration": 3.173367,
+      "width": 960,
+      "height": 540,
+      "src": "http://127.0.0.1:5182/media/flip-school/varial-kickflip.webm"
+    },
+    {
+      "name": "Varial Heelflip",
+      "duration": 3.177917,
+      "width": 960,
+      "height": 540,
+      "src": "http://127.0.0.1:5182/media/flip-school/varial-heelflip.webm"
+    },
+    {
+      "name": "360 Flip",
+      "duration": 2.769495,
+      "width": 960,
+      "height": 540,
+      "src": "http://127.0.0.1:5182/media/flip-school/360-flip.webm"
+    },
+    {
+      "name": "Laser Flip",
+      "duration": 2.775537,
+      "width": 960,
+      "height": 540,
+      "src": "http://127.0.0.1:5182/media/flip-school/laser-flip.webm"
+    },
+    {
+      "name": "Double Kickflip",
+      "duration": 2.851633,
+      "width": 960,
+      "height": 540,
+      "src": "http://127.0.0.1:5182/media/flip-school/double-kickflip.webm"
+    },
+    {
+      "name": "Double Heelflip",
+      "duration": 2.969288,
+      "width": 960,
+      "height": 540,
+      "src": "http://127.0.0.1:5182/media/flip-school/double-heelflip.webm"
+    }
+  ],
+  "events": [
+    {
+      "name": "try-trick",
+      "at": "2026-11-01T03:50:37.910Z",
+      "phase": "playing",
+      "focused": true,
+      "timer": "Free skate · no time limit",
+      "warning": "none",
+      "warningLabel": "",
+      "pseudo": {
+        "display": "none",
+        "content": "none",
+        "visibility": "visible"
+      },
+      "roundCue": "GO",
+      "cueHidden": true,
+      "skater": {
+        "grounded": true,
+        "bailTime": 0,
+        "score": 0,
+        "position": [
+          27,
+          0.4147693061828613,
+          -76.56057778713274
+        ],
+        "combo": "",
+        "feedback": ""
+      }
+    },
+    {
+      "name": "ready-go",
+      "at": "2026-11-01T03:50:46.713Z",
+      "phase": "playing",
+      "focused": true,
+      "timer": "Time remaining 1:30",
+      "warning": "none",
+      "warningLabel": "",
+      "pseudo": {
+        "display": "none",
+        "content": "none",
+        "visibility": "visible"
+      },
+      "roundCue": "GO",
+      "cueHidden": false,
+      "skater": {
+        "grounded": true,
+        "bailTime": 0,
+        "score": 0,
+        "position": [
+          0,
+          0.014999999999999965,
+          42.91643272959896
+        ],
+        "combo": "",
+        "feedback": ""
+      }
+    },
+    {
+      "name": "round-start",
+      "at": "2026-11-01T03:50:47.382Z",
+      "phase": "playing",
+      "focused": true,
+      "timer": "Time remaining 1:30",
+      "warning": "none",
+      "warningLabel": "",
+      "pseudo": {
+        "display": "none",
+        "content": "none",
+        "visibility": "visible"
+      },
+      "roundCue": "GO",
+      "cueHidden": true,
+      "skater": {
+        "grounded": true,
+        "bailTime": 0,
+        "score": 0,
+        "position": [
+          0,
+          0.014999999999999965,
+          39.462052097573604
+        ],
+        "combo": "",
+        "feedback": ""
+      }
+    },
+    {
+      "name": "after-ollies",
+      "at": "2026-11-01T03:50:56.360Z",
+      "phase": "playing",
+      "focused": true,
+      "timer": "Time remaining 1:21",
+      "warning": "none",
+      "warningLabel": "",
+      "pseudo": {
+        "display": "none",
+        "content": "none",
+        "visibility": "visible"
+      },
+      "roundCue": "GO",
+      "cueHidden": true,
+      "skater": {
+        "grounded": true,
+        "bailTime": 0,
+        "score": 250,
+        "position": [
+          0,
+          0.014999999999999965,
+          -26.728008071899414
+        ],
+        "combo": "",
+        "feedback": "Ollie · +50"
+      }
+    },
+    {
+      "name": "10-seconds",
+      "at": "2026-11-01T03:52:08.416Z",
+      "phase": "playing",
+      "focused": true,
+      "timer": "Time remaining 0:10",
+      "warning": "warning",
+      "warningLabel": "10 SECONDS LEFT",
+      "pseudo": {
+        "display": "block",
+        "content": "\"10 SECONDS LEFT\"",
+        "visibility": "visible"
+      },
+      "roundCue": "GO",
+      "cueHidden": true,
+      "skater": {
+        "grounded": true,
+        "bailTime": 0,
+        "score": 250,
+        "position": [
+          0,
+          0.014999999999999965,
+          -26.728008071899414
+        ],
+        "combo": "",
+        "feedback": "Ollie · +50"
+      }
+    },
+    {
+      "name": "5-seconds",
+      "at": "2026-11-01T03:52:13.464Z",
+      "phase": "playing",
+      "focused": true,
+      "timer": "Time remaining 0:05",
+      "warning": "critical",
+      "warningLabel": "FINAL 5 SECONDS",
+      "pseudo": {
+        "display": "block",
+        "content": "\"FINAL 5 SECONDS\"",
+        "visibility": "visible"
+      },
+      "roundCue": "GO",
+      "cueHidden": true,
+      "skater": {
+        "grounded": true,
+        "bailTime": 0,
+        "score": 250,
+        "position": [
+          0,
+          0.014999999999999965,
+          -26.728008071899414
+        ],
+        "combo": "",
+        "feedback": "Ollie · +50"
+      }
+    },
+    {
+      "name": "timeup",
+      "at": "2026-11-01T03:52:18.505Z",
+      "phase": "timeup",
+      "focused": true,
+      "timer": "Time remaining 0:00",
+      "warning": "critical",
+      "warningLabel": "FINAL 5 SECONDS",
+      "pseudo": {
+        "display": "block",
+        "content": "\"FINAL 5 SECONDS\"",
+        "visibility": "visible"
+      },
+      "roundCue": "GO",
+      "cueHidden": true,
+      "skater": {
+        "grounded": true,
+        "bailTime": 0,
+        "score": 250,
+        "position": [
+          0,
+          0.014999999999999965,
+          -26.728008071899414
+        ],
+        "combo": "",
+        "feedback": "Ollie · +50"
+      }
+    },
+    {
+      "name": "results",
+      "at": "2026-11-01T03:52:19.965Z",
+      "phase": "results",
+      "focused": true,
+      "timer": "Time remaining 0:00",
+      "warning": "critical",
+      "warningLabel": "FINAL 5 SECONDS",
+      "pseudo": {
+        "display": "block",
+        "content": "\"FINAL 5 SECONDS\"",
+        "visibility": "visible"
+      },
+      "roundCue": "GO",
+      "cueHidden": true,
+      "skater": {
+        "grounded": true,
+        "bailTime": 0,
+        "score": 250,
+        "position": [
+          0,
+          0.014999999999999965,
+          -26.728008071899414
+        ],
+        "combo": "",
+        "feedback": "Ollie · +50"
+      }
+    },
+    {
+      "name": "retry",
+      "at": "2026-11-01T03:52:22.483Z",
+      "phase": "playing",
+      "focused": true,
+      "timer": "Time remaining 1:30",
+      "warning": "none",
+      "warningLabel": "",
+      "pseudo": {
+        "display": "none",
+        "content": "none",
+        "visibility": "visible"
+      },
+      "roundCue": "READY · ENTER / A TO GO",
+      "cueHidden": false,
+      "skater": {
+        "grounded": true,
+        "bailTime": 0,
+        "score": 0,
+        "position": [
+          0,
+          0.014999999999999965,
+          43
+        ],
+        "combo": "",
+        "feedback": ""
+      }
+    }
+  ],
+  "errors": [],
+  "consoleErrors": [],
+  "bootMs": 6818,
+  "finalScore": "263",
+  "replayEnabled": true,
+  "roundWallClockMs": 95771,
+  "status": "PASS"
+}

@@ -1,0 +1,72 @@
+{
+  "samples": [
+    {
+      "delivery": "optimized",
+      "map": "grand-warehouse",
+      "readyMs": 2489.699999999255,
+      "resources": [
+        {
+          "url": "granwarehouse.glb.gz?v=fbc46ba3",
+          "encodedBytes": 6033768,
+          "decodedBytes": 13730256,
+          "durationMs": 1292.5999999977648
+        }
+      ]
+    },
+    {
+      "delivery": "optimized",
+      "map": "orbit",
+      "readyMs": 3723.5,
+      "resources": [
+        {
+          "url": "orbit.glb.gz",
+          "encodedBytes": 8386149,
+          "decodedBytes": 14473524,
+          "durationMs": 3267.800000000745
+        },
+        {
+          "url": "galaxy-4k.webp",
+          "encodedBytes": 7340296,
+          "decodedBytes": 7340296,
+          "durationMs": 3033.5
+        }
+      ]
+    },
+    {
+      "delivery": "original",
+      "map": "grand-warehouse",
+      "readyMs": 4089.2000000029802,
+      "resources": [
+        {
+          "url": "granwarehouse.glb?v=fbc46ba3",
+          "encodedBytes": 13730256,
+          "decodedBytes": 13730256,
+          "durationMs": 2852
+        }
+      ]
+    },
+    {
+      "delivery": "original",
+      "map": "orbit",
+      "readyMs": 5848.89999999851,
+      "resources": [
+        {
+          "url": "galaxy-4k.png",
+          "encodedBytes": 11943385,
+          "decodedBytes": 11943385,
+          "durationMs": 4896.199999999255
+        },
+        {
+          "url": "orbit.glb",
+          "encodedBytes": 14473524,
+          "decodedBytes": 14473524,
+          "durationMs": 5412.699999999255
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "network": "Chrome simulated 40 Mbps down, 20 ms latency",
+  "method": "cold isolated contexts; world readiness includes decompression, parsing, collision and setup; one sample per case",
+  "result": "PASS"
+}

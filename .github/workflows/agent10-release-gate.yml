@@ -1,0 +1,122 @@
+name: Agent10 Release Gate
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main, aaa/10-qa-release]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: agent10-release-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  deterministic-regressions:
+    name: Deterministic regressions
+    runs-on: ubuntu-latest
+    timeout-minutes: 22
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Reject CI-skipping commit directives
+        run: node tools/agent10-commit-policy.mjs
+      - name: Install exact dependency lock
+        run: npm ci
+      - name: Inspect selected map assets and GLB chunk integrity
+        run: node tools/agent10-asset-integrity.mjs
+      - name: Agent10 release/identity security unit tests
+        run: node --test tests/agent10-release-gate.test.mjs tests/agent10-glb-security.test.mjs
+      - name: Full deterministic unit suite
+        run: npm test
+      - name: Board, vert, pump replay regressions
+        run: npm run verify:physics
+
+  production-browser:
+    name: Production browser
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install exact dependency lock
+        run: npm ci
+      - name: Build shipping Vite bundle
+        run: npm run build
+      - name: Stamp build with complete source commit
+        env:
+          AGENT10_BUILD_SHA: ${{ github.sha }}
+        run: node tools/agent10-stamp-release.mjs
+      - name: Validate production assets and build SHA
+        env:
+          AGENT10_EXPECTED_SHA: ${{ github.sha }}
+        run: node tools/agent10-verify-dist.mjs
+      - name: Install isolated Playwright runner
+        run: |
+          npm install --no-save --package-lock=false @playwright/test@1.56.1
+          npx playwright install --with-deps chromium
+      - name: Start production-only preview
+        id: preview
+        run: |
+          nohup npm run preview -- --host 127.0.0.1 --port 4173 >/tmp/agent10-gate-preview.log 2>&1 &
+          for i in $(seq 1 90); do
+            if curl -fsS http://127.0.0.1:4173/ >/dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat /tmp/agent10-gate-preview.log
+          exit 1
+      - name: Existing production browser regression suite
+        env:
+          STREETSKATE_URL: http://127.0.0.1:4173
+          AGENT10_ARTIFACT_DIR: artifacts/agent10
+        run: node tools/agent10-browser-qa.mjs
+      - name: Three-map runtime and simulated gamepad QA
+        # Independent report even if the older browser test fails; do not mask either exit code.
+        if: ${{ !cancelled() && steps.preview.outcome == 'success' }}
+        env:
+          STREETSKATE_URL: http://127.0.0.1:4173
+          AGENT10_ARTIFACT_DIR: artifacts/agent10
+        run: node tools/agent10-location-controller-smoke.mjs
+      - name: Preserve production preview logs
+        if: always()
+        run: |
+          mkdir -p artifacts/agent10
+          cp /tmp/agent10-gate-preview.log artifacts/agent10/release-preview.log || true
+      - name: Upload failure screenshots, telemetry and logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: agent10-release-evidence-${{ github.run_id }}
+          path: artifacts/agent10/
+          retention-days: 21
+          if-no-files-found: warn
+
+  release-summary:
+    name: Release decision
+    runs-on: ubuntu-latest
+    if: always()
+    needs: [deterministic-regressions, production-browser]
+    steps:
+      - name: Fail closed unless every mandatory job succeeded
+        env:
+          UNITS: ${{ needs.deterministic-regressions.result }}
+          BROWSER: ${{ needs.production-browser.result }}
+        run: |
+          echo "Unit + physics + assets: $UNITS"
+          echo "Production build + browser + gamepad: $BROWSER"
+          if [[ "$UNITS" != "success" || "$BROWSER" != "success" ]]; then
+            echo "::error::Release blocked. See failed job and artifacts."
+            exit 1
+          fi
+          echo "Candidate verified by CI (NOT deployed; production SHA requires post-deploy check)."

@@ -1,0 +1,4406 @@
+{
+  "id": "iron-district",
+  "name": "IRON DISTRICT — Abandoned Steelworks & Freight Yard",
+  "units": "meters",
+  "coordinateSystem": "glTF_Y_UP",
+  "blenderToGLTF": "(X,Y,Z) -> (X,Z,-Y)",
+  "origin": [
+    0,
+    0,
+    0
+  ],
+  "dimensions": {
+    "width": 200,
+    "length": 150
+  },
+  "mapBounds": {
+    "minX": -100,
+    "maxX": 100,
+    "minZ": -75,
+    "maxZ": 75
+  },
+  "playableRegions": [
+    {
+      "id": "A",
+      "name": "Blast Furnace Plaza",
+      "minX": -30,
+      "maxX": 30,
+      "minZ": -24,
+      "maxZ": 24,
+      "dimensionsMeters": [
+        60,
+        48
+      ]
+    },
+    {
+      "id": "B",
+      "name": "Steel Flow Yard",
+      "minX": -92,
+      "maxX": -34,
+      "minZ": -62,
+      "maxZ": 12,
+      "dimensionsMeters": [
+        58,
+        74
+      ]
+    },
+    {
+      "id": "C",
+      "name": "Freight Terminal",
+      "minX": 34,
+      "maxX": 92,
+      "minZ": -62,
+      "maxZ": 12,
+      "dimensionsMeters": [
+        58,
+        74
+      ]
+    },
+    {
+      "id": "D",
+      "name": "Pipework Transfers",
+      "minX": -92,
+      "maxX": 20,
+      "minZ": 30,
+      "maxZ": 64,
+      "dimensionsMeters": [
+        112,
+        34
+      ]
+    },
+    {
+      "id": "E",
+      "name": "The Iron Megaramp",
+      "minX": 28,
+      "maxX": 92,
+      "minZ": 26,
+      "maxZ": 64,
+      "dimensionsMeters": [
+        64,
+        38
+      ]
+    },
+    {
+      "id": "S",
+      "name": "South Connector",
+      "minX": -34,
+      "maxX": 34,
+      "minZ": -62,
+      "maxZ": -30,
+      "dimensionsMeters": [
+        68,
+        32
+      ]
+    }
+  ],
+  "zones": [
+    {
+      "id": "A",
+      "name": "Blast Furnace Plaza",
+      "minX": -30,
+      "maxX": 30,
+      "minZ": -24,
+      "maxZ": 24,
+      "dimensionsMeters": [
+        60,
+        48
+      ]
+    },
+    {
+      "id": "B",
+      "name": "Steel Flow Yard",
+      "minX": -92,
+      "maxX": -34,
+      "minZ": -62,
+      "maxZ": 12,
+      "dimensionsMeters": [
+        58,
+        74
+      ]
+    },
+    {
+      "id": "C",
+      "name": "Freight Terminal",
+      "minX": 34,
+      "maxX": 92,
+      "minZ": -62,
+      "maxZ": 12,
+      "dimensionsMeters": [
+        58,
+        74
+      ]
+    },
+    {
+      "id": "D",
+      "name": "Pipework Transfers",
+      "minX": -92,
+      "maxX": 20,
+      "minZ": 30,
+      "maxZ": 64,
+      "dimensionsMeters": [
+        112,
+        34
+      ]
+    },
+    {
+      "id": "E",
+      "name": "The Iron Megaramp",
+      "minX": 28,
+      "maxX": 92,
+      "minZ": 26,
+      "maxZ": 64,
+      "dimensionsMeters": [
+        64,
+        38
+      ]
+    },
+    {
+      "id": "S",
+      "name": "South Connector",
+      "minX": -34,
+      "maxX": 34,
+      "minZ": -62,
+      "maxZ": -30,
+      "dimensionsMeters": [
+        68,
+        32
+      ]
+    }
+  ],
+  "spawn": [
+    0,
+    0.15,
+    0
+  ],
+  "spawnHeading": 0,
+  "spawns": [
+    {
+      "name": "SPAWN_MAIN",
+      "position": [
+        0,
+        0.15,
+        0
+      ],
+      "headingDegrees": 0
+    },
+    {
+      "name": "SPAWN_FLOW",
+      "position": [
+        -55,
+        0.15,
+        3
+      ],
+      "headingDegrees": 0
+    },
+    {
+      "name": "SPAWN_FREIGHT",
+      "position": [
+        53,
+        0.15,
+        -35
+      ],
+      "headingDegrees": 0
+    },
+    {
+      "name": "SPAWN_PIPEWORK",
+      "position": [
+        -40,
+        0.15,
+        35
+      ],
+      "headingDegrees": 0
+    },
+    {
+      "name": "SPAWN_MEGARAMP",
+      "position": [
+        35,
+        0.15,
+        49
+      ],
+      "headingDegrees": 90
+    }
+  ],
+  "rideableSurfaces": [
+    {
+      "object": "RIDE_Ground_South",
+      "collision": "COL_RIDE_Ground_South",
+      "surfaceType": "concrete",
+      "zone": "ALL",
+      "bounds": {
+        "min": [
+          -100.0,
+          0.0,
+          -75.0
+        ],
+        "max": [
+          100.0,
+          0.0,
+          -55.0
+        ]
+      }
+    },
+    {
+      "object": "RIDE_Ground_North",
+      "collision": "COL_RIDE_Ground_North",
+      "surfaceType": "concrete",
+      "zone": "ALL",
+      "bounds": {
+        "min": [
+          -100.0,
+          0.0,
+          -23.0
+        ],
+        "max": [
+          100.0,
+          0.0,
+          75.0
+        ]
+      }
+    },
+    {
+      "object": "RIDE_Ground_West",
+      "collision": "COL_RIDE_Ground_West",
+      "surfaceType": "concrete",
+      "zone": "ALL",
+      "bounds": {
+        "min": [
+          -100.0,
+          0.0,
+          -55.0
+        ],
+        "max": [
+          -90.0,
+          0.0,
+          -23.0
+        ]
+      }
+    },
+    {
+      "object": "RIDE_Ground_East",
+      "collision": "COL_RIDE_Ground_East",
+      "surfaceType": "concrete",
+      "zone": "ALL",
+      "bounds": {
+        "min": [
+          -37.0,
+          0.0,
+          -55.0
+        ],
+        "max": [
+          100.0,
+          0.0,
+          -23.0
+        ]
+      }
+    },
+    {
+      "object": "RIDE_B_InterlinkedBowls",
+      "collision": "COL_RIDE_B_InterlinkedBowls",
+      "surfaceType": "concrete",
+      "zone": "B",
+      "bounds": {
+        "min": [
+          -90.0,
+          -3.1,
+          -55.0
+        ],
+        "max": [
+          -37.0,
+          0.0,
+          -23.0
+        ]
+      }
+    },
+    {
+      "object": "RIDE_B_Halfpipe",
+      "collision": "COL_RIDE_B_Halfpipe",
+      "surfaceType": "wood",
+      "zone": "B",
+      "bounds": {
+        "min": [
+          -84.2,
+          0.0,
+          -16.0
+        ],
+        "max": [
+          -67.8,
+          3.2,
+          -0.0
+        ]
+      }
+    },
+    {
+      "object": "RIDE_B_Spine",
+      "collision": "COL_RIDE_B_Spine",
+      "surfaceType": "concrete",
+      "zone": "B",
+      "bounds": {
+        "min": [
+          -55.0,
+          0.0,
+          -17.0
+        ],
+        "max": [
+          -43.0,
+          1.65,
+          -7.0
+        ]
+      }
+    },
+    {
+      "object": "RIDE_B_Quarter",
+      "collision": "COL_RIDE_B_Quarter",
+      "surfaceType": "concrete",
+      "zone": "B",
+      "bounds": {
+        "min": [
+          -90.0,
+          0.0,
+          -60.0
+        ],
+        "max": [
+          -78.0,
+          3.5,
+          -56.5
+        ]
+      }
+    },
+    {
+      "object": "RIDE_A_ManualPad_1",
+      "collision": "COL_RIDE_A_ManualPad_1",
+      "surfaceType": "concrete",
+      "zone": "A",
+      "bounds": {
+        "min": [
+          -21.0,
+          0.0,
+          -17.15
+        ],
+        "max": [
+          -15.0,
+          0.46,
+          -14.85
+        ]
+      }
+    },
+    {
+      "object": "RIDE_A_ManualPad_2",
+      "collision": "COL_RIDE_A_ManualPad_2",
+      "surfaceType": "concrete",
+      "zone": "A",
+      "bounds": {
+        "min": [
+          -2.5,
+          0.0,
+          -18.15
+        ],
+        "max": [
+          2.5,
+          0.46,
+          -15.85
+        ]
+      }
+    },
+    {
+      "object": "RIDE_A_ManualPad_3",
+      "collision": "COL_RIDE_A_ManualPad_3",
+      "surfaceType": "concrete",
+      "zone": "A",
+      "bounds": {
+        "min": [
+          16.0,
+          0.0,
+          -15.15
+        ],
+        "max": [
+          22.0,
+          0.46,
+          -12.85
+        ]
+      }
+    },
+    {
+      "object": "RIDE_A_Bank_W",
+      "collision": "COL_RIDE_A_Bank_W",
+      "surfaceType": "concrete",
+      "zone": "A",
+      "bounds": {
+        "min": [
+          -29.0,
+          0.0,
+          13.0
+        ],
+        "max": [
+          -17.0,
+          1.3,
+          21.0
+        ]
+      }
+    },
+    {
+      "object": "RIDE_A_Bank_E",
+      "collision": "COL_RIDE_A_Bank_E",
+      "surfaceType": "concrete",
+      "zone": "A",
+      "bounds": {
+        "min": [
+          16.0,
+          0.0,
+          14.0
+        ],
+        "max": [
+          28.0,
+          1.6,
+          22.0
+        ]
+      }
+    },
+    {
+      "object": "RIDE_A_SixStair",
+      "collision": "COL_RIDE_A_SixStair",
+      "surfaceType": "concrete",
+      "zone": "A",
+      "bounds": {
+        "min": [
+          4.0,
+          0.0,
+          -21.5
+        ],
+        "max": [
+          12.6,
+          1.32,
+          -14.5
+        ]
+      }
+    },
+    {
+      "object": "RIDE_A_Bench",
+      "collision": "COL_RIDE_A_Bench",
+      "surfaceType": "concrete",
+      "zone": "A",
+      "bounds": {
+        "min": [
+          -27.55,
+          0.3,
+          -8.75
+        ],
+        "max": [
+          -26.45,
+          0.6,
+          -5.25
+        ]
+      }
+    },
+    {
+      "object": "RIDE_A_Bench.001",
+      "collision": "COL_RIDE_A_Bench.001",
+      "surfaceType": "concrete",
+      "zone": "A",
+      "bounds": {
+        "min": [
+          -27.55,
+          0.3,
+          -13.75
+        ],
+        "max": [
+          -26.45,
+          0.6,
+          -10.25
+        ]
+      }
+    },
+    {
+      "object": "RIDE_A_Bench.002",
+      "collision": "COL_RIDE_A_Bench.002",
+      "surfaceType": "concrete",
+      "zone": "A",
+      "bounds": {
+        "min": [
+          26.45,
+          0.3,
+          -8.75
+        ],
+        "max": [
+          27.55,
+          0.6,
+          -5.25
+        ]
+      }
+    },
+    {
+      "object": "RIDE_A_Bench.003",
+      "collision": "COL_RIDE_A_Bench.003",
+      "surfaceType": "concrete",
+      "zone": "A",
+      "bounds": {
+        "min": [
+          26.45,
+          0.3,
+          -13.75
+        ],
+        "max": [
+          27.55,
+          0.6,
+          -10.25
+        ]
+      }
+    },
+    {
+      "object": "RIDE_C_LoadingLedge_1",
+      "collision": "COL_RIDE_C_LoadingLedge_1",
+      "surfaceType": "concrete",
+      "zone": "C",
+      "bounds": {
+        "min": [
+          71.0,
+          0.0,
+          -49.0
+        ],
+        "max": [
+          81.0,
+          1.3,
+          -45.0
+        ]
+      }
+    },
+    {
+      "object": "RIDE_C_LoadingBank_1",
+      "collision": "COL_RIDE_C_LoadingBank_1",
+      "surfaceType": "concrete",
+      "zone": "C",
+      "bounds": {
+        "min": [
+          72.0,
+          0.0,
+          -46.0
+        ],
+        "max": [
+          80.0,
+          1.3,
+          -34.0
+        ]
+      }
+    },
+    {
+      "object": "RIDE_C_LoadingLedge_2",
+      "collision": "COL_RIDE_C_LoadingLedge_2",
+      "surfaceType": "concrete",
+      "zone": "C",
+      "bounds": {
+        "min": [
+          71.0,
+          0.0,
+          -27.0
+        ],
+        "max": [
+          81.0,
+          1.3,
+          -23.0
+        ]
+      }
+    },
+    {
+      "object": "RIDE_C_LoadingBank_2",
+      "collision": "COL_RIDE_C_LoadingBank_2",
+      "surfaceType": "concrete",
+      "zone": "C",
+      "bounds": {
+        "min": [
+          72.0,
+          0.0,
+          -24.0
+        ],
+        "max": [
+          80.0,
+          1.3,
+          -12.0
+        ]
+      }
+    },
+    {
+      "object": "RIDE_C_EightStair",
+      "collision": "COL_RIDE_C_EightStair",
+      "surfaceType": "concrete",
+      "zone": "C",
+      "bounds": {
+        "min": [
+          46.0,
+          0.0,
+          -16.0
+        ],
+        "max": [
+          56.6,
+          1.92,
+          -8.0
+        ]
+      }
+    },
+    {
+      "object": "RIDE_C_EastBank",
+      "collision": "COL_RIDE_C_EastBank",
+      "surfaceType": "concrete",
+      "zone": "C",
+      "bounds": {
+        "min": [
+          82.0,
+          0.0,
+          -13.0
+        ],
+        "max": [
+          90.0,
+          1.8,
+          -1.0
+        ]
+      }
+    },
+    {
+      "object": "RIDE_C_GapAccess",
+      "collision": "COL_RIDE_C_GapAccess",
+      "surfaceType": "concrete",
+      "zone": "C",
+      "bounds": {
+        "min": [
+          40.5,
+          0.0,
+          -61.0
+        ],
+        "max": [
+          45.5,
+          0.7,
+          -49.0
+        ]
+      }
+    },
+    {
+      "object": "RIDE_C_GapAccess.001",
+      "collision": "COL_RIDE_C_GapAccess.001",
+      "surfaceType": "concrete",
+      "zone": "C",
+      "bounds": {
+        "min": [
+          48.5,
+          0.0,
+          -61.0
+        ],
+        "max": [
+          53.5,
+          0.7,
+          -49.0
+        ]
+      }
+    },
+    {
+      "object": "RIDE_D_Transfer1_Launch",
+      "collision": "COL_RIDE_D_Transfer1_Launch",
+      "surfaceType": "wood",
+      "zone": "D",
+      "bounds": {
+        "min": [
+          -87.0,
+          0.0,
+          45.5
+        ],
+        "max": [
+          -76.0,
+          1.8,
+          56.5
+        ]
+      }
+    },
+    {
+      "object": "RIDE_D_Transfer1_Receive",
+      "collision": "COL_RIDE_D_Transfer1_Receive",
+      "surfaceType": "wood",
+      "zone": "D",
+      "bounds": {
+        "min": [
+          -73.0,
+          0.0,
+          45.5
+        ],
+        "max": [
+          -60.0,
+          1.55,
+          56.5
+        ]
+      }
+    },
+    {
+      "object": "RIDE_D_DeckSpur",
+      "collision": "COL_RIDE_D_DeckSpur",
+      "surfaceType": "concrete",
+      "zone": "D",
+      "bounds": {
+        "min": [
+          -80.0,
+          0.0,
+          56.5
+        ],
+        "max": [
+          -76.0,
+          1.8,
+          61.5
+        ]
+      }
+    },
+    {
+      "object": "RIDE_D_Transfer2_Launch",
+      "collision": "COL_RIDE_D_Transfer2_Launch",
+      "surfaceType": "wood",
+      "zone": "D",
+      "bounds": {
+        "min": [
+          -52.0,
+          0.0,
+          45.5
+        ],
+        "max": [
+          -41.0,
+          2.6,
+          56.5
+        ]
+      }
+    },
+    {
+      "object": "RIDE_D_Transfer2_Receive",
+      "collision": "COL_RIDE_D_Transfer2_Receive",
+      "surfaceType": "wood",
+      "zone": "D",
+      "bounds": {
+        "min": [
+          -38.0,
+          0.0,
+          45.5
+        ],
+        "max": [
+          -25.0,
+          2.35,
+          56.5
+        ]
+      }
+    },
+    {
+      "object": "RIDE_D_DeckSpur.001",
+      "collision": "COL_RIDE_D_DeckSpur.001",
+      "surfaceType": "concrete",
+      "zone": "D",
+      "bounds": {
+        "min": [
+          -45.0,
+          0.0,
+          56.5
+        ],
+        "max": [
+          -41.0,
+          2.6,
+          61.5
+        ]
+      }
+    },
+    {
+      "object": "RIDE_D_Transfer3_Launch",
+      "collision": "COL_RIDE_D_Transfer3_Launch",
+      "surfaceType": "wood",
+      "zone": "D",
+      "bounds": {
+        "min": [
+          -17.0,
+          0.0,
+          45.5
+        ],
+        "max": [
+          -6.0,
+          3.4,
+          56.5
+        ]
+      }
+    },
+    {
+      "object": "RIDE_D_Transfer3_Receive",
+      "collision": "COL_RIDE_D_Transfer3_Receive",
+      "surfaceType": "wood",
+      "zone": "D",
+      "bounds": {
+        "min": [
+          -3.0,
+          0.0,
+          45.5
+        ],
+        "max": [
+          10.0,
+          3.15,
+          56.5
+        ]
+      }
+    },
+    {
+      "object": "RIDE_D_DeckSpur.002",
+      "collision": "COL_RIDE_D_DeckSpur.002",
+      "surfaceType": "concrete",
+      "zone": "D",
+      "bounds": {
+        "min": [
+          -10.0,
+          0.0,
+          56.5
+        ],
+        "max": [
+          -6.0,
+          3.4,
+          61.5
+        ]
+      }
+    },
+    {
+      "object": "RIDE_E_IronMegaramp",
+      "collision": "COL_RIDE_E_IronMegaramp",
+      "surfaceType": "wood",
+      "zone": "E",
+      "bounds": {
+        "min": [
+          53.0,
+          0.0,
+          43.0
+        ],
+        "max": [
+          75.0,
+          6.0,
+          55.0
+        ]
+      }
+    },
+    {
+      "object": "RIDE_E_DeckSideAccess",
+      "collision": "COL_RIDE_E_DeckSideAccess",
+      "surfaceType": "concrete",
+      "zone": "E",
+      "bounds": {
+        "min": [
+          61.0,
+          0.0,
+          29.0
+        ],
+        "max": [
+          65.0,
+          6.0,
+          43.0
+        ]
+      }
+    },
+    {
+      "object": "RIDE_Perimeter_ManualBlock",
+      "collision": "COL_RIDE_Perimeter_ManualBlock",
+      "surfaceType": "concrete",
+      "zone": "ALL",
+      "bounds": {
+        "min": [
+          -69.5,
+          0.0,
+          -62.0
+        ],
+        "max": [
+          -62.5,
+          0.5,
+          -60.0
+        ]
+      }
+    },
+    {
+      "object": "RIDE_Perimeter_ManualBlock.001",
+      "collision": "COL_RIDE_Perimeter_ManualBlock.001",
+      "surfaceType": "concrete",
+      "zone": "ALL",
+      "bounds": {
+        "min": [
+          68.5,
+          0.0,
+          -65.0
+        ],
+        "max": [
+          75.5,
+          0.5,
+          -63.0
+        ]
+      }
+    },
+    {
+      "object": "RIDE_B_HalfpipeDeck",
+      "collision": "COL_RIDE_B_HalfpipeDeck",
+      "surfaceType": "concrete",
+      "zone": "B",
+      "bounds": {
+        "min": [
+          -86.2,
+          0.0,
+          -16.0
+        ],
+        "max": [
+          -84.2,
+          3.2,
+          -0.0
+        ]
+      }
+    },
+    {
+      "object": "RIDE_B_HalfpipeDeck.001",
+      "collision": "COL_RIDE_B_HalfpipeDeck.001",
+      "surfaceType": "concrete",
+      "zone": "B",
+      "bounds": {
+        "min": [
+          -67.8,
+          0.0,
+          -16.0
+        ],
+        "max": [
+          -65.8,
+          3.2,
+          -0.0
+        ]
+      }
+    }
+  ],
+  "collisionMeshes": [
+    "COL_RIDE_Ground_South",
+    "COL_RIDE_Ground_North",
+    "COL_RIDE_Ground_West",
+    "COL_RIDE_Ground_East",
+    "COL_RIDE_B_InterlinkedBowls",
+    "COL_RIDE_B_Halfpipe",
+    "COL_RIDE_B_Spine",
+    "COL_RIDE_B_Quarter",
+    "COL_RIDE_A_ManualPad_1",
+    "COL_RIDE_A_ManualPad_2",
+    "COL_RIDE_A_ManualPad_3",
+    "COL_RIDE_A_Bank_W",
+    "COL_RIDE_A_Bank_E",
+    "COL_RIDE_A_SixStair",
+    "COL_RIDE_A_Bench",
+    "COL_RIDE_A_Bench.001",
+    "COL_RIDE_A_Bench.002",
+    "COL_RIDE_A_Bench.003",
+    "COL_RIDE_C_LoadingLedge_1",
+    "COL_RIDE_C_LoadingBank_1",
+    "COL_RIDE_C_LoadingLedge_2",
+    "COL_RIDE_C_LoadingBank_2",
+    "COL_RIDE_C_EightStair",
+    "COL_RIDE_C_EastBank",
+    "COL_RIDE_C_GapAccess",
+    "COL_RIDE_C_GapAccess.001",
+    "COL_RIDE_D_Transfer1_Launch",
+    "COL_RIDE_D_Transfer1_Receive",
+    "COL_RIDE_D_DeckSpur",
+    "COL_RIDE_D_Transfer2_Launch",
+    "COL_RIDE_D_Transfer2_Receive",
+    "COL_RIDE_D_DeckSpur.001",
+    "COL_RIDE_D_Transfer3_Launch",
+    "COL_RIDE_D_Transfer3_Receive",
+    "COL_RIDE_D_DeckSpur.002",
+    "COL_RIDE_E_IronMegaramp",
+    "COL_RIDE_E_DeckSideAccess",
+    "COL_RIDE_Perimeter_ManualBlock",
+    "COL_RIDE_Perimeter_ManualBlock.001",
+    "COL_VIS_Furnace_Foot",
+    "COL_VIS_Furnace_Column",
+    "COL_VIS_Furnace_Foot.001",
+    "COL_VIS_Furnace_Column.001",
+    "COL_VIS_Furnace_Foot.002",
+    "COL_VIS_Furnace_Column.002",
+    "COL_VIS_Furnace_Foot.003",
+    "COL_VIS_Furnace_Column.003",
+    "COL_VIS_Furnace_Hearth",
+    "COL_VIS_BoundaryWall",
+    "COL_VIS_BoundaryWall.001",
+    "COL_VIS_BoundaryWall.002",
+    "COL_VIS_BoundaryWall.003",
+    "COL_VIS_PipeGantryPier",
+    "COL_VIS_PipeGantryPier.001",
+    "COL_VIS_PipeGantryPier.002",
+    "COL_VIS_PipeGantryPier.003",
+    "COL_VIS_PipeGantryPier.004",
+    "COL_VIS_PipeGantryPier.005",
+    "COL_VIS_PipeGantryPier.006",
+    "COL_VIS_PipeGantryPier.007",
+    "COL_VIS_ShedFoot",
+    "COL_VIS_ShedFoot.001",
+    "COL_VIS_ShedFoot.002",
+    "COL_VIS_ShedFoot.003",
+    "COL_VIS_ShedFoot.004",
+    "COL_VIS_ShedFoot.005",
+    "COL_VIS_ShedFoot.006",
+    "COL_VIS_ShedFoot.007",
+    "COL_VIS_CraneWheelBase",
+    "COL_VIS_CraneWheelBase.001",
+    "COL_VIS_CraneWheelBase.002",
+    "COL_VIS_CraneWheelBase.003",
+    "COL_VIS_FreightContainer",
+    "COL_VIS_FreightContainer.001",
+    "COL_VIS_FreightContainer.002",
+    "COL_VIS_LightPole",
+    "COL_VIS_LightPole.001",
+    "COL_VIS_LightPole.002",
+    "COL_VIS_LightPole.003",
+    "COL_VIS_LightPole.004",
+    "COL_VIS_LightPole.005",
+    "COL_RIDE_B_HalfpipeDeck",
+    "COL_RIDE_B_HalfpipeDeck.001"
+  ],
+  "rails": [
+    {
+      "object": "GRIND_A_PadEdge_1",
+      "points": [
+        [
+          -21.0,
+          0.49,
+          -17.1
+        ],
+        [
+          -15.0,
+          0.49,
+          -17.1
+        ]
+      ],
+      "radius": 0.035,
+      "closed": false,
+      "zone": "A"
+    },
+    {
+      "object": "GRIND_A_PadEdge_2",
+      "points": [
+        [
+          -2.5,
+          0.49,
+          -18.1
+        ],
+        [
+          2.5,
+          0.49,
+          -18.1
+        ]
+      ],
+      "radius": 0.035,
+      "closed": false,
+      "zone": "A"
+    },
+    {
+      "object": "GRIND_A_PadEdge_3",
+      "points": [
+        [
+          16.0,
+          0.49,
+          -15.1
+        ],
+        [
+          22.0,
+          0.49,
+          -15.1
+        ]
+      ],
+      "radius": 0.035,
+      "closed": false,
+      "zone": "A"
+    },
+    {
+      "object": "GRIND_A_FlatRail_1",
+      "points": [
+        [
+          -26,
+          0.55,
+          6
+        ],
+        [
+          -16,
+          0.55,
+          6
+        ]
+      ],
+      "radius": 0.05,
+      "closed": false,
+      "zone": "A"
+    },
+    {
+      "object": "GRIND_A_FlatRail_2",
+      "points": [
+        [
+          15,
+          0.55,
+          7
+        ],
+        [
+          25,
+          0.55,
+          7
+        ]
+      ],
+      "radius": 0.05,
+      "closed": false,
+      "zone": "A"
+    },
+    {
+      "object": "GRIND_RIDE_A_SixStair",
+      "points": [
+        [
+          8.4,
+          2.12,
+          -20.9
+        ],
+        [
+          13.1,
+          0.8,
+          -20.9
+        ]
+      ],
+      "radius": 0.045,
+      "closed": false,
+      "zone": "A"
+    },
+    {
+      "object": "GRIND_RIDE_A_SixStair.001",
+      "points": [
+        [
+          8.4,
+          2.12,
+          -15.1
+        ],
+        [
+          13.1,
+          0.8,
+          -15.1
+        ]
+      ],
+      "radius": 0.045,
+      "closed": false,
+      "zone": "A"
+    },
+    {
+      "object": "GRIND_C_LongRail_1",
+      "points": [
+        [
+          47,
+          0.65,
+          -47
+        ],
+        [
+          64,
+          0.65,
+          -47
+        ]
+      ],
+      "radius": 0.055,
+      "closed": false,
+      "zone": "C"
+    },
+    {
+      "object": "GRIND_C_LongRail_2",
+      "points": [
+        [
+          47,
+          0.65,
+          -25
+        ],
+        [
+          64,
+          0.65,
+          -25
+        ]
+      ],
+      "radius": 0.055,
+      "closed": false,
+      "zone": "C"
+    },
+    {
+      "object": "GRIND_RIDE_C_EightStair",
+      "points": [
+        [
+          50.4,
+          2.7199999999999998,
+          -15.4
+        ],
+        [
+          57.1,
+          0.8,
+          -15.4
+        ]
+      ],
+      "radius": 0.045,
+      "closed": false,
+      "zone": "C"
+    },
+    {
+      "object": "GRIND_RIDE_C_EightStair.001",
+      "points": [
+        [
+          50.4,
+          2.7199999999999998,
+          -8.6
+        ],
+        [
+          57.1,
+          0.8,
+          -8.6
+        ]
+      ],
+      "radius": 0.045,
+      "closed": false,
+      "zone": "C"
+    },
+    {
+      "object": "GRIND_Perimeter_Ledge",
+      "points": [
+        [
+          -69.5,
+          0.53,
+          -62
+        ],
+        [
+          -62.5,
+          0.53,
+          -62
+        ]
+      ],
+      "radius": 0.035,
+      "closed": false,
+      "zone": "ALL"
+    },
+    {
+      "object": "GRIND_Perimeter_Ledge.001",
+      "points": [
+        [
+          68.5,
+          0.53,
+          -65
+        ],
+        [
+          75.5,
+          0.53,
+          -65
+        ]
+      ],
+      "radius": 0.035,
+      "closed": false,
+      "zone": "ALL"
+    },
+    {
+      "object": "GRIND_C_FreightTrack",
+      "points": [
+        [
+          92,
+          0.025,
+          -70
+        ],
+        [
+          92,
+          0.025,
+          15
+        ]
+      ],
+      "radius": 0.035,
+      "closed": false,
+      "zone": "C"
+    },
+    {
+      "object": "GRIND_C_FreightTrack.001",
+      "points": [
+        [
+          94,
+          0.025,
+          -70
+        ],
+        [
+          94,
+          0.025,
+          15
+        ]
+      ],
+      "radius": 0.035,
+      "closed": false,
+      "zone": "C"
+    }
+  ],
+  "copings": [
+    {
+      "object": "COPING_B_Foundry",
+      "points": [
+        [
+          -58.58416842533843,
+          0.035,
+          -35.96008786579475
+        ],
+        [
+          -58.783862122805736,
+          0.035,
+          -35.49060164279534
+        ],
+        [
+          -59.01197195143804,
+          0.035,
+          -35.0281302310541
+        ],
+        [
+          -59.26804195063154,
+          0.035,
+          -34.5735980481878
+        ],
+        [
+          -59.551560271194305,
+          0.035,
+          -34.12791364237165
+        ],
+        [
+          -59.86196019846346,
+          0.035,
+          -33.69196787627478
+        ],
+        [
+          -60.19862128509084,
+          0.035,
+          -33.26663214634658
+        ],
+        [
+          -60.56087059123311,
+          0.035,
+          -32.85275664101342
+        ],
+        [
+          -60.94798402966725,
+          0.035,
+          -32.4511686412673
+        ],
+        [
+          -61.359187813142654,
+          0.035,
+          -32.06267086704339
+        ],
+        [
+          -61.79366000107687,
+          0.035,
+          -31.68803987269174
+        ],
+        [
+          -62.25053214250338,
+          0.035,
+          -31.328024494750522
+        ],
+        [
+          -62.7288910119872,
+          0.035,
+          -30.983344355123336
+        ],
+        [
+          -63.22778043503872,
+          0.035,
+          -30.654688422652647
+        ],
+        [
+          -63.74620319937674,
+          0.035,
+          -30.342713635964536
+        ],
+        [
+          -64.28312304822056,
+          0.035,
+          -30.048043590337507
+        ],
+        [
+          -64.83746675162678,
+          0.035,
+          -29.7712672912201
+        ],
+        [
+          -65.40812625173024,
+          0.035,
+          -29.512937976888914
+        ],
+        [
+          -65.99396087760152,
+          0.035,
+          -29.27357201260034
+        ],
+        [
+          -66.5937996252933,
+          0.035,
+          -29.053647858446453
+        ],
+        [
+          -67.20644349851842,
+          0.035,
+          -28.85360511297819
+        ],
+        [
+          -67.83066790528088,
+          0.035,
+          -28.67384363450749
+        ],
+        [
+          -68.46522510566899,
+          0.035,
+          -28.51472274184476
+        ],
+        [
+          -69.10884670591832,
+          0.035,
+          -28.376560496069324
+        ],
+        [
+          -69.7602461937587,
+          0.035,
+          -28.25963306476846
+        ],
+        [
+          -70.41812150997778,
+          0.035,
+          -28.164174170015873
+        ],
+        [
+          -71.0811576510607,
+          0.035,
+          -28.090374621192943
+        ],
+        [
+          -71.74802929770382,
+          0.035,
+          -28.038381933586706
+        ],
+        [
+          -72.41740346394815,
+          0.035,
+          -28.008300033526744
+        ],
+        [
+          -73.08794216163749,
+          0.035,
+          -28.000189050650615
+        ],
+        [
+          -73.75830507487527,
+          0.035,
+          -28.014065197712803
+        ],
+        [
+          -74.4271522391342,
+          0.035,
+          -28.04990073817767
+        ],
+        [
+          -75.09314671966355,
+          0.035,
+          -28.10762404166099
+        ],
+        [
+          -75.75495728384041,
+          0.035,
+          -28.187119727109405
+        ],
+        [
+          -76.41126106212312,
+          0.035,
+          -28.288228893431473
+        ],
+        [
+          -77.06074619228797,
+          0.035,
+          -28.410749437119406
+        ],
+        [
+          -77.70211444166392,
+          0.035,
+          -28.55443645622656
+        ],
+        [
+          -78.33408380212353,
+          0.035,
+          -28.719002739893213
+        ],
+        [
+          -78.95539105264331,
+          0.035,
+          -28.904119342442105
+        ],
+        [
+          -79.56479428431123,
+          0.035,
+          -29.10941624089623
+        ],
+        [
+          -80.16107538273414,
+          0.035,
+          -29.334483074604577
+        ],
+        [
+          -80.74304246288314,
+          0.035,
+          -29.578869965497386
+        ],
+        [
+          -81.3095322515102,
+          0.035,
+          -29.8420884173314
+        ],
+        [
+          -81.85941241237349,
+          0.035,
+          -30.12361229212759
+        ],
+        [
+          -82.39158380962392,
+          0.035,
+          -30.422878861849593
+        ],
+        [
+          -82.90498270482867,
+          0.035,
+          -30.739289933220718
+        ],
+        [
+          -83.39858288323995,
+          0.035,
+          -31.07221304343119
+        ],
+        [
+          -83.87139770505911,
+          0.035,
+          -31.420982724345475
+        ],
+        [
+          -84.32248207759574,
+          0.035,
+          -31.784901832682824
+        ],
+        [
+          -84.75093434437974,
+          0.035,
+          -32.16324294351212
+        ],
+        [
+          -85.15589808745037,
+          0.035,
+          -32.55524980427566
+        ],
+        [
+          -85.53656383921945,
+          0.035,
+          -32.960138846435406
+        ],
+        [
+          -85.89217070048741,
+          0.035,
+          -33.377100751720185
+        ],
+        [
+          -86.22200786137742,
+          0.035,
+          -33.80530206984318
+        ],
+        [
+          -86.52541602214806,
+          0.035,
+          -34.24388688445595
+        ],
+        [
+          -86.80178871104393,
+          0.035,
+          -34.691978524009095
+        ],
+        [
+          -87.05057349655053,
+          0.035,
+          -35.14868131409982
+        ],
+        [
+          -87.27127309162984,
+          0.035,
+          -35.6130823678035
+        ],
+        [
+          -87.4634463477297,
+          0.035,
+          -36.084253410410845
+        ],
+        [
+          -87.62670913657992,
+          0.035,
+          -36.5612526349231
+        ],
+        [
+          -87.76073511801255,
+          0.035,
+          -37.043126584596514
+        ],
+        [
+          -87.86525639227163,
+          0.035,
+          -37.52891205877298
+        ],
+        [
+          -87.94006403550848,
+          0.035,
+          -38.01763803818752
+        ],
+        [
+          -87.98500851739209,
+          0.035,
+          -38.50832762590409
+        ],
+        [
+          -88.0,
+          0.035,
+          -39.0
+        ],
+        [
+          -87.98500851739209,
+          0.035,
+          -39.4916723740959
+        ],
+        [
+          -87.94006403550848,
+          0.035,
+          -39.98236196181247
+        ],
+        [
+          -87.86525639227163,
+          0.035,
+          -40.47108794122702
+        ],
+        [
+          -87.76073511801255,
+          0.035,
+          -40.95687341540348
+        ],
+        [
+          -87.62670913657992,
+          0.035,
+          -41.438747365076885
+        ],
+        [
+          -87.4634463477297,
+          0.035,
+          -41.91574658958915
+        ],
+        [
+          -87.27127309162984,
+          0.035,
+          -42.3869176321965
+        ],
+        [
+          -87.05057349655053,
+          0.035,
+          -42.85131868590017
+        ],
+        [
+          -86.80178871104394,
+          0.035,
+          -43.3080214759909
+        ],
+        [
+          -86.52541602214806,
+          0.035,
+          -43.75611311554405
+        ],
+        [
+          -86.22200786137743,
+          0.035,
+          -44.194697930156806
+        ],
+        [
+          -85.89217070048741,
+          0.035,
+          -44.62289924827981
+        ],
+        [
+          -85.53656383921945,
+          0.035,
+          -45.039861153564594
+        ],
+        [
+          -85.15589808745037,
+          0.035,
+          -45.44475019572433
+        ],
+        [
+          -84.75093434437974,
+          0.035,
+          -45.83675705648787
+        ],
+        [
+          -84.32248207759574,
+          0.035,
+          -46.21509816731717
+        ],
+        [
+          -83.87139770505911,
+          0.035,
+          -46.57901727565452
+        ],
+        [
+          -83.39858288323997,
+          0.035,
+          -46.9277869565688
+        ],
+        [
+          -82.90498270482868,
+          0.035,
+          -47.260710066779275
+        ],
+        [
+          -82.39158380962394,
+          0.035,
+          -47.5771211381504
+        ],
+        [
+          -81.85941241237349,
+          0.035,
+          -47.87638770787241
+        ],
+        [
+          -81.3095322515102,
+          0.035,
+          -48.15791158266859
+        ],
+        [
+          -80.74304246288315,
+          0.035,
+          -48.42113003450261
+        ],
+        [
+          -80.16107538273414,
+          0.035,
+          -48.66551692539542
+        ],
+        [
+          -79.56479428431125,
+          0.035,
+          -48.89058375910376
+        ],
+        [
+          -78.95539105264332,
+          0.035,
+          -49.09588065755789
+        ],
+        [
+          -78.33408380212353,
+          0.035,
+          -49.28099726010679
+        ],
+        [
+          -77.70211444166392,
+          0.035,
+          -49.44556354377344
+        ],
+        [
+          -77.06074619228798,
+          0.035,
+          -49.58925056288059
+        ],
+        [
+          -76.41126106212312,
+          0.035,
+          -49.71177110656852
+        ],
+        [
+          -75.75495728384041,
+          0.035,
+          -49.812880272890595
+        ],
+        [
+          -75.09314671966355,
+          0.035,
+          -49.89237595833901
+        ],
+        [
+          -74.4271522391342,
+          0.035,
+          -49.95009926182233
+        ],
+        [
+          -73.75830507487528,
+          0.035,
+          -49.9859348022872
+        ],
+        [
+          -73.08794216163749,
+          0.035,
+          -49.99981094934938
+        ],
+        [
+          -72.41740346394815,
+          0.035,
+          -49.991699966473256
+        ],
+        [
+          -71.74802929770382,
+          0.035,
+          -49.961618066413294
+        ],
+        [
+          -71.0811576510607,
+          0.035,
+          -49.90962537880706
+        ],
+        [
+          -70.4181215099778,
+          0.035,
+          -49.83582582998413
+        ],
+        [
+          -69.76024619375872,
+          0.035,
+          -49.74036693523154
+        ],
+        [
+          -69.10884670591832,
+          0.035,
+          -49.623439503930676
+        ],
+        [
+          -68.46522510566899,
+          0.035,
+          -49.485277258155236
+        ],
+        [
+          -67.83066790528089,
+          0.035,
+          -49.32615636549251
+        ],
+        [
+          -67.20644349851844,
+          0.035,
+          -49.14639488702181
+        ],
+        [
+          -66.5937996252933,
+          0.035,
+          -48.94635214155355
+        ],
+        [
+          -65.99396087760154,
+          0.035,
+          -48.72642798739966
+        ],
+        [
+          -65.40812625173025,
+          0.035,
+          -48.487062023111086
+        ],
+        [
+          -64.83746675162678,
+          0.035,
+          -48.2287327087799
+        ],
+        [
+          -64.28312304822057,
+          0.035,
+          -47.9519564096625
+        ],
+        [
+          -63.746203199376744,
+          0.035,
+          -47.657286364035464
+        ],
+        [
+          -63.227780435038724,
+          0.035,
+          -47.34531157734735
+        ],
+        [
+          -62.7288910119872,
+          0.035,
+          -47.016655644876664
+        ],
+        [
+          -62.25053214250339,
+          0.035,
+          -46.671975505249485
+        ],
+        [
+          -61.79366000107688,
+          0.035,
+          -46.31196012730827
+        ],
+        [
+          -61.359187813142654,
+          0.035,
+          -45.93732913295662
+        ],
+        [
+          -60.94798402966726,
+          0.035,
+          -45.548831358732706
+        ],
+        [
+          -60.56087059123311,
+          0.035,
+          -45.147243358986586
+        ],
+        [
+          -60.19862128509084,
+          0.035,
+          -44.73336785365342
+        ],
+        [
+          -59.861960198463464,
+          0.035,
+          -44.308032123725226
+        ],
+        [
+          -59.55156027119431,
+          0.035,
+          -43.872086357628355
+        ],
+        [
+          -59.26804195063154,
+          0.035,
+          -43.42640195181221
+        ],
+        [
+          -59.01197195143804,
+          0.035,
+          -42.9718697689459
+        ],
+        [
+          -58.78386212280574,
+          0.035,
+          -42.50939835720467
+        ],
+        [
+          -58.58416842533844,
+          0.035,
+          -42.03991213420526
+        ]
+      ],
+      "radius": 0.045,
+      "closed": false,
+      "zone": "B"
+    },
+    {
+      "object": "COPING_B_Ladle",
+      "points": [
+        [
+          -57.48479198975512,
+          0.035,
+          -42.001383829267326
+        ],
+        [
+          -57.345320560823225,
+          0.035,
+          -42.369810786542935
+        ],
+        [
+          -57.189860043508,
+          0.035,
+          -42.73178140674814
+        ],
+        [
+          -57.018708289992986,
+          0.035,
+          -43.086602177848704
+        ],
+        [
+          -56.832193215844036,
+          0.035,
+          -43.43359328645363
+        ],
+        [
+          -56.63067217174452,
+          0.035,
+          -43.772089920293176
+        ],
+        [
+          -56.41453125883481,
+          0.035,
+          -44.101443541955696
+        ],
+        [
+          -56.18418458896772,
+          0.035,
+          -44.42102313144288
+        ],
+        [
+          -55.94007349129727,
+          0.035,
+          -44.73021639516283
+        ],
+        [
+          -55.68266566672096,
+          0.035,
+          -45.028430939044505
+        ],
+        [
+          -55.41245429179535,
+          0.035,
+          -45.315095403526016
+        ],
+        [
+          -55.1299570738421,
+          0.035,
+          -45.58966055824222
+        ],
+        [
+          -54.83571525905456,
+          0.035,
+          -45.851600354314144
+        ],
+        [
+          -54.5302925955055,
+          0.035,
+          -46.10041293222423
+        ],
+        [
+          -54.21427425304264,
+          0.035,
+          -46.33562158334634
+        ],
+        [
+          -53.888265702141496,
+          0.035,
+          -46.556775663288356
+        ],
+        [
+          -53.552891553863574,
+          0.035,
+          -46.7634514552973
+        ],
+        [
+          -53.20879436314242,
+          0.035,
+          -46.95525298207295
+        ],
+        [
+          -52.856633397690366,
+          0.035,
+          -47.131812764434464
+        ],
+        [
+          -52.49708337488476,
+          0.035,
+          -47.2927925253864
+        ],
+        [
+          -52.13083316905353,
+          0.035,
+          -47.43788383823541
+        ],
+        [
+          -51.7585844916371,
+          0.035,
+          -47.566808717515485
+        ],
+        [
+          -51.381050546755134,
+          0.035,
+          -47.67932015159005
+        ],
+        [
+          -50.998954664754045,
+          0.035,
+          -47.77520257591003
+        ],
+        [
+          -50.61302891635345,
+          0.035,
+          -47.854272286021455
+        ],
+        [
+          -50.22401271004648,
+          0.035,
+          -47.91637778953117
+        ],
+        [
+          -49.832651375441486,
+          0.035,
+          -47.96140009635634
+        ],
+        [
+          -49.439694735259266,
+          0.035,
+          -47.989252946701704
+        ],
+        [
+          -49.045895668721755,
+          0.035,
+          -47.99988297632767
+        ],
+        [
+          -48.6520086690847,
+          0.035,
+          -47.993269818792704
+        ],
+        [
+          -48.25878839807792,
+          0.035,
+          -47.969426144474134
+        ],
+        [
+          -47.866988240022756,
+          0.035,
+          -47.92839763629249
+        ],
+        [
+          -47.47735885839704,
+          0.035,
+          -47.87026290218605
+        ],
+        [
+          -47.09064675761294,
+          0.035,
+          -47.79513332450316
+        ],
+        [
+          -46.70759285276331,
+          0.035,
+          -47.70315284660094
+        ],
+        [
+          -46.32893105007689,
+          0.035,
+          -47.594497697059246
+        ],
+        [
+          -45.95538684080189,
+          0.035,
+          -47.46937605203817
+        ],
+        [
+          -45.58767591121228,
+          0.035,
+          -47.32802763642623
+        ],
+        [
+          -45.22650277139966,
+          0.035,
+          -47.170723264543085
+        ],
+        [
+          -44.872559405478,
+          0.035,
+          -46.99776432127703
+        ],
+        [
+          -44.52652394578736,
+          0.035,
+          -46.8094821846513
+        ],
+        [
+          -44.18905937363665,
+          0.035,
+          -46.6062375909254
+        ],
+        [
+          -43.86081224907485,
+          0.035,
+          -46.38841994344805
+        ],
+        [
+          -43.542411472124165,
+          0.035,
+          -46.15644656658583
+        ],
+        [
+          -43.23446707784879,
+          0.035,
+          -45.910761906156985
+        ],
+        [
+          -42.93756906756759,
+          0.035,
+          -45.65183667790233
+        ],
+        [
+          -42.65228627845016,
+          0.035,
+          -45.38016696562464
+        ],
+        [
+          -42.379165293662034,
+          0.035,
+          -45.09627327072455
+        ],
+        [
+          -42.11872939514705,
+          0.035,
+          -44.800699514953926
+        ],
+        [
+          -41.87147756105341,
+          0.035,
+          -44.49401199829732
+        ],
+        [
+          -41.637883509724155,
+          0.035,
+          -44.176798313978296
+        ],
+        [
+          -41.41839479208384,
+          0.035,
+          -43.84966622266919
+        ],
+        [
+          -41.213431934160155,
+          0.035,
+          -43.51324248806145
+        ],
+        [
+          -41.023387631383656,
+          0.035,
+          -43.16817167602737
+        ],
+        [
+          -40.84862599620896,
+          0.035,
+          -42.81511491967406
+        ],
+        [
+          -40.68948186049906,
+          0.035,
+          -42.45474865265561
+        ],
+        [
+          -40.54626013400943,
+          0.035,
+          -42.08776331317051
+        ],
+        [
+          -40.41923522020087,
+          0.035,
+          -41.714862021127175
+        ],
+        [
+          -40.308650490500376,
+          0.035,
+          -41.33675923101219
+        ],
+        [
+          -40.214717818017476,
+          0.035,
+          -40.95417936304228
+        ],
+        [
+          -40.13761717160912,
+          0.035,
+          -40.567855415222475
+        ],
+        [
+          -40.077496271071205,
+          0.035,
+          -40.17852755896997
+        ],
+        [
+          -40.03447030411705,
+          0.035,
+          -39.78694172099403
+        ],
+        [
+          -40.008621705685314,
+          0.035,
+          -39.39384815414921
+        ],
+        [
+          -40.0,
+          0.035,
+          -39.0
+        ],
+        [
+          -40.008621705685314,
+          0.035,
+          -38.60615184585079
+        ],
+        [
+          -40.03447030411705,
+          0.035,
+          -38.21305827900598
+        ],
+        [
+          -40.077496271071205,
+          0.035,
+          -37.82147244103004
+        ],
+        [
+          -40.13761717160912,
+          0.035,
+          -37.43214458477753
+        ],
+        [
+          -40.21471781801747,
+          0.035,
+          -37.04582063695773
+        ],
+        [
+          -40.308650490500376,
+          0.035,
+          -36.66324076898781
+        ],
+        [
+          -40.41923522020086,
+          0.035,
+          -36.28513797887283
+        ],
+        [
+          -40.54626013400943,
+          0.035,
+          -35.912236686829495
+        ],
+        [
+          -40.68948186049906,
+          0.035,
+          -35.5452513473444
+        ],
+        [
+          -40.84862599620895,
+          0.035,
+          -35.18488508032595
+        ],
+        [
+          -41.023387631383656,
+          0.035,
+          -34.83182832397263
+        ],
+        [
+          -41.213431934160155,
+          0.035,
+          -34.48675751193855
+        ],
+        [
+          -41.41839479208383,
+          0.035,
+          -34.15033377733081
+        ],
+        [
+          -41.637883509724155,
+          0.035,
+          -33.82320168602171
+        ],
+        [
+          -41.8714775610534,
+          0.035,
+          -33.50598800170268
+        ],
+        [
+          -42.11872939514704,
+          0.035,
+          -33.19930048504608
+        ],
+        [
+          -42.37916529366203,
+          0.035,
+          -32.90372672927545
+        ],
+        [
+          -42.65228627845016,
+          0.035,
+          -32.61983303437536
+        ],
+        [
+          -42.93756906756759,
+          0.035,
+          -32.348163322097676
+        ],
+        [
+          -43.23446707784879,
+          0.035,
+          -32.089238093843015
+        ],
+        [
+          -43.542411472124165,
+          0.035,
+          -31.843553433414172
+        ],
+        [
+          -43.86081224907484,
+          0.035,
+          -31.611580056551954
+        ],
+        [
+          -44.18905937363665,
+          0.035,
+          -31.3937624090746
+        ],
+        [
+          -44.52652394578735,
+          0.035,
+          -31.1905178153487
+        ],
+        [
+          -44.87255940547799,
+          0.035,
+          -31.00223567872297
+        ],
+        [
+          -45.22650277139966,
+          0.035,
+          -30.82927673545692
+        ],
+        [
+          -45.58767591121227,
+          0.035,
+          -30.671972363573772
+        ],
+        [
+          -45.95538684080189,
+          0.035,
+          -30.53062394796183
+        ],
+        [
+          -46.32893105007689,
+          0.035,
+          -30.405502302940754
+        ],
+        [
+          -46.707592852763305,
+          0.035,
+          -30.296847153399057
+        ],
+        [
+          -47.09064675761293,
+          0.035,
+          -30.20486667549684
+        ],
+        [
+          -47.47735885839703,
+          0.035,
+          -30.129737097813955
+        ],
+        [
+          -47.86698824002275,
+          0.035,
+          -30.071602363707512
+        ],
+        [
+          -48.25878839807791,
+          0.035,
+          -30.030573855525866
+        ],
+        [
+          -48.652008669084694,
+          0.035,
+          -30.006730181207296
+        ],
+        [
+          -49.045895668721755,
+          0.035,
+          -30.00011702367233
+        ],
+        [
+          -49.43969473525926,
+          0.035,
+          -30.010747053298296
+        ],
+        [
+          -49.83265137544148,
+          0.035,
+          -30.03859990364366
+        ],
+        [
+          -50.22401271004647,
+          0.035,
+          -30.083622210468832
+        ],
+        [
+          -50.61302891635345,
+          0.035,
+          -30.145727713978545
+        ],
+        [
+          -50.99895466475405,
+          0.035,
+          -30.22479742408997
+        ],
+        [
+          -51.38105054675513,
+          0.035,
+          -30.320679848409952
+        ],
+        [
+          -51.758584491637095,
+          0.035,
+          -30.433191282484515
+        ],
+        [
+          -52.13083316905352,
+          0.035,
+          -30.562116161764592
+        ],
+        [
+          -52.49708337488475,
+          0.035,
+          -30.707207474613593
+        ],
+        [
+          -52.856633397690366,
+          0.035,
+          -30.868187235565536
+        ],
+        [
+          -53.20879436314242,
+          0.035,
+          -31.044747017927047
+        ],
+        [
+          -53.55289155386357,
+          0.035,
+          -31.2365485447027
+        ],
+        [
+          -53.88826570214148,
+          0.035,
+          -31.443224336711637
+        ],
+        [
+          -54.21427425304263,
+          0.035,
+          -31.66437841665366
+        ],
+        [
+          -54.53029259550549,
+          0.035,
+          -31.89958706777577
+        ],
+        [
+          -54.83571525905457,
+          0.035,
+          -32.148399645685856
+        ],
+        [
+          -55.12995707384209,
+          0.035,
+          -32.41033944175777
+        ],
+        [
+          -55.41245429179534,
+          0.035,
+          -32.68490459647398
+        ],
+        [
+          -55.68266566672094,
+          0.035,
+          -32.97156906095549
+        ],
+        [
+          -55.94007349129727,
+          0.035,
+          -33.269783604837166
+        ],
+        [
+          -56.18418458896772,
+          0.035,
+          -33.57897686855712
+        ],
+        [
+          -56.41453125883481,
+          0.035,
+          -33.898556458044304
+        ],
+        [
+          -56.63067217174452,
+          0.035,
+          -34.22791007970682
+        ],
+        [
+          -56.83219321584403,
+          0.035,
+          -34.566406713546364
+        ],
+        [
+          -57.018708289992986,
+          0.035,
+          -34.913397822151296
+        ],
+        [
+          -57.189860043508,
+          0.035,
+          -35.26821859325185
+        ],
+        [
+          -57.345320560823225,
+          0.035,
+          -35.63018921345707
+        ],
+        [
+          -57.48479198975512,
+          0.035,
+          -35.99861617073267
+        ]
+      ],
+      "radius": 0.045,
+      "closed": false,
+      "zone": "B"
+    },
+    {
+      "object": "COPING_B_Halfpipe",
+      "points": [
+        [
+          -84.2,
+          3.22,
+          -16
+        ],
+        [
+          -84.2,
+          3.22,
+          0
+        ]
+      ],
+      "radius": 0.05,
+      "closed": false,
+      "zone": "B"
+    },
+    {
+      "object": "COPING_B_Halfpipe.001",
+      "points": [
+        [
+          -67.8,
+          3.22,
+          -16
+        ],
+        [
+          -67.8,
+          3.22,
+          0
+        ]
+      ],
+      "radius": 0.05,
+      "closed": false,
+      "zone": "B"
+    },
+    {
+      "object": "COPING_B_Spine",
+      "points": [
+        [
+          -51,
+          1.68,
+          -17
+        ],
+        [
+          -47,
+          1.68,
+          -17
+        ]
+      ],
+      "radius": 0.045,
+      "closed": false,
+      "zone": "B"
+    },
+    {
+      "object": "COPING_B_Spine.001",
+      "points": [
+        [
+          -51,
+          1.68,
+          -7
+        ],
+        [
+          -47,
+          1.68,
+          -7
+        ]
+      ],
+      "radius": 0.045,
+      "closed": false,
+      "zone": "B"
+    },
+    {
+      "object": "COPING_D_Transfer1",
+      "points": [
+        [
+          -76,
+          1.83,
+          45.5
+        ],
+        [
+          -76,
+          1.83,
+          56.5
+        ]
+      ],
+      "radius": 0.05,
+      "closed": false,
+      "zone": "D"
+    },
+    {
+      "object": "COPING_D_Transfer2",
+      "points": [
+        [
+          -41,
+          2.63,
+          45.5
+        ],
+        [
+          -41,
+          2.63,
+          56.5
+        ]
+      ],
+      "radius": 0.05,
+      "closed": false,
+      "zone": "D"
+    },
+    {
+      "object": "COPING_D_Transfer3",
+      "points": [
+        [
+          -6,
+          3.4299999999999997,
+          45.5
+        ],
+        [
+          -6,
+          3.4299999999999997,
+          56.5
+        ]
+      ],
+      "radius": 0.05,
+      "closed": false,
+      "zone": "D"
+    },
+    {
+      "object": "COPING_E_Deck",
+      "points": [
+        [
+          61,
+          6.03,
+          43
+        ],
+        [
+          65,
+          6.03,
+          43
+        ]
+      ],
+      "radius": 0.055,
+      "closed": false,
+      "zone": "E"
+    },
+    {
+      "object": "COPING_E_Deck.001",
+      "points": [
+        [
+          61,
+          6.03,
+          55
+        ],
+        [
+          65,
+          6.03,
+          55
+        ]
+      ],
+      "radius": 0.055,
+      "closed": false,
+      "zone": "E"
+    },
+    {
+      "object": "COPING_B_OuterDeck",
+      "points": [
+        [
+          -86.2,
+          3.22,
+          -16
+        ],
+        [
+          -86.2,
+          3.22,
+          0
+        ]
+      ],
+      "radius": 0.045,
+      "closed": false,
+      "zone": "B"
+    },
+    {
+      "object": "COPING_B_OuterDeck.001",
+      "points": [
+        [
+          -65.8,
+          3.22,
+          -16
+        ],
+        [
+          -65.8,
+          3.22,
+          0
+        ]
+      ],
+      "radius": 0.045,
+      "closed": false,
+      "zone": "B"
+    }
+  ],
+  "bowls": [
+    {
+      "name": "Foundry",
+      "center": [
+        -73,
+        -3.1,
+        -39
+      ],
+      "radiiXZ": [
+        15,
+        11
+      ],
+      "depth": 3.1,
+      "surface": "RIDE_B_InterlinkedBowls"
+    },
+    {
+      "name": "Ladle",
+      "center": [
+        -49,
+        -2.6,
+        -39
+      ],
+      "radiiXZ": [
+        9,
+        9
+      ],
+      "depth": 2.6,
+      "surface": "RIDE_B_InterlinkedBowls"
+    }
+  ],
+  "transfers": [
+    {
+      "id": "D1",
+      "launch": [
+        -76,
+        1.8,
+        51
+      ],
+      "landing": [
+        -73,
+        1.55,
+        51
+      ],
+      "gapMeters": 3,
+      "widthMeters": 11,
+      "groundBypassZ": 35,
+      "minimumOverheadClearanceMeters": 8.6
+    },
+    {
+      "id": "D2",
+      "launch": [
+        -41,
+        2.6,
+        51
+      ],
+      "landing": [
+        -38,
+        2.35,
+        51
+      ],
+      "gapMeters": 3,
+      "widthMeters": 11,
+      "groundBypassZ": 35,
+      "minimumOverheadClearanceMeters": 8.6
+    },
+    {
+      "id": "D3",
+      "launch": [
+        -6,
+        3.4,
+        51
+      ],
+      "landing": [
+        -3,
+        3.15,
+        51
+      ],
+      "gapMeters": 3,
+      "widthMeters": 11,
+      "groundBypassZ": 35,
+      "minimumOverheadClearanceMeters": 8.6
+    }
+  ],
+  "routePlan": [
+    {
+      "id": "main-loop",
+      "sequence": [
+        "A",
+        "B",
+        "D",
+        "E",
+        "C",
+        "A"
+      ],
+      "minimumClearWidthMeters": 8,
+      "waypoints": [
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          -34,
+          0,
+          2
+        ],
+        [
+          -58,
+          0,
+          3
+        ],
+        [
+          -58,
+          0,
+          23
+        ],
+        [
+          -42,
+          0,
+          35
+        ],
+        [
+          24,
+          0,
+          35
+        ],
+        [
+          35,
+          0,
+          35
+        ],
+        [
+          40,
+          0,
+          20
+        ],
+        [
+          64,
+          0,
+          19
+        ],
+        [
+          66,
+          0,
+          3
+        ],
+        [
+          34,
+          0,
+          2
+        ],
+        [
+          0,
+          0,
+          0
+        ]
+      ]
+    },
+    {
+      "id": "south-return",
+      "sequence": [
+        "B",
+        "S",
+        "C",
+        "A"
+      ],
+      "minimumClearWidthMeters": 10,
+      "waypoints": [
+        [
+          -58,
+          0,
+          3
+        ],
+        [
+          -36,
+          0,
+          3
+        ],
+        [
+          -32,
+          0,
+          -28
+        ],
+        [
+          -32,
+          0,
+          -35
+        ],
+        [
+          0,
+          0,
+          -35
+        ],
+        [
+          35,
+          0,
+          -35
+        ],
+        [
+          38,
+          0,
+          -19
+        ],
+        [
+          38,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ]
+      ]
+    },
+    {
+      "id": "perimeter",
+      "minimumClearWidthMeters": 8,
+      "waypoints": [
+        [
+          -95,
+          0,
+          -70
+        ],
+        [
+          95.9,
+          0,
+          -70
+        ],
+        [
+          95.9,
+          0,
+          70
+        ],
+        [
+          -95,
+          0,
+          70
+        ],
+        [
+          -95,
+          0,
+          -70
+        ]
+      ]
+    }
+  ],
+  "megaramp": {
+    "axis": "X",
+    "widthMeters": 12,
+    "approachX": [
+      28,
+      53
+    ],
+    "transitionX": [
+      53,
+      75
+    ],
+    "runoutX": [
+      75,
+      92
+    ],
+    "crestHeightMeters": 6
+  },
+  "effects": [
+    {
+      "type": "SFX",
+      "position": [
+        -9,
+        15,
+        17
+      ],
+      "description": "optional wind / resonant steel; no audio included"
+    }
+  ],
+  "integrationNotes": [
+    "No physics or game controller included.",
+    "Grind/coping meshes deliberately excluded from generic collision GLB. Paths supplied for engine-specific grinding.",
+    "Main ground and bowl patch share identical boundary positions; collision is a surface triangle mesh, not a convex hull.",
+    "Decorative overhead elements are non-collidable. Structural feet and perimeter have visible matching proxies.",
+    "Full 200 x 150 m connected floor; scenery beyond boundary is not counted.",
+    "Runtime gameplay and frame time require testing in the target engine.",
+    "Halfpipe flat bottom is supplied by the underlying slab; coincident bottom contact faces have been removed."
+  ],
+  "sourceObjectCount": 1543,
+  "sourceMeshTriangles": 99954,
+  "visualBatchCount": 44,
+  "visualMeshCount": 113,
+  "exportMeasurements": {
+    "Visual": {
+      "bytes": 37014680,
+      "meshCount": 113,
+      "materialCount": 18,
+      "imageCount": 28,
+      "triangleCount": 125886,
+      "primitiveCountApproxDrawCalls": 114,
+      "measuredGroundBounds": {
+        "min": [
+          -100.0,
+          0.0,
+          -75.0
+        ],
+        "max": [
+          100.0,
+          0.0,
+          75.0
+        ]
+      },
+      "measuredPlayableDimensionsXZ": [
+        200.0,
+        150.0
+      ],
+      "sha256": "168e8417e0982a04847bfa934b5058988fc34346c2181d5e3c0449ad1e669ffd",
+      "khronosValidator": {
+        "version": "2.0.0-dev.3.10",
+        "errors": 0,
+        "warnings": 0,
+        "infos": 115,
+        "messages": [
+          {
+            "code": "UNUSED_MESH_TANGENT",
+            "message": "Tangents are not used because the material has no normal texture.",
+            "severity": 2,
+            "pointer": "/meshes/0/primitives/0/attributes/TANGENT"
+          },
+          {
+            "code": "UNUSED_OBJECT",
+            "message": "This object may be unused.",
+            "severity": 2,
+            "pointer": "/meshes/0/primitives/0/attributes/TEXCOORD_0"
+          },
+          {
+            "code": "UNUSED_OBJECT",
+            "message": "This object may be unused.",
+            "severity": 2,
+            "pointer": "/meshes/2/primitives/0/attributes/TEXCOORD_1"
+          },
+          {
+            "code": "UNUSED_OBJECT",
+            "message": "This object may be unused.",
+            "severity": 2,
+            "pointer": "/meshes/4/primitives/0/attributes/TEXCOORD_1"
+          },
+          {
+            "code": "UNUSED_OBJECT",
+            "message": "This object may be unused.",
+            "severity": 2,
+            "pointer": "/meshes/7/primitives/0/attributes/TEXCOORD_1"
+          },
+          {
+            "code": "UNUSED_MESH_TANGENT",
+            "message": "Tangents are not used because the material has no normal texture.",
+            "severity": 2,
+            "pointer": "/meshes/8/primitives/0/attributes/TANGENT"
+          },
+          {
+            "code": "UNUSED_MESH_TANGENT",
+            "message": "Tangents are not used because the material has no normal texture.",
+            "severity": 2,
+            "pointer": "/meshes/9/primitives/0/attributes/TANGENT"
+          },
+          {
+            "code": "UNUSED_MESH_TANGENT",
+            "message": "Tangents are not used because the material has no normal texture.",
+            "severity": 2,
+            "pointer": "/meshes/10/primitives/0/attributes/TANGENT"
+          },
+          {
+            "code": "UNUSED_MESH_TANGENT",
+            "message": "Tangents are not used because the material has no normal texture.",
+            "severity": 2,
+            "pointer": "/meshes/11/primitives/0/attributes/TANGENT"
+          },
+          {
+            "code": "UNUSED_OBJECT",
+            "message": "This object may be unused.",
+            "severity": 2,
+            "pointer": "/meshes/11/primitives/0/attributes/TEXCOORD_0"
+          },
+          {
+            "code": "UNUSED_OBJECT",
+            "message": "This object may be unused.",
+            "severity": 2,
+            "pointer": "/meshes/12/primitives/0/attributes/TEXCOORD_1"
+          },
+          {
+            "code": "UNUSED_OBJECT",
+            "message": "This object may be unused.",
+            "severity": 2,
+            "pointer": "/meshes/13/primitives/0/attributes/TEXCOORD_1"
+          },
+          {
+            "code": "UNUSED_OBJECT",
+            "message": "This object may be unused.",
+            "severity": 2,
+            "pointer": "/meshes/15/primitives/0/attributes/TEXCOORD_1"
+          },
+          {
+            "code": "UNUSED_MESH_TANGENT",
+            "message": "Tangents are not used because the material has no normal texture.",
+            "severity": 2,
+            "pointer": "/meshes/18/primitives/0/attributes/TANGENT"
+          },
+          {
+            "code": "UNUSED_MESH_TANGENT",
+            "message": "Tangents are not used because the material has no normal texture.",
+            "severity": 2,
+            "pointer": "/meshes/19/primitives/0/attributes/TANGENT"
+          },
+          {
+            "code": "UNUSED_OBJECT",
+            "message": "This object may be unused.",
+            "severity": 2,
+            "pointer": "/meshes/19/primitives/0/attributes/TEXCOORD_0"
+          },
+          {
+            "code": "UNUSED_OBJECT",
+            "message": "This object may be unused.",
+            "severity": 2,
+            "pointer": "/meshes/20/primitives/0/attributes/TEXCOORD_1"
+          },
+          {
+            "code": "UNUSED_OBJECT",
+            "message": "This object may be unused.",
+            "severity": 2,
+            "pointer": "/meshes/21/primitives/0/attributes/TEXCOORD_1"
+          },
+          {
+            "code": "UNUSED_MESH_TANGENT",
+            "message": "Tangents are not used because the material has no normal texture.",
+            "severity": 2,
+            "pointer": "/meshes/23/primitives/0/attributes/TANGENT"
+          },
+          {
+            "code": "UNUSED_OBJECT",
+            "message": "This object may be unused.",
+            "severity": 2,
+            "pointer": "/meshes/23/primitives/0/attributes/TEXCOORD_0"
+          },
+          {
+            "code": "UNUSED_MESH_TANGENT",
+            "message": "Tangents are not used because the material has no normal texture.",
+            "severity": 2,
+            "pointer": "/meshes/24/primitives/0/attributes/TANGENT"
+          },
+          {
+            "code": "UNUSED_MESH_TANGENT",
+            "message": "Tangents are not used because the material has no normal texture.",
+            "severity": 2,
+            "pointer": "/meshes/25/primitives/0/attributes/TANGENT"
+          },
+          {
+            "code": "UNUSED_MESH_TANGENT",
+            "message": "Tangents are not used because the material has no normal texture.",
+            "severity": 2,
+            "pointer": "/meshes/26/primitives/0/attributes/TANGENT"
+          },
+          {
+            "code": "UNUSED_MESH_TANGENT",
+            "message": "Tangents are not used because the material has no normal texture.",
+            "severity": 2,
+            "pointer": "/meshes/27/primitives/0/attributes/TANGENT"
+          },
+          {
+            "code": "UNUSED_OBJECT",
+            "message": "This object may be unused.",
+            "severity": 2,
+            "pointer": "/meshes/28/primitives/0/attributes/TEXCOORD_1"
+          },
+          {
+            "code": "UNUSED_OBJECT",
+            "message": "This object may be unused.",
+            "severity": 2,
+            "pointer": "/meshes/29/primitives/0/attributes/TEXCOORD_1"
+          },
+          {
+            "code": "UNUSED_MESH_TANGENT",
+            "message": "Tangents are not used because the material has no normal texture.",
+            "severity": 2,
+            "pointer": "/meshes/30/primitives/0/attributes/TANGENT"
+          },
+          {
+            "code": "UNUSED_OBJECT",
+            "message": "This object may be unused.",
+            "severity": 2,
+            "pointer": "/meshes/30/primitives/0/attributes/TEXCOORD_0"
+          },
+          {
+            "code": "UNUSED_MESH_TANGENT",
+            "message": "Tangents are not used because the material has no normal texture.",
+            "severity": 2,
+            "pointer": "/meshes/31/primitives/0/attributes/TANGENT"
+          },
+          {
+            "code": "UNUSED_OBJECT",
+            "message": "This object may be unused.",
+            "severity": 2,
+            "pointer": "/meshes/31/primitives/0/attributes/TEXCOORD_0"
+          },
+          {
+            "code": "UNUSED_MESH_TANGENT",
+            "message": "Tangents are not used because the material has no normal texture.",
+            "severity": 2,
+            "pointer": "/meshes/32/primitives/0/attributes/TANGENT"
+          },
+          {
+            "code": "UNUSED_OBJECT",
+            "message": "This object may be unused.",
+            "severity": 2,
+            "pointer": "/meshes/32/primitives/0/attributes/TEXCOORD_0"
+          },
+          {
+            "code": "UNUSED_MESH_TANGENT",
+            "message": "Tangents are not used because the material has no normal texture.",
+            "severity": 2,
+            "pointer": "/meshes/33/primitives/0/attributes/TANGENT"
+          },
+          {
+            "code": "UNUSED_OBJECT",
+            "message": "This object may be unused.",
+            "severity": 2,
+            "pointer": "/meshes/33/primitives/0/attributes/TEXCOORD_0"
+          },
+          {
+            "code": "UNUSED_MESH_TANGENT",
+            "message": "Tangents are not used because the material has no normal texture.",
+            "severity": 2,
+            "pointer": "/meshes/34/primitives/0/attributes/TANGENT"
+          },
+          {
+            "code": "UNUSED_OBJECT",
+            "message": "This object may be unused.",
+            "severity": 2,
+            "pointer": "/meshes/34/primitives/0/attributes/TEXCOORD_0"
+          },
+          {
+            "code": "UNUSED_MESH_TANGENT",
+            "message": "Tangents are not used because the material has no normal texture.",
+            "severity": 2,
+            "pointer": "/meshes/35/primitives/0/attributes/TANGENT"
+          },
+          {
+            "code": "UNUSED_OBJECT",
+            "message": "This object may be unused.",
+            "severity": 2,
+            "pointer": "/meshes/35/primitives/0/attributes/TEXCOORD_0"
+          },
+          {
+            "code": "UNUSED_MESH_TANGENT",
+            "message": "Tangents are not used because the material has no normal texture.",
+            "severity": 2,
+            "pointer": "/meshes/39/primitives/0/attributes/TANGENT"
+          },
+          {
+            "code": "UNUSED_OBJECT",
+            "message": "This object may be unused.",
+            "severity": 2,
+            "pointer": "/meshes/39/primitives/0/attributes/TEXCOORD_0"
+          },
+          {
+            "code": "UNUSED_MESH_TANGENT",
+            "message": "Tangents are not used because the material has no normal texture.",
+            "severity": 2,
+            "pointer": "/meshes/85/primitives/0/attributes/TANGENT"
+          },
+          {
+            "code": "UNUSED_OBJECT",
+            "message": "This object may be unused.",
+            "severity": 2,
+            "pointer": "/meshes/85/primitives/0/attributes/TEXCOORD_0"
+          },
+          {
+            "code": "UNUSED_MESH_TANGENT",
+            "message": "Tangents are not used because the material has no normal texture.",
+            "severity": 2,
+            "pointer": "/meshes/86/primitives/0/attributes/TANGENT"
+          },
+          {
+            "code": "UNUSED_OBJECT",
+            "message": "This object may be unused.",
+            "severity": 2,
+            "pointer": "/meshes/86/primitives/0/attributes/TEXCOORD_0"
+          },
+          {
+            "code": "UNUSED_MESH_TANGENT",
+            "message": "Tangents are not used because the material has no normal texture.",
+            "severity": 2,
+            "pointer": "/meshes/87/primitives/0/attributes/TANGENT"
+          },
+          {
+            "code": "UNUSED_OBJECT",
+            "message": "This object may be unused.",
+            "severity": 2,
+            "pointer": "/meshes/87/primitives/0/attributes/TEXCOORD_0"
+          },
+          {
+            "code": "UNUSED_MESH_TANGENT",
+            "message": "Tangents are not used because the material has no normal texture.",
+            "severity": 2,
+            "pointer": "/meshes/88/primitives/0/attributes/TANGENT"
+          },
+          {
+            "code": "UNUSED_OBJECT",
+            "message": "This object may be unused.",
+            "severity": 2,
+            "pointer": "/meshes/88/primitives/0/attributes/TEXCOORD_0"
+          },
+          {
+            "code": "UNUSED_MESH_TANGENT",
+            "message": "Tangents are not used because the material has no normal texture.",
+            "severity": 2,
+            "pointer": "/meshes/89/primitives/0/attributes/TANGENT"
+          },
+          {
+            "code": "UNUSED_OBJECT",
+            "message": "This object may be unused.",
+            "severity": 2,
+            "pointer": "/meshes/89/primitives/0/attributes/TEXCOORD_0"
+          },
+          {
+            "code": "UNUSED_MESH_TANGENT",
+            "message": "Tangents are not used because the material has no normal texture.",
+            "severity": 2,
+            "pointer": "/meshes/90/primitives/0/attributes/TANGENT"
+          },
+          {
+            "code": "UNUSED_OBJECT",
+            "message": "This object may be unused.",
+            "severity": 2,
+            "pointer": "/meshes/90/primitives/0/attributes/TEXCOORD_0"
+          },
+          {
+            "code": "UNUSED_MESH_TANGENT",
+            "message": "Tangents are not used because the material has no normal texture.",
+            "severity": 2,
+            "pointer": "/meshes/91/primitives/0/attributes/TANGENT"
+          },
+          {
+            "code": "UNUSED_OBJECT",
+            "message": "This object may be unused.",
+            "severity": 2,
+            "pointer": "/meshes/91/primitives/0/attributes/TEXCOORD_0"
+          },
+          {
+            "code": "UNUSED_MESH_TANGENT",
+            "message": "Tangents are not used because the material has no normal texture.",
+            "severity": 2,
+            "pointer": "/meshes/92/primitives/0/attributes/TANGENT"
+          },
+          {
+            "code": "UNUSED_OBJECT",
+            "message": "This object may be unused.",
+            "severity": 2,
+            "pointer": "/meshes/92/primitives/0/attributes/TEXCOORD_0"
+          },
+          {
+            "code": "UNUSED_MESH_TANGENT",
+            "message": "Tangents are not used because the material has no normal texture.",
+            "severity": 2,
+            "pointer": "/meshes/93/primitives/0/attributes/TANGENT"
+          },
+          {
+            "code": "UNUSED_OBJECT",
+            "message": "This object may be unused.",
+            "severity": 2,
+            "pointer": "/meshes/93/primitives/0/attributes/TEXCOORD_0"
+          },
+          {
+            "code": "UNUSED_MESH_TANGENT",
+            "message": "Tangents are not used because the material has no normal texture.",
+            "severity": 2,
+            "pointer": "/meshes/94/primitives/0/attributes/TANGENT"
+          },
+          {
+            "code": "UNUSED_OBJECT",
+            "message": "This object may be unused.",
+            "severity": 2,
+            "pointer": "/meshes/94/primitives/0/attributes/TEXCOORD_0"
+          },
+          {
+            "code": "UNUSED_MESH_TANGENT",
+            "message": "Tangents are not used because the material has no normal texture.",
+            "severity": 2,
+            "pointer": "/meshes/95/primitives/0/attributes/TANGENT"
+          },
+          {
+            "code": "UNUSED_OBJECT",
+            "message": "This object may be unused.",
+            "severity": 2,
+            "pointer": "/meshes/95/primitives/0/attributes/TEXCOORD_0"
+          },
+          {
+            "code": "UNUSED_MESH_TANGENT",
+            "message": "Tangents are not used because the material has no normal texture.",
+            "severity": 2,
+            "pointer": "/meshes/96/primitives/0/attributes/TANGENT"
+          },
+          {
+            "code": "UNUSED_OBJECT",
+            "message": "This object may be unused.",
+            "severity": 2,
+            "pointer": "/meshes/96/primitives/0/attributes/TEXCOORD_0"
+          },
+          {
+            "code": "UNUSED_MESH_TANGENT",
+            "message": "Tangents are not used because the material has no normal texture.",
+            "severity": 2,
+            "pointer": "/meshes/97/primitives/0/attributes/TANGENT"
+          },
+          {
+            "code": "UNUSED_OBJECT",
+            "message": "This object may be unused.",
+            "severity": 2,
+            "pointer": "/meshes/97/primitives/0/attributes/TEXCOORD_0"
+          },
+          {
+            "code": "UNUSED_MESH_TANGENT",
+            "message": "Tangents are not used because the material has no normal texture.",
+            "severity": 2,
+            "pointer": "/meshes/98/primitives/0/attributes/TANGENT"
+          },
+          {
+            "code": "UNUSED_OBJECT",
+            "message": "This object may be unused.",
+            "severity": 2,
+            "pointer": "/meshes/98/primitives/0/attributes/TEXCOORD_0"
+          },
+          {
+            "code": "UNUSED_MESH_TANGENT",
+            "message": "Tangents are not used because the material has no normal texture.",
+            "severity": 2,
+            "pointer": "/meshes/99/primitives/0/attributes/TANGENT"
+          },
+          {
+            "code": "UNUSED_OBJECT",
+            "message": "This object may be unused.",
+            "severity": 2,
+            "pointer": "/meshes/99/primitives/0/attributes/TEXCOORD_0"
+          },
+          {
+            "code": "UNUSED_MESH_TANGENT",
+            "message": "Tangents are not used because the material has no normal texture.",
+            "severity": 2,
+            "pointer": "/meshes/100/primitives/0/attributes/TANGENT"
+          },
+          {
+            "code": "UNUSED_OBJECT",
+            "message": "This object may be unused.",
+            "severity": 2,
+            "pointer": "/meshes/100/primitives/0/attributes/TEXCOORD_0"
+          },
+          {
+            "code": "UNUSED_MESH_TANGENT",
+            "message": "Tangents are not used because the material has no normal texture.",
+            "severity": 2,
+            "pointer": "/meshes/101/primitives/0/attributes/TANGENT"
+          },
+          {
+            "code": "UNUSED_OBJECT",
+            "message": "This object may be unused.",
+            "severity": 2,
+            "pointer": "/meshes/101/primitives/0/attributes/TEXCOORD_0"
+          },
+          {
+            "code": "UNUSED_MESH_TANGENT",
+            "message": "Tangents are not used because the material has no normal texture.",
+            "severity": 2,
+            "pointer": "/meshes/102/primitives/0/attributes/TANGENT"
+          },
+          {
+            "code": "UNUSED_OBJECT",
+            "message": "This object may be unused.",
+            "severity": 2,
+            "pointer": "/meshes/102/primitives/0/attributes/TEXCOORD_0"
+          },
+          {
+            "code": "UNUSED_MESH_TANGENT",
+            "message": "Tangents are not used because the material has no normal texture.",
+            "severity": 2,
+            "pointer": "/meshes/103/primitives/0/attributes/TANGENT"
+          },
+          {
+            "code": "UNUSED_OBJECT",
+            "message": "This object may be unused.",
+            "severity": 2,
+            "pointer": "/meshes/103/primitives/0/attributes/TEXCOORD_0"
+          },
+          {
+            "code": "UNUSED_MESH_TANGENT",
+            "message": "Tangents are not used because the material has no normal texture.",
+            "severity": 2,
+            "pointer": "/meshes/104/primitives/0/attributes/TANGENT"
+          },
+          {
+            "code": "UNUSED_OBJECT",
+            "message": "This object may be unused.",
+            "severity": 2,
+            "pointer": "/meshes/104/primitives/0/attributes/TEXCOORD_0"
+          },
+          {
+            "code": "UNUSED_MESH_TANGENT",
+            "message": "Tangents are not used because the material has no normal texture.",
+            "severity": 2,
+            "pointer": "/meshes/105/primitives/0/attributes/TANGENT"
+          },
+          {
+            "code": "UNUSED_OBJECT",
+            "message": "This object may be unused.",
+            "severity": 2,
+            "pointer": "/meshes/105/primitives/0/attributes/TEXCOORD_0"
+          },
+          {
+            "code": "UNUSED_MESH_TANGENT",
+            "message": "Tangents are not used because the material has no normal texture.",
+            "severity": 2,
+            "pointer": "/meshes/106/primitives/0/attributes/TANGENT"
+          },
+          {
+            "code": "UNUSED_OBJECT",
+            "message": "This object may be unused.",
+            "severity": 2,
+            "pointer": "/meshes/106/primitives/0/attributes/TEXCOORD_0"
+          },
+          {
+            "code": "UNUSED_MESH_TANGENT",
+            "message": "Tangents are not used because the material has no normal texture.",
+            "severity": 2,
+            "pointer": "/meshes/107/primitives/0/attributes/TANGENT"
+          },
+          {
+            "code": "UNUSED_OBJECT",
+            "message": "This object may be unused.",
+            "severity": 2,
+            "pointer": "/meshes/107/primitives/0/attributes/TEXCOORD_0"
+          },
+          {
+            "code": "UNUSED_MESH_TANGENT",
+            "message": "Tangents are not used because the material has no normal texture.",
+            "severity": 2,
+            "pointer": "/meshes/108/primitives/0/attributes/TANGENT"
+          },
+          {
+            "code": "UNUSED_OBJECT",
+            "message": "This object may be unused.",
+            "severity": 2,
+            "pointer": "/meshes/108/primitives/0/attributes/TEXCOORD_0"
+          },
+          {
+            "code": "UNUSED_MESH_TANGENT",
+            "message": "Tangents are not used because the material has no normal texture.",
+            "severity": 2,
+            "pointer": "/meshes/109/primitives/0/attributes/TANGENT"
+          },
+          {
+            "code": "UNUSED_OBJECT",
+            "message": "This object may be unused.",
+            "severity": 2,
+            "pointer": "/meshes/109/primitives/0/attributes/TEXCOORD_0"
+          },
+          {
+            "code": "UNUSED_MESH_TANGENT",
+            "message": "Tangents are not used because the material has no normal texture.",
+            "severity": 2,
+            "pointer": "/meshes/110/primitives/0/attributes/TANGENT"
+          },
+          {
+            "code": "UNUSED_OBJECT",
+            "message": "This object may be unused.",
+            "severity": 2,
+            "pointer": "/meshes/110/primitives/0/attributes/TEXCOORD_0"
+          },
+          {
+            "code": "UNUSED_MESH_TANGENT",
+            "message": "Tangents are not used because the material has no normal texture.",
+            "severity": 2,
+            "pointer": "/meshes/111/primitives/0/attributes/TANGENT"
+          },
+          {
+            "code": "UNUSED_OBJECT",
+            "message": "This object may be unused.",
+            "severity": 2,
+            "pointer": "/meshes/111/primitives/0/attributes/TEXCOORD_0"
+          },
+          {
+            "code": "UNUSED_MESH_TANGENT",
+            "message": "Tangents are not used because the material has no normal texture.",
+            "severity": 2,
+            "pointer": "/meshes/112/primitives/0/attributes/TANGENT"
+          },
+          {
+            "code": "UNUSED_OBJECT",
+            "message": "This object may be unused.",
+            "severity": 2,
+            "pointer": "/meshes/112/primitives/0/attributes/TEXCOORD_0"
+          },
+          {
+            "code": "UNUSED_OBJECT",
+            "message": "This object may be unused.",
+            "severity": 2,
+            "pointer": "/accessors/88"
+          },
+          {
+            "code": "UNUSED_OBJECT",
+            "message": "This object may be unused.",
+            "severity": 2,
+            "pointer": "/accessors/89"
+          },
+          {
+            "code": "UNUSED_OBJECT",
+            "message": "This object may be unused.",
+            "severity": 2,
+            "pointer": "/accessors/90"
+          },
+          {
+            "code": "UNUSED_OBJECT",
+            "message": "This object may be unused.",
+            "severity": 2,
+            "pointer": "/accessors/91"
+          },
+          {
+            "code": "UNUSED_OBJECT",
+            "message": "This object may be unused.",
+            "severity": 2,
+            "pointer": "/accessors/92"
+          },
+          {
+            "code": "UNUSED_OBJECT",
+            "message": "This object may be unused.",
+            "severity": 2,
+            "pointer": "/accessors/346"
+          },
+          {
+            "code": "UNUSED_OBJECT",
+            "message": "This object may be unused.",
+            "severity": 2,
+            "pointer": "/accessors/347"
+          },
+          {
+            "code": "UNUSED_OBJECT",
+            "message": "This object may be unused.",
+            "severity": 2,
+            "pointer": "/accessors/348"
+          },
+          {
+            "code": "UNUSED_OBJECT",
+            "message": "This object may be unused.",
+            "severity": 2,
+            "pointer": "/accessors/349"
+          },
+          {
+            "code": "UNUSED_OBJECT",
+            "message": "This object may be unused.",
+            "severity": 2,
+            "pointer": "/accessors/350"
+          },
+          {
+            "code": "UNUSED_OBJECT",
+            "message": "This object may be unused.",
+            "severity": 2,
+            "pointer": "/accessors/355"
+          },
+          {
+            "code": "UNUSED_OBJECT",
+            "message": "This object may be unused.",
+            "severity": 2,
+            "pointer": "/accessors/356"
+          },
+          {
+            "code": "UNUSED_OBJECT",
+            "message": "This object may be unused.",
+            "severity": 2,
+            "pointer": "/accessors/357"
+          },
+          {
+            "code": "UNUSED_OBJECT",
+            "message": "This object may be unused.",
+            "severity": 2,
+            "pointer": "/accessors/358"
+          },
+          {
+            "code": "UNUSED_OBJECT",
+            "message": "This object may be unused.",
+            "severity": 2,
+            "pointer": "/accessors/359"
+          },
+          {
+            "code": "IMAGE_NPOT_DIMENSIONS",
+            "message": "Image has non-power-of-two dimensions: 2048x768.",
+            "severity": 2,
+            "pointer": "/images/12"
+          },
+          {
+            "code": "IMAGE_NPOT_DIMENSIONS",
+            "message": "Image has non-power-of-two dimensions: 2048x768.",
+            "severity": 2,
+            "pointer": "/images/13"
+          },
+          {
+            "code": "IMAGE_NPOT_DIMENSIONS",
+            "message": "Image has non-power-of-two dimensions: 2048x768.",
+            "severity": 2,
+            "pointer": "/images/14"
+          },
+          {
+            "code": "IMAGE_NPOT_DIMENSIONS",
+            "message": "Image has non-power-of-two dimensions: 2048x768.",
+            "severity": 2,
+            "pointer": "/images/24"
+          }
+        ]
+      }
+    },
+    "Collision": {
+      "bytes": 1410632,
+      "meshCount": 83,
+      "materialCount": 0,
+      "imageCount": 0,
+      "triangleCount": 57364,
+      "primitiveCountApproxDrawCalls": 83,
+      "measuredGroundBounds": {
+        "min": [
+          -100.0,
+          0.0,
+          -75.0
+        ],
+        "max": [
+          100.0,
+          0.0,
+          75.0
+        ]
+      },
+      "measuredPlayableDimensionsXZ": [
+        200.0,
+        150.0
+      ],
+      "sha256": "3f124bbb25cfb399a72e5ae6e0af24ba40cbf9b17b348e0ae9379a4cbdc88cfd",
+      "khronosValidator": {
+        "version": "2.0.0-dev.3.10",
+        "errors": 0,
+        "warnings": 0,
+        "infos": 89,
+        "messages": [
+          {
+            "code": "UNUSED_OBJECT",
+            "message": "This object may be unused.",
+            "severity": 2,
+            "pointer": "/meshes/0/primitives/0/attributes/TEXCOORD_0"
+          },
+          {
+            "code": "UNUSED_OBJECT",
+            "message": "This object may be unused.",
+            "severity": 2,
+            "pointer": "/meshes/1/primitives/0/attributes/TEXCOORD_0"
+          },
+          {
+            "code": "UNUSED_OBJECT",
+            "message": "This object may be unused.",
+            "severity": 2,
+            "pointer": "/meshes/2/primitives/0/attributes/TEXCOORD_0"
+          },
+          {
+            "code": "UNUSED_OBJECT",
+            "message": "This object may be unused.",
+            "severity": 2,
+            "pointer": "/meshes/3/primitives/0/attributes/TEXCOORD_0"
+          },
+          {
+            "code": "UNUSED_OBJECT",
+            "message": "This object may be unused.",
+            "severity": 2,
+            "pointer": "/meshes/4/primitives/0/attributes/TEXCOORD_0"
+          },
+          {
+            "code": "UNUSED_OBJECT",
+            "message": "This object may be unused.",
+            "severity": 2,
+            "pointer": "/meshes/5/primitives/0/attributes/TEXCOORD_0"
+          },
+          {
+            "code": "UNUSED_OBJECT",
+            "message": "This object may be unused.",
+            "severity": 2,
+            "pointer": "/meshes/6/primitives/0/attributes/TEXCOORD_0"
+          },
+          {
+            "code": "UNUSED_OBJECT",
+            "message": "This object may be unused.",
+            "severity": 2,
+            "pointer": "/meshes/7/primitives/0/attributes/TEXCOORD_0"
+          },
+          {
+            "code": "UNUSED_OBJECT",
+            "message": "This object may be unused.",
+            "severity": 2,
+            "pointer": "/meshes/8/primitives/0/attributes/TEXCOORD_0"
+          },
+          {
+            "code": "UNUSED_OBJECT",
+            "message": "This object may be unused.",
+            "severity": 2,
+            "pointer": "/meshes/9/primitives/0/attributes/TEXCOORD_0"
+          },
+          {
+            "code": "UNUSED_OBJECT",
+            "message": "This object may be unused.",
+            "severity": 2,
+            "pointer": "/meshes/10/primitives/0/attributes/TEXCOORD_0"
+          },
+          {
+            "code": "UNUSED_OBJECT",
+            "message": "This object may be unused.",
+            "severity": 2,
+            "pointer": "/meshes/11/primitives/0/attributes/TEXCOORD_0"
+          },
+          {
+            "code": "UNUSED_OBJECT",
+            "message": "This object may be unused.",
+            "severity": 2,
+            "pointer": "/meshes/12/primitives/0/attributes/TEXCOORD_0"
+          },
+          {
+            "code": "UNUSED_OBJECT",
+            "message": "This object may be unused.",
+            "severity": 2,
+            "pointer": "/meshes/13/primitives/0/attributes/TEXCOORD_0"
+          },
+          {
+            "code": "UNUSED_OBJECT",
+            "message": "This object may be unused.",
+            "severity": 2,
+            "pointer": "/meshes/14/primitives/0/attributes/TEXCOORD_0"
+          },
+          {
+            "code": "UNUSED_OBJECT",
+            "message": "This object may be unused.",
+            "severity": 2,
+            "pointer": "/meshes/15/primitives/0/attributes/TEXCOORD_0"
+          },
+          {
+            "code": "UNUSED_OBJECT",
+            "message": "This object may be unused.",
+            "severity": 2,
+            "pointer": "/meshes/16/primitives/0/attributes/TEXCOORD_0"
+          },
+          {
+            "code": "UNUSED_OBJECT",
+            "message": "This object may be unused.",
+            "severity": 2,
+            "pointer": "/meshes/17/primitives/0/attributes/TEXCOORD_0"
+          },
+          {
+            "code": "UNUSED_OBJECT",
+            "message": "This object may be unused.",
+            "severity": 2,
+            "pointer": "/meshes/18/primitives/0/attributes/TEXCOORD_0"
+          },
+          {
+            "code": "UNUSED_OBJECT",
+            "message": "This object may be unused.",
+            "severity": 2,
+            "pointer": "/meshes/19/primitives/0/attributes/TEXCOORD_0"
+          },
+          {
+            "code": "UNUSED_OBJECT",
+            "message": "This object may be unused.",
+            "severity": 2,
+            "pointer": "/meshes/20/primitives/0/attributes/TEXCOORD_0"
+          },
+          {
+            "code": "UNUSED_OBJECT",
+            "message": "This object may be unused.",
+            "severity": 2,
+            "pointer": "/meshes/21/primitives/0/attributes/TEXCOORD_0"
+          },
+          {
+            "code": "UNUSED_OBJECT",
+            "message": "This object may be unused.",
+            "severity": 2,
+            "pointer": "/meshes/22/primitives/0/attributes/TEXCOORD_0"
+          },
+          {
+            "code": "UNUSED_OBJECT",
+            "message": "This object may be unused.",
+            "severity": 2,
+            "pointer": "/meshes/23/primitives/0/attributes/TEXCOORD_0"
+          },
+          {
+            "code": "UNUSED_OBJECT",
+            "message": "This object may be unused.",
+            "severity": 2,
+            "pointer": "/meshes/24/primitives/0/attributes/TEXCOORD_0"
+          },
+          {
+            "code": "UNUSED_OBJECT",
+            "message": "This object may be unused.",
+            "severity": 2,
+            "pointer": "/meshes/25/primitives/0/attributes/TEXCOORD_0"
+          },
+          {
+            "code": "UNUSED_OBJECT",
+            "message": "This object may be unused.",
+            "severity": 2,
+            "pointer": "/meshes/26/primitives/0/attributes/TEXCOORD_0"
+          },
+          {
+            "code": "UNUSED_OBJECT",
+            "message": "This object may be unused.",
+            "severity": 2,
+            "pointer": "/meshes/27/primitives/0/attributes/TEXCOORD_0"
+          },
+          {
+            "code": "UNUSED_OBJECT",
+            "message": "This object may be unused.",
+            "severity": 2,
+            "pointer": "/meshes/28/primitives/0/attributes/TEXCOORD_0"
+          },
+          {
+            "code": "UNUSED_OBJECT",
+            "message": "This object may be unused.",
+            "severity": 2,
+            "pointer": "/meshes/29/primitives/0/attributes/TEXCOORD_0"
+          },
+          {
+            "code": "UNUSED_OBJECT",
+            "message": "This object may be unused.",
+            "severity": 2,
+            "pointer": "/meshes/30/primitives/0/attributes/TEXCOORD_0"
+          },
+          {
+            "code": "UNUSED_OBJECT",
+            "message": "This object may be unused.",
+            "severity": 2,
+            "pointer": "/meshes/31/primitives/0/attributes/TEXCOORD_0"
+          },
+          {
+            "code": "UNUSED_OBJECT",
+            "message": "This object may be unused.",
+            "severity": 2,
+            "pointer": "/meshes/32/primitives/0/attributes/TEXCOORD_0"
+          },
+          {
+            "code": "UNUSED_OBJECT",
+            "message": "This object may be unused.",
+            "severity": 2,
+            "pointer": "/meshes/33/primitives/0/attributes/TEXCOORD_0"
+          },
+          {
+            "code": "UNUSED_OBJECT",
+            "message": "This object may be unused.",
+            "severity": 2,
+            "pointer": "/meshes/34/primitives/0/attributes/TEXCOORD_0"
+          },
+          {
+            "code": "UNUSED_OBJECT",
+            "message": "This object may be unused.",
+            "severity": 2,
+            "pointer": "/meshes/35/primitives/0/attributes/TEXCOORD_0"
+          },
+          {
+            "code": "UNUSED_OBJECT",
+            "message": "This object may be unused.",
+            "severity": 2,
+            "pointer": "/meshes/36/primitives/0/attributes/TEXCOORD_0"
+          },
+          {
+            "code": "UNUSED_OBJECT",
+            "message": "This object may be unused.",
+            "severity": 2,
+            "pointer": "/meshes/37/primitives/0/attributes/TEXCOORD_0"
+          },
+          {
+            "code": "UNUSED_OBJECT",
+            "message": "This object may be unused.",
+            "severity": 2,
+            "pointer": "/meshes/38/primitives/0/attributes/TEXCOORD_0"
+          },
+          {
+            "code": "UNUSED_OBJECT",
+            "message": "This object may be unused.",
+            "severity": 2,
+            "pointer": "/meshes/39/primitives/0/attributes/TEXCOORD_0"
+          },
+          {
+            "code": "UNUSED_OBJECT",
+            "message": "This object may be unused.",
+            "severity": 2,
+            "pointer": "/meshes/40/primitives/0/attributes/TEXCOORD_0"
+          },
+          {
+            "code": "UNUSED_OBJECT",
+            "message": "This object may be unused.",
+            "severity": 2,
+            "pointer": "/meshes/41/primitives/0/attributes/TEXCOORD_0"
+          },
+          {
+            "code": "UNUSED_OBJECT",
+            "message": "This object may be unused.",
+            "severity": 2,
+            "pointer": "/meshes/42/primitives/0/attributes/TEXCOORD_0"
+          },
+          {
+            "code": "UNUSED_OBJECT",
+            "message": "This object may be unused.",
+            "severity": 2,
+            "pointer": "/meshes/43/primitives/0/attributes/TEXCOORD_0"
+          },
+          {
+            "code": "UNUSED_OBJECT",
+            "message": "This object may be unused.",
+            "severity": 2,
+            "pointer": "/meshes/44/primitives/0/attributes/TEXCOORD_0"
+          },
+          {
+            "code": "UNUSED_OBJECT",
+            "message": "This object may be unused.",
+            "severity": 2,
+            "pointer": "/meshes/45/primitives/0/attributes/TEXCOORD_0"
+          },
+          {
+            "code": "UNUSED_OBJECT",
+            "message": "This object may be unused.",
+            "severity": 2,
+            "pointer": "/meshes/46/primitives/0/attributes/TEXCOORD_0"
+          },
+          {
+            "code": "UNUSED_OBJECT",
+            "message": "This object may be unused.",
+            "severity": 2,
+            "pointer": "/meshes/47/primitives/0/attributes/TEXCOORD_0"
+          },
+          {
+            "code": "UNUSED_OBJECT",
+            "message": "This object may be unused.",
+            "severity": 2,
+            "pointer": "/meshes/48/primitives/0/attributes/TEXCOORD_0"
+          },
+          {
+            "code": "UNUSED_OBJECT",
+            "message": "This object may be unused.",
+            "severity": 2,
+            "pointer": "/meshes/49/primitives/0/attributes/TEXCOORD_0"
+          },
+          {
+            "code": "UNUSED_OBJECT",
+            "message": "This object may be unused.",
+            "severity": 2,
+            "pointer": "/meshes/50/primitives/0/attributes/TEXCOORD_0"
+          },
+          {
+            "code": "UNUSED_OBJECT",
+            "message": "This object may be unused.",
+            "severity": 2,
+            "pointer": "/meshes/51/primitives/0/attributes/TEXCOORD_0"
+          },
+          {
+            "code": "UNUSED_OBJECT",
+            "message": "This object may be unused.",
+            "severity": 2,
+            "pointer": "/meshes/52/primitives/0/attributes/TEXCOORD_0"
+          },
+          {
+            "code": "UNUSED_OBJECT",
+            "message": "This object may be unused.",
+            "severity": 2,
+            "pointer": "/meshes/53/primitives/0/attributes/TEXCOORD_0"
+          },
+          {
+            "code": "UNUSED_OBJECT",
+            "message": "This object may be unused.",
+            "severity": 2,
+            "pointer": "/meshes/54/primitives/0/attributes/TEXCOORD_0"
+          },
+          {
+            "code": "UNUSED_OBJECT",
+            "message": "This object may be unused.",
+            "severity": 2,
+            "pointer": "/meshes/55/primitives/0/attributes/TEXCOORD_0"
+          },
+          {
+            "code": "UNUSED_OBJECT",
+            "message": "This object may be unused.",
+            "severity": 2,
+            "pointer": "/meshes/56/primitives/0/attributes/TEXCOORD_0"
+          },
+          {
+            "code": "UNUSED_OBJECT",
+            "message": "This object may be unused.",
+            "severity": 2,
+            "pointer": "/meshes/57/primitives/0/attributes/TEXCOORD_0"
+          },
+          {
+            "code": "UNUSED_OBJECT",
+            "message": "This object may be unused.",
+            "severity": 2,
+            "pointer": "/meshes/58/primitives/0/attributes/TEXCOORD_0"
+          },
+          {
+            "code": "UNUSED_OBJECT",
+            "message": "This object may be unused.",
+            "severity": 2,
+            "pointer": "/meshes/59/primitives/0/attributes/TEXCOORD_0"
+          },
+          {
+            "code": "UNUSED_OBJECT",
+            "message": "This object may be unused.",
+            "severity": 2,
+            "pointer": "/meshes/60/primitives/0/attributes/TEXCOORD_0"
+          },
+          {
+            "code": "UNUSED_OBJECT",
+            "message": "This object may be unused.",
+            "severity": 2,
+            "pointer": "/meshes/61/primitives/0/attributes/TEXCOORD_0"
+          },
+          {
+            "code": "UNUSED_OBJECT",
+            "message": "This object may be unused.",
+            "severity": 2,
+            "pointer": "/meshes/62/primitives/0/attributes/TEXCOORD_0"
+          },
+          {
+            "code": "UNUSED_OBJECT",
+            "message": "This object may be unused.",
+            "severity": 2,
+            "pointer": "/meshes/63/primitives/0/attributes/TEXCOORD_0"
+          },
+          {
+            "code": "UNUSED_OBJECT",
+            "message": "This object may be unused.",
+            "severity": 2,
+            "pointer": "/meshes/64/primitives/0/attributes/TEXCOORD_0"
+          },
+          {
+            "code": "UNUSED_OBJECT",
+            "message": "This object may be unused.",
+            "severity": 2,
+            "pointer": "/meshes/65/primitives/0/attributes/TEXCOORD_0"
+          },
+          {
+            "code": "UNUSED_OBJECT",
+            "message": "This object may be unused.",
+            "severity": 2,
+            "pointer": "/meshes/66/primitives/0/attributes/TEXCOORD_0"
+          },
+          {
+            "code": "UNUSED_OBJECT",
+            "message": "This object may be unused.",
+            "severity": 2,
+            "pointer": "/meshes/67/primitives/0/attributes/TEXCOORD_0"
+          },
+          {
+            "code": "UNUSED_OBJECT",
+            "message": "This object may be unused.",
+            "severity": 2,
+            "pointer": "/meshes/68/primitives/0/attributes/TEXCOORD_0"
+          },
+          {
+            "code": "UNUSED_OBJECT",
+            "message": "This object may be unused.",
+            "severity": 2,
+            "pointer": "/meshes/69/primitives/0/attributes/TEXCOORD_0"
+          },
+          {
+            "code": "UNUSED_OBJECT",
+            "message": "This object may be unused.",
+            "severity": 2,
+            "pointer": "/meshes/70/primitives/0/attributes/TEXCOORD_0"
+          },
+          {
+            "code": "UNUSED_OBJECT",
+            "message": "This object may be unused.",
+            "severity": 2,
+            "pointer": "/meshes/71/primitives/0/attributes/TEXCOORD_0"
+          },
+          {
+            "code": "UNUSED_OBJECT",
+            "message": "This object may be unused.",
+            "severity": 2,
+            "pointer": "/meshes/72/primitives/0/attributes/TEXCOORD_0"
+          },
+          {
+            "code": "UNUSED_OBJECT",
+            "message": "This object may be unused.",
+            "severity": 2,
+            "pointer": "/meshes/73/primitives/0/attributes/TEXCOORD_0"
+          },
+          {
+            "code": "UNUSED_OBJECT",
+            "message": "This object may be unused.",
+            "severity": 2,
+            "pointer": "/meshes/74/primitives/0/attributes/TEXCOORD_0"
+          },
+          {
+            "code": "UNUSED_OBJECT",
+            "message": "This object may be unused.",
+            "severity": 2,
+            "pointer": "/meshes/75/primitives/0/attributes/TEXCOORD_0"
+          },
+          {
+            "code": "UNUSED_OBJECT",
+            "message": "This object may be unused.",
+            "severity": 2,
+            "pointer": "/meshes/76/primitives/0/attributes/TEXCOORD_0"
+          },
+          {
+            "code": "UNUSED_OBJECT",
+            "message": "This object may be unused.",
+            "severity": 2,
+            "pointer": "/meshes/77/primitives/0/attributes/TEXCOORD_0"
+          },
+          {
+            "code": "UNUSED_OBJECT",
+            "message": "This object may be unused.",
+            "severity": 2,
+            "pointer": "/meshes/78/primitives/0/attributes/TEXCOORD_0"
+          },
+          {
+            "code": "UNUSED_OBJECT",
+            "message": "This object may be unused.",
+            "severity": 2,
+            "pointer": "/meshes/79/primitives/0/attributes/TEXCOORD_0"
+          },
+          {
+            "code": "UNUSED_OBJECT",
+            "message": "This object may be unused.",
+            "severity": 2,
+            "pointer": "/meshes/80/primitives/0/attributes/TEXCOORD_0"
+          },
+          {
+            "code": "UNUSED_OBJECT",
+            "message": "This object may be unused.",
+            "severity": 2,
+            "pointer": "/meshes/81/primitives/0/attributes/TEXCOORD_0"
+          },
+          {
+            "code": "UNUSED_OBJECT",
+            "message": "This object may be unused.",
+            "severity": 2,
+            "pointer": "/meshes/82/primitives/0/attributes/TEXCOORD_0"
+          },
+          {
+            "code": "UNUSED_OBJECT",
+            "message": "This object may be unused.",
+            "severity": 2,
+            "pointer": "/accessors/81"
+          },
+          {
+            "code": "UNUSED_OBJECT",
+            "message": "This object may be unused.",
+            "severity": 2,
+            "pointer": "/accessors/82"
+          },
+          {
+            "code": "UNUSED_OBJECT",
+            "message": "This object may be unused.",
+            "severity": 2,
+            "pointer": "/accessors/83"
+          },
+          {
+            "code": "UNUSED_OBJECT",
+            "message": "This object may be unused.",
+            "severity": 2,
+            "pointer": "/accessors/87"
+          },
+          {
+            "code": "UNUSED_OBJECT",
+            "message": "This object may be unused.",
+            "severity": 2,
+            "pointer": "/accessors/88"
+          },
+          {
+            "code": "UNUSED_OBJECT",
+            "message": "This object may be unused.",
+            "severity": 2,
+            "pointer": "/accessors/89"
+          }
+        ]
+      }
+    }
+  }
+}

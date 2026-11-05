@@ -1,0 +1,85 @@
+[
+  {
+    "file": "graffiti.webp",
+    "sha256": "17805247a91e2ae3645e59dbfe30d63af10e6c43b4dec8820fcb8f45cc941829",
+    "parts": [
+      "graffiti.000.b64",
+      "graffiti.001.b64",
+      "graffiti.002.b64",
+      "graffiti.003.b64",
+      "graffiti.004.b64",
+      "graffiti.005.b64",
+      "graffiti.006.b64",
+      "graffiti.007.b64",
+      "graffiti.008.b64",
+      "graffiti.009.b64",
+      "graffiti.010.b64",
+      "graffiti.011.b64",
+      "graffiti.012.b64",
+      "graffiti.013.b64",
+      "graffiti.014.b64",
+      "graffiti.015.b64",
+      "graffiti.016.b64",
+      "graffiti.017.b64",
+      "graffiti.018.b64",
+      "graffiti.019.b64",
+      "graffiti.020.b64",
+      "graffiti.021.b64",
+      "graffiti.022.b64",
+      "graffiti.023.b64"
+    ]
+  },
+  {
+    "file": "concrete.webp",
+    "sha256": "855af17f2aac9a3fd4a6bf0ceb8b2de0d884a03ab574c1582a550955642547a5",
+    "parts": [
+      "concrete.000.b64",
+      "concrete.001.b64",
+      "concrete.002.b64",
+      "concrete.003.b64",
+      "concrete.004.b64",
+      "concrete.005.b64",
+      "concrete.006.b64",
+      "concrete.007.b64",
+      "concrete.008.b64",
+      "concrete.009.b64",
+      "concrete.010.b64",
+      "concrete.011.b64",
+      "concrete.012.b64",
+      "concrete.013.b64",
+      "concrete.014.b64",
+      "concrete.015.b64",
+      "concrete.016.b64",
+      "concrete.017.b64",
+      "concrete.018.b64"
+    ]
+  },
+  {
+    "file": "plywood.webp",
+    "sha256": "98d232b76ca4e9d70a8a61997852f51d73b580489fc1038e86e30d76acb0fdc4",
+    "parts": [
+      "plywood.000.b64",
+      "plywood.001.b64",
+      "plywood.002.b64",
+      "plywood.003.b64",
+      "plywood.004.b64",
+      "plywood.005.b64",
+      "plywood.006.b64",
+      "plywood.007.b64",
+      "plywood.008.b64",
+      "plywood.009.b64",
+      "plywood.010.b64"
+    ]
+  },
+  {
+    "file": "solar-dusk-4k.hdr",
+    "sha256": "dbe5f750e4753f51ef8d178553318ad8550035cac0ce5cfab058e76cf8f021d2",
+    "url": "https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/4k/qwantani_dusk_2_puresky_4k.hdr",
+    "source": "https://polyhaven.com/a/qwantani_dusk_2_puresky",
+    "license": "CC0-1.0",
+    "authors": [
+      "Greg Zaal",
+      "Jarod Guest"
+    ]
+  }
+]

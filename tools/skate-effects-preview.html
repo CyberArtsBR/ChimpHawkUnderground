@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Skating effects visual check</title>
+<style>body{margin:0;background:#141c27;color:#f5efd9;font:15px system-ui}canvas{display:block}aside{position:fixed;left:22px;top:20px;background:#101b29e8;border:1px solid #6b7d89;padding:18px;border-radius:12px;max-width:340px}h1{font-size:19px;margin:0 0 8px}p{line-height:1.5;margin:10px 0}button,select{font:inherit;background:#e9d7a2;color:#172130;border:0;padding:9px 12px;border-radius:5px;margin:3px 2px}label{display:block;margin-top:12px}output{display:block;margin-top:12px;color:#a5dfdc;font-variant-numeric:tabular-nums}small{color:#adbbc7}</style></head>
+<body><aside><h1>Skating effects visual check</h1><small>Local development preview</small><p>Trigger a board landing, sustained metal grind, or short airborne trick trace.</p>
+<button id="landing">Landing</button><button id="grind">Grind</button><button id="trick">Fast trick</button><button id="reset">Reset</button>
+<label>Quality <select id="quality"><option value="high">High</option><option value="cinematic">Cinematic</option><option value="performance">Performance</option></select></label>
+<output id="status">Ready</output></aside>
+<script type="module">
+import * as THREE from 'three';
+import {SkateEffects} from '../src/graphics/SkateEffects.js';
+const renderer=new THREE.WebGLRenderer({antialias:true});renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.setSize(innerWidth,innerHeight);renderer.setClearColor('#172535');document.body.append(renderer.domElement);
+const scene=new THREE.Scene(),camera=new THREE.PerspectiveCamera(48,innerWidth/innerHeight,.1,40);camera.position.set(3.5,2.9,5.5);camera.lookAt(0,.65,0);
+scene.add(new THREE.HemisphereLight('#c4dff1','#806b46',2));const sun=new THREE.DirectionalLight('#ffe1a6',3);sun.position.set(-3,5,2);scene.add(sun);
+const floor=new THREE.Mesh(new THREE.PlaneGeometry(12,12).rotateX(-Math.PI/2),new THREE.MeshStandardMaterial({color:'#667985',roughness:.95}));scene.add(floor);
+const ramp=new THREE.Mesh(new THREE.BoxGeometry(2,.25,1.3),new THREE.MeshStandardMaterial({color:'#ad8d65',roughness:.85}));ramp.position.set(-2,.125,-2);scene.add(ramp);
+const rail=new THREE.Mesh(new THREE.CylinderGeometry(.045,.045,4,16).rotateZ(Math.PI/2),new THREE.MeshStandardMaterial({color:'#bac5cc',metalness:.8,roughness:.28}));rail.position.set(0,.5,0);scene.add(rail);
+const board=new THREE.Group(),deck=new THREE.Mesh(new THREE.BoxGeometry(.66,.055,.23),new THREE.MeshStandardMaterial({color:'#ddbd6c',roughness:.7}));board.add(deck);scene.add(board);
+for(const x of [-.22,.22])for(const z of [-.13,.13]){const w=new THREE.Mesh(new THREE.CylinderGeometry(.045,.045,.035,12).rotateX(Math.PI/2),new THREE.MeshStandardMaterial({color:'#ece1c8'}));w.position.set(x,-.065,z);board.add(w);}
+const skater={position:new THREE.Vector3(0,.12,.7),velocity:new THREE.Vector3(),forward:new THREE.Vector3(1,0,0),normal:new THREE.Vector3(0,1,0),speed:0,grounded:true,bailTime:0,respawnSerial:0};
+const effects=new SkateEffects(scene);effects.setSize(innerHeight,renderer.getPixelRatio());
+const status=document.querySelector('#status'),quality=document.querySelector('#quality');
+let mode='idle',elapsed=0;
+function start(next){mode=next;elapsed=0;skater.grind=null;skater.flipState=null;skater.justLanded=false;skater.position.set(0,.12,.7);skater.velocity.set(0,0,0);skater.grounded=true;skater.speed=0;
+ if(next==='landing'){skater.position.set(.5,2.2,.7);skater.grounded=false;skater.velocity.y=-1;}
+ if(next==='grind'){skater.position.set(-1.8,.54,0);skater.grind={};skater.grounded=false;skater.speed=12;skater.velocity.x=12;}
+ if(next==='trick'){skater.position.set(-1,1.2,.4);skater.flipState={};skater.grounded=false;skater.speed=16;skater.velocity.x=16;}
+ effects.reset(skater);
+}
+document.querySelector('#landing').onclick=()=>start('landing');document.querySelector('#grind').onclick=()=>start('grind');document.querySelector('#trick').onclick=()=>start('trick');document.querySelector('#reset').onclick=()=>start('idle');
+quality.onchange=()=>effects.setQuality({name:quality.value,vfxScale:quality.value==='performance'?.65:quality.value==='cinematic'?1.25:1});
+const clock=new THREE.Clock();renderer.setAnimationLoop(()=>{const dt=Math.min(clock.getDelta(),.05);elapsed+=dt;skater.justLanded=false;
+ if(mode==='landing'&&!skater.grounded){skater.velocity.y-=9.8*dt;skater.position.y+=skater.velocity.y*dt;if(skater.position.y<=.12){skater.position.y=.12;skater.grounded=true;skater.justLanded=true;skater.velocity.y=0;}}
+ if(mode==='grind')skater.position.x=Math.sin(elapsed*.8)*1.8;
+ if(mode==='trick'){skater.position.x=-1+Math.sin(elapsed*1.1)*1.3;skater.position.y=1.2+Math.sin(elapsed*1.6)*.25;}
+ effects.update(dt,skater);board.position.copy(skater.position);board.rotation.x=mode==='trick'?elapsed*9:0;
+ const dust=effects.dust.duration.reduce((n,t)=>n+(t>0),0),glints=effects.glints.duration.reduce((n,t)=>n+(t>0),0);
+ status.textContent=`${mode.toUpperCase()} · ${dust} dust / ${glints} sparks or traces · ${quality.value}`;
+ renderer.render(scene,camera);
+});
+addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);effects.setSize(innerHeight,renderer.getPixelRatio());});
+</script></body></html>

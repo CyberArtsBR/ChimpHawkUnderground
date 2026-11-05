@@ -1,0 +1,583 @@
+{
+  "layouts": [
+    {
+      "width": 1280,
+      "height": 720,
+      "overflow": false,
+      "font": "12.5385px",
+      "frame": {
+        "x": 117.5625,
+        "y": 67,
+        "width": 1044.875,
+        "height": 585.984375,
+        "top": 67,
+        "right": 1162.4375,
+        "bottom": 652.984375,
+        "left": 117.5625
+      }
+    },
+    {
+      "width": 1920,
+      "height": 1080,
+      "overflow": false,
+      "font": "16px",
+      "frame": {
+        "x": 212,
+        "y": 120.125,
+        "width": 1496,
+        "height": 839.75,
+        "top": 120.125,
+        "right": 1708,
+        "bottom": 959.875,
+        "left": 212
+      }
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "overflow": false,
+      "font": "14px",
+      "frame": {
+        "x": 9.796875,
+        "y": 115.9375,
+        "width": 370.390625,
+        "height": 612.109375,
+        "top": 115.9375,
+        "right": 380.1875,
+        "bottom": 728.046875,
+        "left": 9.796875
+      }
+    },
+    {
+      "width": 844,
+      "height": 390,
+      "overflow": false,
+      "font": "12px",
+      "frame": {
+        "x": 18.875,
+        "y": 56.59375,
+        "width": 806.234375,
+        "height": 276.796875,
+        "top": 56.59375,
+        "right": 825.109375,
+        "bottom": 333.390625,
+        "left": 18.875
+      }
+    }
+  ],
+  "maps": [
+    {
+      "location": "grand-warehouse",
+      "ready": true,
+      "position": [
+        0,
+        0.014999999999999965,
+        42.09987904502882
+      ],
+      "drawCalls": 1,
+      "triangles": 1,
+      "rig": {
+        "source": "/assets/rider/skateboard.glb",
+        "deckLength": 1.4868000000000001,
+        "deckWidth": 0.33310359727724664,
+        "center": [
+          0,
+          0.14177213428552937,
+          -5.551115123125783e-17
+        ],
+        "frontTruckZ": -0.33428959864677754,
+        "rearTruckZ": 0.34161416758764657,
+        "leftWheelX": -0.11732685624047601,
+        "rightWheelX": 0.12815415818899623,
+        "wheelRadius": 0.04984146317472499,
+        "wheelContactY": 3.469446951953614e-17,
+        "deckUndersideY": 0.11460771582860375,
+        "deckTopY": 0.168936552742455,
+        "noseZ": -0.7254,
+        "tailZ": 0.7253999999999999
+      }
+    },
+    {
+      "location": "orbit",
+      "ready": true,
+      "position": [
+        10,
+        0.014999999999999986,
+        36
+      ],
+      "drawCalls": 1,
+      "triangles": 1,
+      "rig": {
+        "source": "/assets/rider/skateboard.glb",
+        "deckLength": 1.4868000000000001,
+        "deckWidth": 0.33310359727724664,
+        "center": [
+          0,
+          0.14177213428552937,
+          -5.551115123125783e-17
+        ],
+        "frontTruckZ": -0.33428959864677754,
+        "rearTruckZ": 0.34161416758764657,
+        "leftWheelX": -0.11732685624047601,
+        "rightWheelX": 0.12815415818899623,
+        "wheelRadius": 0.04984146317472499,
+        "wheelContactY": 3.469446951953614e-17,
+        "deckUndersideY": 0.11460771582860375,
+        "deckTopY": 0.168936552742455,
+        "noseZ": -0.7254,
+        "tailZ": 0.7253999999999999
+      }
+    },
+    {
+      "location": "skate-paradise",
+      "ready": true,
+      "position": [
+        27,
+        0.4147693061828613,
+        -75
+      ],
+      "drawCalls": 1,
+      "triangles": 1,
+      "rig": {
+        "source": "/assets/rider/skateboard.glb",
+        "deckLength": 1.4868000000000001,
+        "deckWidth": 0.33310359727724664,
+        "center": [
+          0,
+          0.14177213428552937,
+          -5.551115123125783e-17
+        ],
+        "frontTruckZ": -0.33428959864677754,
+        "rearTruckZ": 0.34161416758764657,
+        "leftWheelX": -0.11732685624047601,
+        "rightWheelX": 0.12815415818899623,
+        "wheelRadius": 0.04984146317472499,
+        "wheelContactY": 3.469446951953614e-17,
+        "deckUndersideY": 0.11460771582860375,
+        "deckTopY": 0.168936552742455,
+        "noseZ": -0.7254,
+        "tailZ": 0.7253999999999999
+      }
+    }
+  ],
+  "performance": [
+    {
+      "map": "grand-warehouse",
+      "preset": "performance",
+      "samples": 120,
+      "meanMs": 6.888333333333321,
+      "p95Ms": 7.099999999998545,
+      "fps": 145.17299782240528,
+      "meanDrawCalls": 113.03333333333333,
+      "meanTriangles": 151266.53333333333,
+      "meanSubmitMs": 1.7466666666402793,
+      "gpu": "ANGLE (NVIDIA, NVIDIA GeForce RTX 5060 Ti (0x00002D04) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+      "shadows": [
+        [
+          1024,
+          1024
+        ]
+      ],
+      "viewport": [
+        1280,
+        720
+      ],
+      "pixelRatio": 1
+    },
+    {
+      "map": "grand-warehouse",
+      "preset": "high-refresh",
+      "samples": 120,
+      "meanMs": 6.920000000000012,
+      "p95Ms": 7,
+      "fps": 144.50867052023096,
+      "meanDrawCalls": 216.63333333333333,
+      "meanTriangles": 308338.43333333335,
+      "meanSubmitMs": 1.884166666669383,
+      "gpu": "ANGLE (NVIDIA, NVIDIA GeForce RTX 5060 Ti (0x00002D04) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+      "shadows": [
+        [
+          1024,
+          1024
+        ]
+      ],
+      "viewport": [
+        1280,
+        720
+      ],
+      "pixelRatio": 1
+    },
+    {
+      "map": "grand-warehouse",
+      "preset": "balanced",
+      "samples": 120,
+      "meanMs": 7.014166666667067,
+      "p95Ms": 7.099999999998545,
+      "fps": 142.56861114410498,
+      "meanDrawCalls": 190.06666666666666,
+      "meanTriangles": 300473.9,
+      "meanSubmitMs": 2.044999999995343,
+      "gpu": "ANGLE (NVIDIA, NVIDIA GeForce RTX 5060 Ti (0x00002D04) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+      "shadows": [
+        [
+          1024,
+          1024
+        ]
+      ],
+      "viewport": [
+        1280,
+        720
+      ],
+      "pixelRatio": 1
+    },
+    {
+      "map": "grand-warehouse",
+      "preset": "high",
+      "samples": 120,
+      "meanMs": 6.912500000001152,
+      "p95Ms": 7,
+      "fps": 144.66546112113323,
+      "meanDrawCalls": 132.45,
+      "meanTriangles": 220692.73333333334,
+      "meanSubmitMs": 1.6000000000271635,
+      "gpu": "ANGLE (NVIDIA, NVIDIA GeForce RTX 5060 Ti (0x00002D04) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+      "shadows": [
+        [
+          1024,
+          1024
+        ]
+      ],
+      "viewport": [
+        1280,
+        720
+      ],
+      "pixelRatio": 1
+    },
+    {
+      "map": "grand-warehouse",
+      "preset": "ultra",
+      "samples": 120,
+      "meanMs": 6.9058333333340975,
+      "p95Ms": 7,
+      "fps": 144.80511644743177,
+      "meanDrawCalls": 183,
+      "meanTriangles": 318838,
+      "meanSubmitMs": 1.865833333322856,
+      "gpu": "ANGLE (NVIDIA, NVIDIA GeForce RTX 5060 Ti (0x00002D04) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+      "shadows": [
+        [
+          1024,
+          1024
+        ]
+      ],
+      "viewport": [
+        1280,
+        720
+      ],
+      "pixelRatio": 1
+    },
+    {
+      "map": "grand-warehouse",
+      "preset": "cinematic",
+      "samples": 120,
+      "meanMs": 6.895833333333333,
+      "p95Ms": 7.099999999998545,
+      "fps": 145.01510574018127,
+      "meanDrawCalls": 183,
+      "meanTriangles": 318838,
+      "meanSubmitMs": 1.7649999999984478,
+      "gpu": "ANGLE (NVIDIA, NVIDIA GeForce RTX 5060 Ti (0x00002D04) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+      "shadows": [
+        [
+          1024,
+          1024
+        ]
+      ],
+      "viewport": [
+        1280,
+        720
+      ],
+      "pixelRatio": 1
+    },
+    {
+      "map": "orbit",
+      "preset": "performance",
+      "samples": 120,
+      "meanMs": 6.919166666666691,
+      "p95Ms": 7.099999999998545,
+      "fps": 144.52607491268165,
+      "meanDrawCalls": 48,
+      "meanTriangles": 234159,
+      "meanSubmitMs": 0.8175000000124176,
+      "gpu": "ANGLE (NVIDIA, NVIDIA GeForce RTX 5060 Ti (0x00002D04) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+      "shadows": [
+        [
+          1024,
+          1024
+        ]
+      ],
+      "viewport": [
+        1280,
+        720
+      ],
+      "pixelRatio": 1
+    },
+    {
+      "map": "orbit",
+      "preset": "high-refresh",
+      "samples": 120,
+      "meanMs": 6.900833333333746,
+      "p95Ms": 7.099999999998545,
+      "fps": 144.91003501991648,
+      "meanDrawCalls": 119,
+      "meanTriangles": 473724,
+      "meanSubmitMs": 1.9974999999957315,
+      "gpu": "ANGLE (NVIDIA, NVIDIA GeForce RTX 5060 Ti (0x00002D04) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+      "shadows": [
+        [
+          1024,
+          1024
+        ]
+      ],
+      "viewport": [
+        1280,
+        720
+      ],
+      "pixelRatio": 1
+    },
+    {
+      "map": "orbit",
+      "preset": "balanced",
+      "samples": 120,
+      "meanMs": 6.919166666667419,
+      "p95Ms": 7,
+      "fps": 144.52607491266645,
+      "meanDrawCalls": 117.61666666666666,
+      "meanTriangles": 472390.93333333335,
+      "meanSubmitMs": 1.4741666666658906,
+      "gpu": "ANGLE (NVIDIA, NVIDIA GeForce RTX 5060 Ti (0x00002D04) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+      "shadows": [
+        [
+          1024,
+          1024
+        ]
+      ],
+      "viewport": [
+        1280,
+        720
+      ],
+      "pixelRatio": 1
+    },
+    {
+      "map": "orbit",
+      "preset": "high",
+      "samples": 120,
+      "meanMs": 6.910000000000764,
+      "p95Ms": 7.099999999998545,
+      "fps": 144.7178002894196,
+      "meanDrawCalls": 117,
+      "meanTriangles": 473408,
+      "meanSubmitMs": 1.534166666669383,
+      "gpu": "ANGLE (NVIDIA, NVIDIA GeForce RTX 5060 Ti (0x00002D04) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+      "shadows": [
+        [
+          1024,
+          1024
+        ]
+      ],
+      "viewport": [
+        1280,
+        720
+      ],
+      "pixelRatio": 1
+    },
+    {
+      "map": "orbit",
+      "preset": "ultra",
+      "samples": 120,
+      "meanMs": 6.911666666666679,
+      "p95Ms": 7.099999999998545,
+      "fps": 144.6829033035927,
+      "meanDrawCalls": 163.7,
+      "meanTriangles": 704690.2,
+      "meanSubmitMs": 1.8016666666643384,
+      "gpu": "ANGLE (NVIDIA, NVIDIA GeForce RTX 5060 Ti (0x00002D04) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+      "shadows": [
+        [
+          1024,
+          1024
+        ]
+      ],
+      "viewport": [
+        1280,
+        720
+      ],
+      "pixelRatio": 1
+    },
+    {
+      "map": "orbit",
+      "preset": "cinematic",
+      "samples": 120,
+      "meanMs": 6.920000000000012,
+      "p95Ms": 7.099999999998545,
+      "fps": 144.50867052023096,
+      "meanDrawCalls": 158,
+      "meanTriangles": 703459,
+      "meanSubmitMs": 1.7724999999743887,
+      "gpu": "ANGLE (NVIDIA, NVIDIA GeForce RTX 5060 Ti (0x00002D04) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+      "shadows": [
+        [
+          1024,
+          1024
+        ]
+      ],
+      "viewport": [
+        1280,
+        720
+      ],
+      "pixelRatio": 1
+    },
+    {
+      "map": "skate-paradise",
+      "preset": "performance",
+      "samples": 120,
+      "meanMs": 6.920833333334485,
+      "p95Ms": 7.099999999998545,
+      "fps": 144.49127031906085,
+      "meanDrawCalls": 144.58333333333334,
+      "meanTriangles": 104677.13333333333,
+      "meanSubmitMs": 1.934999999999612,
+      "gpu": "ANGLE (NVIDIA, NVIDIA GeForce RTX 5060 Ti (0x00002D04) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+      "shadows": [
+        [
+          1024,
+          1024
+        ]
+      ],
+      "viewport": [
+        1280,
+        720
+      ],
+      "pixelRatio": 1
+    },
+    {
+      "map": "skate-paradise",
+      "preset": "high-refresh",
+      "samples": 120,
+      "meanMs": 6.8975000000004005,
+      "p95Ms": 7.099999999998545,
+      "fps": 144.98006524102095,
+      "meanDrawCalls": 281.18333333333334,
+      "meanTriangles": 213825.85,
+      "meanSubmitMs": 3.088333333324408,
+      "gpu": "ANGLE (NVIDIA, NVIDIA GeForce RTX 5060 Ti (0x00002D04) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+      "shadows": [
+        [
+          1024,
+          1024
+        ]
+      ],
+      "viewport": [
+        1280,
+        720
+      ],
+      "pixelRatio": 1
+    },
+    {
+      "map": "skate-paradise",
+      "preset": "balanced",
+      "samples": 120,
+      "meanMs": 6.879166666667394,
+      "p95Ms": 7.099999999998545,
+      "fps": 145.36644457902764,
+      "meanDrawCalls": 214.68333333333334,
+      "meanTriangles": 180201.81666666668,
+      "meanSubmitMs": 2.5658333333247962,
+      "gpu": "ANGLE (NVIDIA, NVIDIA GeForce RTX 5060 Ti (0x00002D04) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+      "shadows": [
+        [
+          1024,
+          1024
+        ]
+      ],
+      "viewport": [
+        1280,
+        720
+      ],
+      "pixelRatio": 1
+    },
+    {
+      "map": "skate-paradise",
+      "preset": "high",
+      "samples": 120,
+      "meanMs": 7.025833333334473,
+      "p95Ms": 7,
+      "fps": 142.33187047797477,
+      "meanDrawCalls": 174.05,
+      "meanTriangles": 173069.53333333333,
+      "meanSubmitMs": 2.865833333346139,
+      "gpu": "ANGLE (NVIDIA, NVIDIA GeForce RTX 5060 Ti (0x00002D04) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+      "shadows": [
+        [
+          1024,
+          1024
+        ]
+      ],
+      "viewport": [
+        1280,
+        720
+      ],
+      "pixelRatio": 1
+    },
+    {
+      "map": "skate-paradise",
+      "preset": "ultra",
+      "samples": 120,
+      "meanMs": 6.908333333334546,
+      "p95Ms": 7,
+      "fps": 144.75271411336422,
+      "meanDrawCalls": 116.98333333333333,
+      "meanTriangles": 167757.03333333333,
+      "meanSubmitMs": 2.2491666666581294,
+      "gpu": "ANGLE (NVIDIA, NVIDIA GeForce RTX 5060 Ti (0x00002D04) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+      "shadows": [
+        [
+          1024,
+          1024
+        ]
+      ],
+      "viewport": [
+        1280,
+        720
+      ],
+      "pixelRatio": 1
+    },
+    {
+      "map": "skate-paradise",
+      "preset": "cinematic",
+      "samples": 120,
+      "meanMs": 6.896666666666715,
+      "p95Ms": 7.099999999991269,
+      "fps": 144.99758337360942,
+      "meanDrawCalls": 192.73333333333332,
+      "meanTriangles": 190217.68333333332,
+      "meanSubmitMs": 2.290000000000388,
+      "gpu": "ANGLE (NVIDIA, NVIDIA GeForce RTX 5060 Ti (0x00002D04) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+      "shadows": [
+        [
+          1024,
+          1024
+        ]
+      ],
+      "viewport": [
+        1280,
+        720
+      ],
+      "pixelRatio": 1
+    }
+  ],
+  "cameraLabel": "CAMERA · Classic",
+  "focusPause": true,
+  "assetFailureHandled": true,
+  "errors": []
+}

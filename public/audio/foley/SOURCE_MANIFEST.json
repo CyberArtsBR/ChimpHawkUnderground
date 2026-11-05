@@ -1,0 +1,387 @@
+[
+  {
+    "file": "pop-alt-1.ogg",
+    "download": "https://raw.githubusercontent.com/GeorgeQLe/assets-sfx-combat/main/assets/kenney/impact-sounds/Audio/impactWood_light_000.ogg",
+    "upstream": "assets/kenney/impact-sounds/Audio/impactWood_light_000.ogg",
+    "sha256": "eb45e35b4bed784d3f120de4afec4b0d6ac09d9e143cce8cfcb7d739e1b1f3c3",
+    "license": "CC0-1.0",
+    "runtimeUse": "Retired from active banks after owner feedback; provenance retained for historical files."
+  },
+  {
+    "file": "pop-alt-2.ogg",
+    "download": "https://raw.githubusercontent.com/GeorgeQLe/assets-sfx-combat/main/assets/kenney/impact-sounds/Audio/impactWood_light_001.ogg",
+    "upstream": "assets/kenney/impact-sounds/Audio/impactWood_light_001.ogg",
+    "sha256": "4b76bf3ccc8e60d19188f3165b778a7817786faa6887c55d9049bcbeef3b425f",
+    "license": "CC0-1.0",
+    "runtimeUse": "Retired from active banks after owner feedback; provenance retained for historical files."
+  },
+  {
+    "file": "catch-1.ogg",
+    "download": "https://raw.githubusercontent.com/GeorgeQLe/assets-sfx-combat/main/assets/kenney/impact-sounds/Audio/impactWood_medium_000.ogg",
+    "upstream": "assets/kenney/impact-sounds/Audio/impactWood_medium_000.ogg",
+    "sha256": "1723a9fd25103ed41af06054814e84e65f4a772bac86ab2dc927da93d9592ff5",
+    "license": "CC0-1.0",
+    "runtimeUse": "Retired from active banks after owner feedback; provenance retained for historical files."
+  },
+  {
+    "file": "catch-2.ogg",
+    "download": "https://raw.githubusercontent.com/GeorgeQLe/assets-sfx-combat/main/assets/kenney/impact-sounds/Audio/impactWood_medium_001.ogg",
+    "upstream": "assets/kenney/impact-sounds/Audio/impactWood_medium_001.ogg",
+    "sha256": "15271dbe8e2872dbb0ff1aeb7b12b2d2b92b7c1951c88532b9ab9158c36dfc73",
+    "license": "CC0-1.0",
+    "runtimeUse": "Retired from active banks after owner feedback; provenance retained for historical files."
+  },
+  {
+    "file": "landing-concrete-1.ogg",
+    "download": "https://raw.githubusercontent.com/GeorgeQLe/assets-sfx-combat/main/assets/kenney/impact-sounds/Audio/impactGeneric_light_000.ogg",
+    "upstream": "assets/kenney/impact-sounds/Audio/impactGeneric_light_000.ogg",
+    "sha256": "f0e982611e97512fee5f777986b67e8b435434b601f94992ec044f7e89fb5acb",
+    "license": "CC0-1.0"
+  },
+  {
+    "file": "landing-concrete-2.ogg",
+    "download": "https://raw.githubusercontent.com/GeorgeQLe/assets-sfx-combat/main/assets/kenney/impact-sounds/Audio/impactGeneric_light_001.ogg",
+    "upstream": "assets/kenney/impact-sounds/Audio/impactGeneric_light_001.ogg",
+    "sha256": "c3cd1c073d186ae8fa35788ba94de581f1826e7427a7bb26490b2695fac18efa",
+    "license": "CC0-1.0"
+  },
+  {
+    "file": "landing-metal-1.ogg",
+    "download": "https://raw.githubusercontent.com/GeorgeQLe/assets-sfx-combat/main/assets/kenney/impact-sounds/Audio/impactMetal_light_000.ogg",
+    "upstream": "assets/kenney/impact-sounds/Audio/impactMetal_light_000.ogg",
+    "sha256": "33b5e6e37c6e9d54e07bf5a89b12c76e879f40c1ea83cdd82714df1d6f9fec6d",
+    "license": "CC0-1.0"
+  },
+  {
+    "file": "landing-metal-2.ogg",
+    "download": "https://raw.githubusercontent.com/GeorgeQLe/assets-sfx-combat/main/assets/kenney/impact-sounds/Audio/impactMetal_light_001.ogg",
+    "upstream": "assets/kenney/impact-sounds/Audio/impactMetal_light_001.ogg",
+    "sha256": "fba69c467ddd85da7b1d82e259f936b876d9ba6a3d6f1b24bdd10468e46bfe08",
+    "license": "CC0-1.0"
+  },
+  {
+    "file": "bail-alt-1.ogg",
+    "download": "https://raw.githubusercontent.com/GeorgeQLe/assets-sfx-combat/main/assets/kenney/impact-sounds/Audio/impactSoft_heavy_000.ogg",
+    "upstream": "assets/kenney/impact-sounds/Audio/impactSoft_heavy_000.ogg",
+    "sha256": "49e7ca88743fca974bb8676ea138b751cfd8f9033b5e7af8736c2a215d6edbc1",
+    "license": "CC0-1.0",
+    "runtimeUse": "Retired from active banks after owner feedback; provenance retained for historical files."
+  },
+  {
+    "file": "bail-alt-2.ogg",
+    "download": "https://raw.githubusercontent.com/GeorgeQLe/assets-sfx-combat/main/assets/kenney/impact-sounds/Audio/impactSoft_heavy_001.ogg",
+    "upstream": "assets/kenney/impact-sounds/Audio/impactSoft_heavy_001.ogg",
+    "sha256": "4d0096364ba9e46119d2ff6df493fdc101bd2e1efae061da5e5f77a53b3fdcb6",
+    "license": "CC0-1.0",
+    "runtimeUse": "Retired from active banks after owner feedback; provenance retained for historical files."
+  },
+  {
+    "file": "cloth-1.ogg",
+    "download": "https://raw.githubusercontent.com/GeorgeQLe/assets-sfx-combat/main/assets/kenney/rpg-audio/Audio/cloth1.ogg",
+    "upstream": "assets/kenney/rpg-audio/Audio/cloth1.ogg",
+    "sha256": "ddb93a3671233f95da0e0b10367f082f7eb42fa6caaddcf776410aa8833c747d",
+    "license": "CC0-1.0"
+  },
+  {
+    "file": "cloth-2.ogg",
+    "download": "https://raw.githubusercontent.com/GeorgeQLe/assets-sfx-combat/main/assets/kenney/rpg-audio/Audio/cloth2.ogg",
+    "upstream": "assets/kenney/rpg-audio/Audio/cloth2.ogg",
+    "sha256": "8a7451193c38bc05483aec25dd193e163a15d44cf7fff04ac7912573231b0201",
+    "license": "CC0-1.0"
+  },
+  {
+    "file": "cue-confirm.ogg",
+    "download": "https://raw.githubusercontent.com/GeorgeQLe/assets-sfx-ui/main/assets/kenney/interface-sounds/Audio/confirmation_001.ogg",
+    "upstream": "assets/kenney/interface-sounds/Audio/confirmation_001.ogg",
+    "sha256": "063564703b6094d70718a3e787a55cc9141611e4ecd6b6637f8828f79b4a8c3a",
+    "license": "CC0-1.0"
+  },
+  {
+    "file": "cue-back.ogg",
+    "download": "https://raw.githubusercontent.com/GeorgeQLe/assets-sfx-ui/main/assets/kenney/interface-sounds/Audio/back_001.ogg",
+    "upstream": "assets/kenney/interface-sounds/Audio/back_001.ogg",
+    "sha256": "07db973f79f6ae0f2edc34561e7592e24d0577455919fb602cb8ecc0da991dcf",
+    "license": "CC0-1.0"
+  },
+  {
+    "file": "cue-ready.ogg",
+    "download": "https://raw.githubusercontent.com/GeorgeQLe/assets-sfx-ui/main/assets/kenney/interface-sounds/Audio/click_001.ogg",
+    "upstream": "assets/kenney/interface-sounds/Audio/click_001.ogg",
+    "sha256": "ccfb7fa0cccdd9faec0eb16033c732b1e308d139d80f799161495d58f7adcdb9",
+    "license": "CC0-1.0"
+  },
+  {
+    "file": "cue-go.ogg",
+    "download": "https://raw.githubusercontent.com/GeorgeQLe/assets-sfx-ui/main/assets/kenney/interface-sounds/Audio/confirmation_002.ogg",
+    "upstream": "assets/kenney/interface-sounds/Audio/confirmation_002.ogg",
+    "sha256": "33b17a9a9a2397c62b285c52c33a907fdffb476909c99e42dde603f6a7a8b12c",
+    "license": "CC0-1.0"
+  },
+  {
+    "file": "cue-roundOver.ogg",
+    "download": "https://raw.githubusercontent.com/GeorgeQLe/assets-sfx-ui/main/assets/kenney/interface-sounds/Audio/back_003.ogg",
+    "upstream": "assets/kenney/interface-sounds/Audio/back_003.ogg",
+    "sha256": "ff5e87de1230b1a5f1fa83e5a4ba9d7eb1c07154267ac34b510a17d4caa03cef",
+    "license": "CC0-1.0"
+  },
+  {
+    "file": "cue-tenSeconds.ogg",
+    "download": "https://raw.githubusercontent.com/GeorgeQLe/assets-sfx-ui/main/assets/kenney/interface-sounds/Audio/select_001.ogg",
+    "upstream": "assets/kenney/interface-sounds/Audio/select_001.ogg",
+    "sha256": "aec0c31ea934a35936ae0d2ab8fac8123c93aa5647f935853a58dbaf90278b7a",
+    "license": "CC0-1.0"
+  },
+  {
+    "file": "cue-finalFive.ogg",
+    "download": "https://raw.githubusercontent.com/GeorgeQLe/assets-sfx-ui/main/assets/kenney/interface-sounds/Audio/select_002.ogg",
+    "upstream": "assets/kenney/interface-sounds/Audio/select_002.ogg",
+    "sha256": "4cc6ac5341b9b2c86fef80c347de028e9ab9f2e037586ac7d9fa59a403a1c012",
+    "license": "CC0-1.0"
+  },
+  {
+    "file": "crowd-claps.ogg",
+    "download": "https://opengameart.org/sites/default/files/Well%20Done%20CCBY3.ogg",
+    "author": "qubodup",
+    "source": "https://opengameart.org/content/well-done",
+    "license": "CC0-1.0",
+    "sha256": "8ef5cdf2323ce9efd19f5553757c607ecb57647bd568316958472ab6b9048dfc"
+  },
+  {
+    "file": "voice-pain-1.mp3",
+    "download": "https://opengameart.org/sites/default/files/hurt_01_0.mp3",
+    "author": "EZduzziteh",
+    "source": "https://opengameart.org/content/hurt-sound-effects",
+    "license": "CC0-1.0",
+    "sha256": "45f19e4f637ff0e8936186977aa7cb131f67a95ca68660686476a47da224322e"
+  },
+  {
+    "file": "voice-pain-2.mp3",
+    "download": "https://opengameart.org/sites/default/files/hurt_03.mp3",
+    "author": "EZduzziteh",
+    "source": "https://opengameart.org/content/hurt-sound-effects",
+    "license": "CC0-1.0",
+    "sha256": "9950c1dbbf3f2c75952510f1f2a2ab6f36586ba7e62f4f1e74ad64e82db2aa52"
+  },
+  {
+    "file": "voice-pain-3.mp3",
+    "download": "https://opengameart.org/sites/default/files/hurt_04.mp3",
+    "author": "EZduzziteh",
+    "source": "https://opengameart.org/content/hurt-sound-effects",
+    "license": "CC0-1.0",
+    "sha256": "a6249c89f037553c71529ece4eb443bd3cc06ab33b833c5b3d47121da284d7d8"
+  },
+  {
+    "file": "voice-effort-1.mp3",
+    "download": "https://opengameart.org/sites/default/files/hurt_02.mp3",
+    "author": "EZduzziteh",
+    "source": "https://opengameart.org/content/hurt-sound-effects",
+    "license": "CC0-1.0",
+    "sha256": "7c4cd404830bf3cd5f10ff3340266f573922399d06bfb4573daf9093c5b69833"
+  },
+  {
+    "file": "scrape-concrete-1.ogg",
+    "download": "https://opengameart.org/sites/default/files/scrapes.zip",
+    "author": "AntumDeluge",
+    "source": "https://opengameart.org/content/scrapes",
+    "license": "CC0-1.0",
+    "sha256": "096ff47122bae2837ec8a8522a4465d894977f31e4eba5875dba73647d7ef0b5",
+    "runtimeUse": "Retired from active banks after owner feedback; provenance retained for historical files."
+  },
+  {
+    "file": "scrape-concrete-2.ogg",
+    "download": "https://opengameart.org/sites/default/files/scrapes.zip",
+    "author": "AntumDeluge",
+    "source": "https://opengameart.org/content/scrapes",
+    "license": "CC0-1.0",
+    "sha256": "2df277396cc671f55a7699c9a346415a46086b27ebdc603c489160e63af75af0",
+    "runtimeUse": "Retired from active banks after owner feedback; provenance retained for historical files."
+  },
+  {
+    "file": "scrape-metal.mp3",
+    "download": "https://cdn.freesound.org/previews/254/254064_2953000-hq.mp3",
+    "source": "https://freesound.org/people/Doctor_Jekyll/sounds/254064/",
+    "author": "Doctor_Jekyll",
+    "license": "CC-BY-4.0",
+    "sha256": "263b6b545b71b38b9ef899e05f9228e1c8abd22db4e74c7b1a0cb4ada6e4d396",
+    "changes": "Original public HQ MP3 preview; runtime mono crossfade loop and gain/filter/rate modulation.",
+    "runtimeUse": "Retired from active banks after owner feedback; provenance retained for historical files."
+  },
+  {
+    "file": "scrape-skate-metal.mp3",
+    "author": "rokenjocu",
+    "source": "https://freesound.org/people/rokenjocu/sounds/262079/",
+    "download": "https://cdn.freesound.org/previews/262/262079_4883517-hq.mp3",
+    "license": "CC0-1.0",
+    "sha256": "5edffaf8c75daa18d4fa53b3b2b2f432e2a6645792d2e47c16909cc5e5034c27",
+    "runtimeUse": "Active actual skateboard grinding replacement. Runtime loop uses 2.35–3.80 seconds with 80ms mono overlap; source bytes unchanged."
+  },
+  {
+    "file": "scrape-skate-concrete.mp3",
+    "author": "21100495",
+    "source": "https://freesound.org/people/21100495/sounds/655372/",
+    "download": "https://cdn.freesound.org/previews/655/655372_13723333-hq.mp3",
+    "license": "CC0-1.0",
+    "sha256": "a2504d15375d59a18a4bc13b92de21500641f498bba7bacdb32e0af179459393",
+    "runtimeUse": "Active actual skateboard grinding replacement. Runtime loop uses 19.70–21.75 seconds with 80ms mono overlap; source bytes unchanged."
+  },
+  {
+    "file": "pop-skate-1.wav",
+    "author": "nolimitkid",
+    "source": "https://freesound.org/people/nolimitkid/sounds/515230/",
+    "download": "https://cdn.freesound.org/previews/515/515230_11123146-hq.mp3",
+    "sourceSha256": "ed8b23ebfb8f69cfad0c2a59b7818c90c7eee3d7545f29e6959d78c1f1b39622",
+    "license": "CC0-1.0",
+    "sha256": "49218e0f30fe105acabe82d5a3838ba64a8961bf307585a7a6f20a72e242abfa",
+    "changes": {
+      "excerptSeconds": [
+        0.006,
+        0.225
+      ],
+      "sampleRate": 44100,
+      "mono": true,
+      "gain": 0.7536739078225563,
+      "fade": "2ms attack,18ms impact/100ms ambience tail"
+    },
+    "runtimeUse": "Active; owner audition pending."
+  },
+  {
+    "file": "pop-skate-2.wav",
+    "author": "nolimitkid",
+    "source": "https://freesound.org/people/nolimitkid/sounds/515225/",
+    "download": "https://cdn.freesound.org/previews/515/515225_11123146-hq.mp3",
+    "sourceSha256": "a3352d5a109ea7cee96d8cb3ad2e8b8ac5cfba7e74dbdd6b2f7de45133eba69c",
+    "license": "CC0-1.0",
+    "sha256": "8877c356fd2dfbc20e57456da56fe0fbca9bb4ba6fe569f3efe33f3bee7efc66",
+    "changes": {
+      "excerptSeconds": [
+        0.018,
+        0.24
+      ],
+      "sampleRate": 44100,
+      "mono": true,
+      "gain": 0.6727768752394856,
+      "fade": "2ms attack,18ms impact/100ms ambience tail"
+    },
+    "runtimeUse": "Active; owner audition pending."
+  },
+  {
+    "file": "land-skate-1.wav",
+    "author": "nolimitkid",
+    "source": "https://freesound.org/people/nolimitkid/sounds/515230/",
+    "download": "https://cdn.freesound.org/previews/515/515230_11123146-hq.mp3",
+    "sourceSha256": "ed8b23ebfb8f69cfad0c2a59b7818c90c7eee3d7545f29e6959d78c1f1b39622",
+    "license": "CC0-1.0",
+    "sha256": "4bf55b6961034c42950dc86dddc78e410c6c2e9332cfb8918dc06ac5e643cc7b",
+    "changes": {
+      "excerptSeconds": [
+        0.424,
+        0.85
+      ],
+      "sampleRate": 44100,
+      "mono": true,
+      "gain": 0.731509803116714,
+      "fade": "2ms attack,18ms impact/100ms ambience tail"
+    },
+    "runtimeUse": "Active; owner audition pending."
+  },
+  {
+    "file": "land-skate-2.wav",
+    "author": "nolimitkid",
+    "source": "https://freesound.org/people/nolimitkid/sounds/515225/",
+    "download": "https://cdn.freesound.org/previews/515/515225_11123146-hq.mp3",
+    "sourceSha256": "a3352d5a109ea7cee96d8cb3ad2e8b8ac5cfba7e74dbdd6b2f7de45133eba69c",
+    "license": "CC0-1.0",
+    "sha256": "04439d2a523d1f30efd4b12b9725b89dd998a4f257284730f014c5b924c3932d",
+    "changes": {
+      "excerptSeconds": [
+        0.434,
+        0.87
+      ],
+      "sampleRate": 44100,
+      "mono": true,
+      "gain": 0.7214063184819328,
+      "fade": "2ms attack,18ms impact/100ms ambience tail"
+    },
+    "runtimeUse": "Active; owner audition pending."
+  },
+  {
+    "file": "catch-skate-1.wav",
+    "author": "nolimitkid",
+    "source": "https://freesound.org/people/nolimitkid/sounds/515230/",
+    "download": "https://cdn.freesound.org/previews/515/515230_11123146-hq.mp3",
+    "sourceSha256": "ed8b23ebfb8f69cfad0c2a59b7818c90c7eee3d7545f29e6959d78c1f1b39622",
+    "license": "CC0-1.0",
+    "sha256": "5f03f9ea68fbfd64726dc2e883e625adc86120339efccaa295f6643072fba72b",
+    "changes": {
+      "excerptSeconds": [
+        0.354,
+        0.423
+      ],
+      "sampleRate": 44100,
+      "mono": true,
+      "gain": 2,
+      "fade": "2ms attack,18ms impact/100ms ambience tail"
+    },
+    "runtimeUse": "Active; owner audition pending."
+  },
+  {
+    "file": "catch-skate-2.wav",
+    "author": "nolimitkid",
+    "source": "https://freesound.org/people/nolimitkid/sounds/515225/",
+    "download": "https://cdn.freesound.org/previews/515/515225_11123146-hq.mp3",
+    "sourceSha256": "a3352d5a109ea7cee96d8cb3ad2e8b8ac5cfba7e74dbdd6b2f7de45133eba69c",
+    "license": "CC0-1.0",
+    "sha256": "d7d8130e1e5c5c66c1841cc80976672e62385c4d62b6dce45bfe169515a24be6",
+    "changes": {
+      "excerptSeconds": [
+        0.375,
+        0.434
+      ],
+      "sampleRate": 44100,
+      "mono": true,
+      "gain": 1.6722529982451388,
+      "fade": "2ms attack,18ms impact/100ms ambience tail"
+    },
+    "runtimeUse": "Active; owner audition pending."
+  },
+  {
+    "file": "ambience-warehouse.wav",
+    "author": "loganzsound",
+    "source": "https://freesound.org/people/loganzsound/sounds/873136/",
+    "download": "https://cdn.freesound.org/previews/873/873136_16682330-hq.mp3",
+    "sourceSha256": "5424e4e34164fa03fc41f9ddc8210d9f81c8cd9e32ece6057c23464f5582c101",
+    "license": "CC0-1.0",
+    "sha256": "f274a238db75ab453c663ecadcbced94e2b26576942869e461f99211d3f22661",
+    "changes": {
+      "excerptSeconds": [
+        1,
+        13
+      ],
+      "sampleRate": 22050,
+      "mono": true,
+      "gain": 2,
+      "fade": "2ms attack,18ms impact/100ms ambience tail"
+    },
+    "runtimeUse": "Active; owner audition pending."
+  },
+  {
+    "file": "ambience-paradise.wav",
+    "author": "florianreichelt",
+    "source": "https://freesound.org/people/florianreichelt/sounds/459977/",
+    "download": "https://cdn.freesound.org/previews/459/459977_6253486-hq.mp3",
+    "sourceSha256": "e1cf29f5305a79edb5e57fb658c35e307078c392fb6bb6e8e8941e1ea7f67423",
+    "license": "CC0-1.0",
+    "sha256": "1e8041d17e360c0d2c8ffa7e923ab52c74b65dda0683b2ca03affb949abe735c",
+    "changes": {
+      "excerptSeconds": [
+        2,
+        18
+      ],
+      "sampleRate": 22050,
+      "mono": true,
+      "gain": 2,
+      "fade": "2ms attack,18ms impact/100ms ambience tail"
+    },
+    "runtimeUse": "Active; owner audition pending."
+  }
+]

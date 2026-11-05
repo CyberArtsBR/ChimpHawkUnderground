@@ -1,0 +1,29 @@
+name: Agent10 Deployment Identity
+
+on:
+  workflow_dispatch:
+    inputs:
+      deployment_url:
+        description: HTTPS root URL of the deployed game (no credentials)
+        required: true
+        default: https://streetskate.onrender.com/
+
+permissions:
+  contents: read
+
+jobs:
+  verify-deployed-sha:
+    name: Verify deployment SHA
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Compare deployed stamp against this workflow's exact commit
+        env:
+          AGENT10_EXPECTED_SHA: ${{ github.sha }}
+          AGENT10_DEPLOY_URL: ${{ inputs.deployment_url }}
+          AGENT10_ALLOWED_DEPLOY_HOST: streetskate.onrender.com
+        run: node tools/agent10-verify-deployment.mjs

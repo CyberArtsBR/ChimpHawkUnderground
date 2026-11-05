@@ -1,0 +1,31 @@
+name: Chimp Hawk Loadout Build
+
+on:
+  push:
+    branches:
+      - feat/chimp-hawk-loadout-20261009
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - name: Build Vite production bundle
+        run: npm run build
+      - name: Verify emitted shell and catalog
+        run: |
+          test -f dist/index.html
+          test -d dist/assets
+          test -f dist/media/title-screen.png
+          test -f dist/media/trick-guide-16x9.png

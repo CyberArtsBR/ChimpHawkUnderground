@@ -1,24 +1,26 @@
 {
-  "name": "chimp-hawk-underground",
-  "version": "0.1.0",
+  "name": "streetskate",
+  "version": "0.2.0",
   "private": true,
   "type": "module",
-  "description": "Chimp Hawk Underground v2: browser street-skating game (TypeScript + Three.js + Rapier).",
   "scripts": {
-    "dev": "vite --host 127.0.0.1",
-    "build": "tsc --noEmit && vite build",
+    "dev": "node tools/materialize-textures.mjs && node tools/materialize-music.mjs && vite --host 127.0.0.1",
+    "build": "node tools/materialize-textures.mjs && node tools/materialize-music.mjs && vite build",
+    "validate": "npm test && npm run verify:physics",
     "preview": "vite preview --host 127.0.0.1",
-    "test": "vitest run",
-    "typecheck": "tsc --noEmit"
+    "test": "node --test tests/*.test.mjs src/character/*.test.mjs",
+    "test:vert": "node tools/verify-vert.mjs",
+    "test:pump": "node tools/verify-pumping.mjs",
+    "verify:board": "node tools/verify-board.mjs",
+    "verify:physics": "npm run verify:board && npm run test:vert && npm run test:pump",
+    "test:browser": "node tools/browser-smoke.mjs"
   },
   "dependencies": {
-    "@dimforge/rapier3d-compat": "0.19.3",
-    "three": "0.180.0"
+    "three": "0.180.0",
+    "three-mesh-bvh": "^0.9.15"
   },
   "devDependencies": {
-    "@types/three": "0.180.0",
-    "typescript": "5.9.3",
-    "vite": "7.3.5",
-    "vitest": "3.2.4"
+    "@playwright/test": "1.64.1",
+    "vite": "7.3.5"
   }
 }

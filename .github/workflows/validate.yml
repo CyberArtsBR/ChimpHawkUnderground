@@ -1,0 +1,30 @@
+name: StreetSkate validation
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  test-and-build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install locked dependencies
+        run: npm ci
+      - name: Run unit and physics regression suites
+        run: npm run validate
+      - name: Verify production build
+        run: npm run build
+      - name: Verify Portals relative-base build
+        run: |
+          npm run build -- --base=./
+          node tools/agent10-verify-dist.mjs

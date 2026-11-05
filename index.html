@@ -1,75 +1,17 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#1a0f2a" />
-    <title>Chimp Hawk Underground</title>
-    <meta name="description" content="Chimp Hawk Underground: a browser street-skating game." />
-  </head>
-  <body>
-    <div id="app">
-      <div id="loading">Loading The Lab…</div>
-
-      <section id="title" aria-label="Title screen">
-        <div class="title-card">
-          <p class="kicker">PHASE 1 · THE LAB</p>
-          <p class="press">Click or press <b>Enter</b> to skate</p>
-          <p class="hint">Space ollie · ← flip · → grab · ↑ grind · W then S manual · Q/E spin · Esc pause</p>
-        </div>
-      </section>
-
-      <section id="select" aria-label="Choose rider and map">
-        <div class="select-card">
-          <h2>BUILD YOUR LINE</h2>
-          <h3>Rider</h3>
-          <div id="rider-list" class="pick-grid"></div>
-          <input id="rider-upload" type="file" accept=".glb,model/gltf-binary" hidden />
-          <h3>Mode</h3>
-          <div id="mode-list" class="pick-grid maps">
-            <button class="pick" data-mode="run" style="--accent:var(--gold)"><b>90-second run</b><small>Score as much as you can. Best per spot is saved.</small></button>
-            <button class="pick" data-mode="free" style="--accent:var(--cyan)"><b>Free skate</b><small>No clock. Practise lines, markers with M / N.</small></button>
-          </div>
-          <h3>Spot</h3>
-          <div id="map-list" class="pick-grid maps"></div>
-          <div class="select-footer">
-            <p id="select-status" role="status"></p>
-            <button id="skate" class="primary">LET'S SKATE →</button>
-          </div>
-        </div>
-      </section>
-
-      <section id="results" aria-label="Run results">
-        <div class="results-card">
-          <h2 id="results-title">TIME!</h2>
-          <div class="results-score" id="results-score">0</div>
-          <div class="results-best" id="results-best"></div>
-          <div class="results-stats" id="results-stats"></div>
-          <div class="results-actions">
-            <button id="run-again" class="primary">Run again</button>
-            <button id="results-free">Free skate</button>
-            <button id="results-change">Rider / map</button>
-          </div>
-        </div>
-      </section>
-
-      <section id="pause" aria-label="Pause menu">
-        <div class="pause-card">
-          <h2>PAUSED</h2>
-          <div class="pause-row">
-            <button id="resume" class="primary">▶ Resume</button>
-            <button id="change-rider">Rider / map</button>
-            <button id="next-track">Next track</button>
-            <button id="quality"></button>
-          </div>
-          <div class="pause-row sliders">
-            <label>Effects volume <input id="sfx-volume" type="range" min="0" max="1" step="0.05" /></label>
-            <label>Music volume <input id="music-volume" type="range" min="0" max="1" step="0.05" /></label>
-          </div>
-          <div id="controls-table"></div>
-        </div>
-      </section>
-    </div>
-    <script type="module" src="/src/main.ts"></script>
-  </body>
-</html>
+<head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/><meta name="theme-color" content="#131a1d"/><title>Chimp Hawk — Underground</title><link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Crect width=%2732%27 height=%2732 rx=%276%27 fill=%27%23d9ff64%27/%3E%3Ctext x=%278%27 y=%2725%27 font-size=%2725%27 font-family=%27Arial%27 font-weight=%27700%27%3ES%3C/text%3E%3C/svg%3E"/></head>
+<body>
+  <main id="app">
+    <div id="viewport" aria-label="Chimp Hawk skateboarding game. Open Tutorial for your current keyboard and controller inputs."></div>
+    <header class="topbar"><a class="brand" href="./" aria-label="StreetSkate home"><span class="brandmark">S<span>↗</span></span>STREET<span class="brand-light">SKATE</span><span class="badge">FREE SKATE / 001</span></a><span class="edition"><i></i> IRON DISTRICT / STEELWORKS &amp; FREIGHT</span></header>
+    <section class="intro"><p class="eyebrow">STEELWORKS. FREIGHT YARD. ENDLESS LINES.</p><h1>Iron<br/>District<span>.</span></h1><p class="description">Street plaza. Steel flow. Mega air.<br/>Your abandoned industrial playground.</p><div class="asset-meta"><span>200 × 150 m</span><span id="poly-count">Loading park</span></div></section>
+    <aside class="toolbar" aria-label="Scene settings"><button id="mode-toggle" class="active" title="Switch between skating and explore mode" aria-label="Switch to park explore mode" aria-pressed="true">▰</button><span id="mode-label" class="mode-label">SKATING</span><button id="camera-mode" title="C / right-stick click: cycle five camera views" aria-label="Cycle camera view" aria-pressed="false">C</button><span id="camera-label" class="mode-label">FOLLOW</span><button id="debug-overlay" title="F3: Toggle real-time QA telemetry" aria-label="Toggle gameplay telemetry" aria-controls="debug-panel" aria-expanded="false" aria-pressed="false">QA</button><button id="lighting" title="Switch between afternoon and blue hour" aria-label="Switch to blue hour">◐</button><button id="wireframe" title="Inspect mesh" aria-label="Toggle wireframe" aria-pressed="false">◇</button><button id="topview" title="Top view" aria-label="Show top view">⊞</button><button id="reset" title="Reset skater or view" aria-label="Reset skater or view">↺</button><span class="toolbar-label">EXPLORE</span></aside>
+    <aside id="debug-panel" class="debug-panel" role="region" aria-label="Gameplay debug telemetry" hidden></aside><div id="pause-overlay" class="pause-overlay" role="status"><strong>SKATING PAUSED</strong><span>FOCUS THE GAME · ESC / START TO RESUME</span></div><nav id="spot-nav" class="spot-nav" aria-label="Start skating in a park area" hidden></nav>
+    <div class="customize-bar"><span>DECK</span><div id="board-finishes" role="group" aria-label="Skateboard finish"></div><button id="trick-guide-button" title="H: Open trick book">TRICKS / H</button><button id="sound-toggle" aria-pressed="true">SOUND ON</button></div>
+    <div id="trick-feedback" role="status"></div><div id="loading" role="status"><span class="loader"></span><p>Building your view<span id="load-progress">Loading park geometry</span></p></div>
+    <div class="view-caption"><span id="view-number">01 / 03</span><p id="view-caption">The whole playground</p></div><section class="hud-total" aria-label="Total banked session score"><small>TOTAL SCORE</small><strong id="score-value">0</strong></section><section class="skate-hud" aria-label="Speed in kilometres per hour and ollie charge"><div class="speed"><span id="speed-value">00</span><small>KM/H</small></div><div class="ride-state"><span id="state-value"></span><div class="charge" role="meter" aria-label="Ollie charge" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><i id="charge-fill"></i></div><small class="charge-label">OLLIE CHARGE</small></div></section>
+    <footer class="bottom"><nav class="views" aria-label="Park viewpoints"><button data-view="overview" class="active"><span>01</span>Overview</button><button data-view="bowl"><span>02</span>Bowl & flow</button><button data-view="street"><span>03</span>Street plaza</button></nav><div class="navigation-help"><span>↔</span><span class="help-explore">DRAG TO ORBIT <b>·</b> SCROLL TO ZOOM</span><span class="help-skate">WASD / LEFT STICK · SPACE/A OLLIE · ←/X FLIP · →/B GRAB · ↑/Y GRIND · Q/E/LB/RB AIR TURN · LCTRL/LT VERT EXIT</span></div><a class="download" href="?park=legacy">OLD PARK <span>↗</span></a></footer><div class="controls-card">WASD move / trick direction · C / R3 cycle camera views<br>Space/A ollie · ←/X flip · →/B grab · ↑/Y grind<br>Q/E or LB/RB air rotate · LCtrl/LT vert exit · RCtrl/RT stance · Esc/Start pause<br>W→S Manual · S→W Nose Manual<br>Follow / Classic: drag mouse / right stick to look</div>
+  </main>
+  <script type="module" src="/src/game-main.js"></script>
+</body></html>

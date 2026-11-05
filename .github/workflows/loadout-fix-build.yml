@@ -1,0 +1,48 @@
+name: StreetSkate Loadout Fix Verification
+
+on:
+  push:
+    branches:
+      - fix/loadout-grid-rider-contact-camera-20261009
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  loadout-build-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 16
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - name: Build production
+        run: npm run build
+      - name: Verify packaged character assets
+        run: |
+          for path in The_Heretic.glb The_AdolescentUR.glb The_Anchor.glb TuxR.glb; do
+            test -s "dist/assets/rider/$path" || exit 1
+          done
+      - name: Install browser runner
+        run: |
+          npm install --no-save @playwright/test@1.56.1
+          npx playwright install --with-deps chromium
+      - name: Run production preview
+        run: |
+          nohup npm run preview -- --host 127.0.0.1 --port 4173 >/tmp/loadout-preview.log 2>&1 &
+          for i in $(seq 1 60); do
+            if curl -fsS http://127.0.0.1:4173/ >/dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat /tmp/loadout-preview.log
+          exit 1
+      - name: Browser loadout smoke
+        run: node tools/loadout-smoke.mjs
+      - name: Preview log on failure
+        if: failure()
+        run: cat /tmp/loadout-preview.log || true

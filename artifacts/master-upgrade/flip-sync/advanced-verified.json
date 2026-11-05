@@ -1,0 +1,94 @@
+{
+  "result": "PASS",
+  "clips": [
+    {
+      "name": "360-flip",
+      "duration": 3.174721,
+      "probes": [
+        {
+          "time": 1.19,
+          "active": true
+        },
+        {
+          "time": 1.27,
+          "active": false
+        },
+        {
+          "time": 1.35,
+          "active": true
+        },
+        {
+          "time": 1.5,
+          "active": false
+        }
+      ]
+    },
+    {
+      "name": "laser-flip",
+      "duration": 3.174503,
+      "probes": [
+        {
+          "time": 1.19,
+          "active": true
+        },
+        {
+          "time": 1.27,
+          "active": false
+        },
+        {
+          "time": 1.35,
+          "active": true
+        },
+        {
+          "time": 1.5,
+          "active": false
+        }
+      ]
+    },
+    {
+      "name": "double-kickflip",
+      "duration": 3.174323,
+      "probes": [
+        {
+          "time": 1.19,
+          "active": true
+        },
+        {
+          "time": 1.27,
+          "active": false
+        },
+        {
+          "time": 1.35,
+          "active": true
+        },
+        {
+          "time": 1.5,
+          "active": false
+        }
+      ]
+    },
+    {
+      "name": "double-heelflip",
+      "duration": 3.167613,
+      "probes": [
+        {
+          "time": 1.19,
+          "active": true
+        },
+        {
+          "time": 1.27,
+          "active": false
+        },
+        {
+          "time": 1.35,
+          "active": true
+        },
+        {
+          "time": 1.5,
+          "active": false
+        }
+      ]
+    }
+  ],
+  "errors": []
+}

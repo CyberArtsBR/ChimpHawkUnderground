@@ -1,0 +1,113 @@
+/* Shared legibility scale. Display artwork keeps the supplied game identity. */
+:root{--ui-scale:1;--ui-body:calc(15px * var(--ui-scale));--ui-support:calc(14px * var(--ui-scale));--ui-control:calc(18px * var(--ui-scale));--ui-label:calc(12px * var(--ui-scale));--ui-gap:calc(12px * var(--ui-scale));--ui-paper:#eef5fa;--ui-muted:#c1d0df;--ui-ink:#101b2b;--ui-focus:#a4f0e7}
+#game-shell.menu-screen .menu-card button{font-size:var(--ui-control);line-height:1.35;min-height:48px;white-space:normal;overflow-wrap:anywhere}
+#game-shell.menu-screen .menu-card p,#game-shell.menu-screen .menu-card small,#game-shell .graphics-description,#game-shell .graphics-details,#game-shell .graphics-advanced,#game-shell .graphics-preset small,#game-shell .menu-card-heading p,.test-map-note{font-size:var(--ui-support);line-height:1.5;color:var(--ui-muted)}
+#game-shell .audio-volume-control>span{font-size:var(--ui-body);letter-spacing:0}
+#game-shell .menu-card{max-height:calc(100dvh - 88px);overflow:auto;scrollbar-gutter:stable}
+#game-shell .menu-card>h2,#game-shell .menu-card-heading h2{line-height:1.08}
+#game-shell.loadout-screen .loadout-character small,#game-shell.loadout-screen .selected-rider-copy>small,#game-shell.loadout-screen .loadout-location small,#game-shell.loadout-screen .loadout-deck b,#game-shell.loadout-screen .loadout-status,#game-shell.loadout-screen .loadout-recap,#game-shell.loadout-screen .selection-note,#game-shell.loadout-screen .loadout-shell header p{font-size:var(--ui-support);line-height:1.4;letter-spacing:0}
+#game-shell.loadout-screen .loadout-character strong,#game-shell.loadout-screen .loadout-location strong,#game-shell.loadout-screen .loadout-shell footer button,#game-shell.loadout-screen .loadout-shell footer [data-action='confirmLoadout']{font-size:var(--ui-control);line-height:1.3}
+#game-shell.loadout-screen .loadout-character{grid-template-columns:46px minmax(0,1fr);min-height:78px}
+#game-shell.loadout-screen .loadout-character span,#game-shell.loadout-screen .loadout-character strong,#game-shell.loadout-screen .loadout-character small{overflow-wrap:anywhere;min-width:0}
+#game-shell.loadout-screen .loadout-location{min-height:135px;flex-shrink:0}
+#game-shell.loadout-screen .loadout-locations{grid-template-rows:repeat(3,minmax(135px,1fr))}
+#game-shell.loadout-screen .loadout-deck{min-height:90px}
+#game-shell.loadout-screen .loadout-boards{grid-template-rows:repeat(4,minmax(90px,1fr))}
+#game-shell.loadout-screen .panel-kicker,.menu-footnote{font-size:var(--ui-label);line-height:1.4}
+body[data-screen='tutorial'] #now-playing,body[data-screen='flipSchool'] #now-playing,body[data-screen='settings'] #now-playing,body[data-screen='creator'] #now-playing{display:none}
+#game-shell .tutorial-copy,#game-shell .tutorial-copy p,#game-shell .tutorial-content p,#game-shell .tutorial-content td,#game-shell .tutorial-value{font-size:var(--ui-body);line-height:1.5}
+#game-shell .tutorial-content th,#game-shell .tutorial-content small,#game-shell .tutorial-copy small{font-size:var(--ui-support)}
+.flip-school-header p,.flip-list-note,.flip-coach-note p,.flip-coach-note small,.flip-school-footer p,.flip-steps strong,.flip-steps small,.flip-live-cue{font-size:var(--ui-support);line-height:1.45}
+.flip-eyebrow,.flip-loop-label,.flip-video-caption{font-size:var(--ui-label)}
+#game-shell .flip-player-controls button,#game-shell .flip-school-footer button{font-size:var(--ui-support);min-height:44px}
+.flip-steps small{display:block}
+.flip-steps{grid-template-columns:repeat(2,minmax(0,1fr))}
+.flip-school-footer{flex-wrap:wrap;position:relative}
+.flip-school-footer p{flex:1;min-width:180px}
+.flip-lesson-list{max-height:75dvh;overflow:auto;scrollbar-gutter:stable;padding-right:8px}
+#game-shell .flip-lesson{font-size:var(--ui-control)}
+#game-shell .flip-lesson small{font-size:var(--ui-label)}
+.run-results-header p,.run-loadout>span,.run-best-combo>p,.run-best-combo>span:last-child:not(.session-eyebrow),.run-achievements p,.run-top-tricks li,.run-top-tricks strong,.run-highlights p,.run-highlights>small,.run-score-row dt small,.run-score-rule,.run-empty p{font-size:var(--ui-support);line-height:1.5}
+.run-stat dt,.session-eyebrow,.run-score-row dt>strong,.run-top-tricks li>span{font-size:var(--ui-label);line-height:1.4}
+.run-achievements strong{font-size:var(--ui-body)}
+#game-shell.results-screen .run-results-actions{position:sticky;bottom:0;z-index:5;background:#101b2bf5;border-top:1px solid #88b0c469;padding:12px;box-shadow:0 -8px 24px #08101d66}
+#game-shell.results-screen .run-results-actions button{font-size:var(--ui-support);min-height:46px}
+/* One short warning adjacent to the clock, independent of audio state. */
+#run-timer.time-low::after{content:attr(data-warning-label);display:block;position:static;padding:7px 10px;margin-top:2px;border-radius:5px;border:1px solid #ffd18a;background:#282016;color:#fff8e8;font:800 var(--ui-support)/1.3 'DM Sans',Arial,sans-serif;letter-spacing:.04em;text-shadow:none;-webkit-text-stroke:0;animation:clock-warning-in .45s ease-out 1}
+#run-timer.time-critical::after{background:#791d35f2;border-color:#ffd0d8;color:#fff3f6;animation:clock-critical-in .45s ease-out 1}
+@keyframes clock-warning-in{0%{transform:scale(.94);opacity:.5}65%{transform:scale(1.04)}100%{transform:scale(1);opacity:1}}
+@keyframes clock-critical-in{0%{transform:scale(.94)}55%{transform:scale(1.06)}100%{transform:scale(1)}}
+:root[data-high-contrast='true'] .hud-total,:root[data-high-contrast='true'] #run-timer,:root[data-high-contrast='true'] body[data-screen='playing'] .skate-hud{background:#080e18f5;border:2px solid #e4f7ff;border-radius:8px;padding:12px;color:#fff}
+:root[data-high-contrast='true'] .hud-glyph-value>.hud-glyph[data-glyph-ready='true']{background-image:none!important;color:#fff;-webkit-text-fill-color:currentColor;text-shadow:none}
+:root[data-high-contrast='true'] #balance-hud{background:#080e18f5;border-color:#fff;color:#fff}
+:root[data-high-contrast='true'] .hud-total>small,:root[data-high-contrast='true'] #run-timer::before,:root[data-high-contrast='true'] #state-value,:root[data-high-contrast='true'] .charge-label{color:#fff}
+.player-settings{box-sizing:border-box;width:min(1020px,94vw);max-height:calc(100dvh - 70px);overflow:auto;background:linear-gradient(145deg,#162539f8,#0c1625fc);border:1px solid #83c1cf55;border-radius:18px;padding:28px;scrollbar-gutter:stable;color:var(--ui-paper);font:500 var(--ui-body)/1.5 'DM Sans',Arial,sans-serif}
+.player-settings h2{font:800 clamp(32px,4vw,52px)/1.05 'Barlow Condensed',Arial,sans-serif;margin:8px 0}
+.player-settings header p{color:var(--ui-muted);margin:6px 0 18px}
+.player-settings h3{font-size:calc(23px * var(--ui-scale));margin:24px 0 8px}
+.player-setting-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:var(--ui-gap);align-items:center;border-bottom:1px solid #93c0cf26;padding:14px 0}
+.player-setting-row strong{font-size:var(--ui-control)}
+.player-setting-row p{font-size:var(--ui-support);color:var(--ui-muted);margin:3px 0 0;max-width:52ch}
+.player-setting-control{display:flex;gap:8px;align-items:center;min-width:170px;justify-content:flex-end}
+.player-setting-control output{min-width:62px;text-align:center;font:700 var(--ui-body)/1 'DM Sans',Arial,sans-serif;font-variant-numeric:tabular-nums;color:#a4f0e7}
+#game-shell .player-settings button{font:700 var(--ui-support)/1.3 'DM Sans',Arial,sans-serif;min-height:44px;padding:10px 12px;letter-spacing:0;background:#263b50;border:1px solid #809cba66;border-radius:7px;white-space:normal;overflow-wrap:anywhere;transform:none}
+#game-shell .player-settings button:hover,#game-shell .player-settings button:focus-visible,#game-shell .player-settings button.selected{background:#33586a;border-color:#a4f0e7;box-shadow:none}
+#game-shell .player-settings button[aria-pressed='true']{background:#315d50;color:#d7ffe9}
+.binding-head,.binding-row{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr) minmax(0,1fr);gap:12px;align-items:center;padding:8px 0}
+.binding-row{border-bottom:1px solid #93c0cf26}
+.binding-head{font-size:var(--ui-label);color:#a4f0e7;font-weight:800}
+.binding-row>span{font-size:var(--ui-body)}
+.settings-note{font-size:var(--ui-support);line-height:1.55;color:var(--ui-muted);max-width:75ch}
+.player-settings footer{position:sticky;bottom:-28px;display:flex;align-items:center;justify-content:space-between;gap:14px;background:#101c2cf8;border-top:1px solid #83c1cf55;margin:20px -16px -28px;padding:12px 16px;z-index:2}
+.player-settings footer p{font-size:var(--ui-support);color:var(--ui-muted)}
+.binding-capture{position:fixed;z-index:90;inset:50% auto auto 50%;transform:translate(-50%,-50%);width:min(580px,85vw);padding:28px;box-sizing:border-box;background:#102033;border:2px solid #a4f0e7;border-radius:14px;box-shadow:0 0 0 100vmax #030912c9;color:var(--ui-paper)}
+.binding-capture[hidden]{display:none}
+.binding-capture>strong{font-size:var(--ui-control)}
+.binding-capture>div{display:flex;flex-wrap:wrap;gap:10px}
+@media(max-height:750px){.player-settings{max-height:calc(100dvh - 50px);padding:20px}.flip-steps small{display:block}.flip-school-header p{font-size:var(--ui-support)}.flip-lesson-list{max-height:none}.flip-input-overlay{width:200px}.player-settings footer{bottom:-20px;margin-bottom:-20px}.run-results-header p,.run-loadout>span{font-size:var(--ui-support)}}
+@media(max-width:1100px){#game-shell.loadout-screen .loadout-character{grid-template-columns:36px minmax(0,1fr)}#game-shell.loadout-screen .loadout-character .rider-portrait{width:36px;height:46px}.flip-school-layout{grid-template-columns:230px minmax(0,1fr);gap:18px}.flip-video-stage{min-height:280px}.flip-steps{grid-template-columns:1fr 1fr}}
+@media(max-width:900px){.player-setting-row{grid-template-columns:1fr}.player-setting-control{justify-content:flex-start}.binding-row,.binding-head{gap:6px}.flip-school-layout{grid-template-columns:1fr}.flip-lesson-list{max-height:240px}.flip-video-stage{min-height:290px}}
+@media(prefers-reduced-motion:reduce){#run-timer.time-low::after,#run-timer.time-critical::after{animation:none}.player-settings *{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+
+/* Settings occupy the menu card; avoid a nested fixed-width scroller. */
+#game-shell .menu-card .player-settings{width:100%;max-height:none;overflow:visible;padding:12px;border:0;background:none}
+
+/* The lesson content owns its scrolling; primary actions always have their own row. */
+#game-shell.flip-school-screen .shell-content{display:block;height:calc(100dvh - 28px);max-height:1100px;overflow:hidden}
+#game-shell.flip-school-screen .flip-school{box-sizing:border-box;height:100%;min-height:0;display:grid;grid-template-rows:auto minmax(0,1fr) auto;overflow:hidden}
+#game-shell.flip-school-screen .flip-school-header{margin-bottom:14px;min-width:0}
+#game-shell.flip-school-screen .flip-school-layout{min-height:0;overflow:hidden}
+#game-shell.flip-school-screen .flip-lesson-list,#game-shell.flip-school-screen .flip-lesson-detail{min-height:0;height:100%;max-height:none;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:#6d8d97 #11252d;scrollbar-gutter:stable;box-sizing:border-box;padding:4px 9px 12px 4px;align-self:stretch}
+#game-shell.flip-school-screen .flip-lesson{flex-shrink:0;line-height:1.25}
+#game-shell.flip-school-screen .flip-lesson small{font-size:var(--ui-support);line-height:1.45}
+#game-shell.flip-school-screen .flip-school-footer{position:relative;bottom:auto;flex-wrap:wrap;gap:10px;margin:10px 0 0;padding:12px 4px 0;box-shadow:0 -8px 16px #0a182166}
+#game-shell.flip-school-screen .flip-school-footer p{flex:1;min-width:150px;margin:0}
+#game-shell.flip-school-screen .flip-school-footer button{flex-shrink:0;padding:10px 14px;min-height:46px;line-height:1.35}
+.flip-tap-badge{display:block;width:max-content;max-width:100%;font:800 var(--ui-label)/1.4 'DM Sans',Arial,sans-serif;letter-spacing:.04em;border:1px solid currentColor;border-radius:3px;padding:1px 5px;margin-top:5px;color:var(--flip-acid)}
+#game-shell .flip-lesson.is-current .flip-tap-badge{color:var(--flip-ink)}
+.flip-transport,.flip-input-modes{flex-wrap:wrap}
+.flip-steps strong,.flip-live-cue{overflow-wrap:anywhere}
+.flip-coach-note>span,.flip-overlay-label{font-size:var(--ui-label);line-height:1.4}
+.flip-video-error{font-size:var(--ui-support)}
+.run-top-tricks li b small,.run-best-combo strong small{font-size:var(--ui-label);line-height:1.4}
+#game-shell.results-screen .run-highlights button{font-size:var(--ui-support);min-height:44px}
+
+/* Selection has a persistent check. Navigation focus uses a separate outside ring. */
+#game-shell:is(.loadout-screen,.menu-screen,.flip-school-screen) button{transform:none!important}
+#game-shell:is(.loadout-screen,.menu-screen,.flip-school-screen) button:hover{outline:none}
+#game-shell:is(.loadout-screen,.menu-screen,.flip-school-screen) button:is(.selected,:focus-visible){outline:3px solid var(--ui-focus);outline-offset:3px;box-shadow:0 0 0 6px #0b1729!important;transform:none}
+#game-shell:is(.loadout-screen,.menu-screen,.flip-school-screen) button:active:not(:disabled){filter:brightness(.88)}
+#game-shell.menu-screen .graphics-preset[aria-pressed='true'],#game-shell .player-settings button[aria-pressed='true']{border-left:4px solid #a4f0e7}
+#game-shell .flip-input-modes button[aria-pressed='true']::before,#game-shell .player-settings button[aria-pressed='true']::before{content:'✓ ';font-weight:800}
+
+/* Tuning uses the available width while keeping the supplied art as a small banner. */
+body:is([data-screen='graphics'],[data-screen='settings'],[data-screen='options'],[data-screen='creator']) #game-shell.menu-screen .menu-stage{grid-template-columns:1fr}
+body:is([data-screen='graphics'],[data-screen='settings'],[data-screen='options'],[data-screen='creator']) #game-shell.menu-screen .menu-session-art{min-height:100px;height:100px;border-right:0;border-bottom:1px solid var(--menu-line);background-position:center 45%}
+body:is([data-screen='graphics'],[data-screen='settings'],[data-screen='options'],[data-screen='creator']) #game-shell.menu-screen .menu-art-title{font-size:42px;top:24px;left:22px}
+body:is([data-screen='graphics'],[data-screen='settings'],[data-screen='options'],[data-screen='creator']) #game-shell.menu-screen .menu-rider{width:180px;height:180px;right:12%;top:-24px}
+body:is([data-screen='graphics'],[data-screen='settings'],[data-screen='options'],[data-screen='creator']) #game-shell.menu-screen .menu-art-caption{left:auto;right:24px;bottom:22px;text-align:right}
+body:is([data-screen='graphics'],[data-screen='settings'],[data-screen='options'],[data-screen='creator']) #game-shell.menu-screen :is(.menu-art-kicker,.menu-art-stamp,.menu-music-slot){display:none}
+@media(max-height:750px){#game-shell.flip-school-screen .flip-school-header{margin-bottom:8px;padding-bottom:8px}#game-shell.flip-school-screen .flip-school-header p{margin:3px 0 0}#game-shell.flip-school-screen .flip-school-footer p{display:none}#game-shell.flip-school-screen .flip-school-footer{justify-content:flex-start;padding-top:10px}.flip-header-stamp{display:none}}
+@media(max-width:900px){#game-shell.flip-school-screen .flip-school-layout{grid-template-rows:minmax(110px,27%) minmax(0,1fr);gap:10px}#game-shell.flip-school-screen .flip-lesson-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-content:start}.flip-lesson-list>.flip-eyebrow,.flip-list-note{grid-column:1/-1}.flip-lesson-arrow{display:none}#game-shell.flip-school-screen .flip-school-footer p{display:none}#game-shell.flip-school-screen .flip-school-footer button{flex:1 1 40%;font-size:var(--ui-label);padding:8px}}
+
+.settings-section-links{display:flex;flex-wrap:wrap;gap:8px}.settings-section-links button{min-height:40px!important;font-size:14px!important}

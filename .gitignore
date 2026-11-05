@@ -1,5 +1,9 @@
 node_modules/
 dist/
-*.log
+references/
+*.blend1
+artifacts/verification/
 .DS_Store
-.claude/
+__pycache__/
+*.log
+public/assets/park/hd/

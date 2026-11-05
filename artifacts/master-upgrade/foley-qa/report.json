@@ -1,0 +1,16 @@
+{
+  "status": {
+    "recorded": [
+      "pop",
+      "landing",
+      "roll",
+      "bail"
+    ],
+    "enabled": true,
+    "effectsVolume": 0.35,
+    "announcerVolume": 0.45
+  },
+  "errors": [],
+  "result": "PASS",
+  "limitations": "Browser decoding and event path only; human listening still required."
+}

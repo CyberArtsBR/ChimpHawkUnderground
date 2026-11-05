@@ -1,0 +1,200 @@
+{
+  "schema": 1,
+  "source": "User-supplied IRONMAP.rar / edited IronDistrictSource.glb",
+  "license": "LICENSES.md: original project assets; use, editing and redistribution with this project authorized.",
+  "archiveSha256": "6597fd0fe1e5d84e01aa11f53342ea6c2f6f153ab5ba1ed8f47cd4f0184c9e10",
+  "editedSourceSha256": "ba8860244612a184266d4afc8a116844b72f73e59106014a7c619061f184c636",
+  "verifiedOriginalRoster": [
+    {
+      "path": "IronDistrict_Collision.glb",
+      "sha256": "3f124bbb25cfb399a72e5ae6e0af24ba40cbf9b17b348e0ae9379a4cbdc88cfd"
+    },
+    {
+      "path": "IronDistrict_Metadata.json",
+      "sha256": "5287dab9b47a720f9ad9dde45a902d399dd8cc87c0c109397328b25802ffb3f9"
+    },
+    {
+      "path": "IronDistrict_README.md",
+      "sha256": "959906002cee1bf9e802c989408b5af675840c8a2eac1dc7c9d1a03c98329ab5"
+    },
+    {
+      "path": "IronDistrict_Source.blend",
+      "sha256": "7529c0333a27e94b70c88bc1595e294c5f602a82a18e17107b0581901eb7c911"
+    },
+    {
+      "path": "IronDistrict_Validation.json",
+      "sha256": "8b5f7adc90f3cb7f3aac8b185393747ec2c7a542f6a855c7b9665bbb5b473ce7"
+    },
+    {
+      "path": "IronDistrict_Visual.glb",
+      "sha256": "168e8417e0982a04847bfa934b5058988fc34346c2181d5e3c0449ad1e669ffd"
+    },
+    {
+      "path": "LICENSES.md",
+      "sha256": "b71ba73ae4277d49f8f55a9d859e824917aad6017f189133870cddc7e4da4acc"
+    },
+    {
+      "path": "Render_01_Establishing.png",
+      "sha256": "a80025dcd51d2d0d0f9cab0f66bcc1b9199fcd5da078c939381874e011a601cd"
+    },
+    {
+      "path": "Render_02_PlazaGameplay.png",
+      "sha256": "1b3bdfcdee03911de66297f1a4bab6b10a3410d3d910168f1e1114d8b30fb2b6"
+    },
+    {
+      "path": "Render_03_Flow.png",
+      "sha256": "21fcac7fedc9ff2d9cc67dfd23404eb79157bb9d15d301b329e4bace7fed8b0e"
+    },
+    {
+      "path": "Render_04_Transfer.png",
+      "sha256": "cf2b379e71b55261302a867698b0e52cbae857d78317c927660fac74a8c919da"
+    },
+    {
+      "path": "Render_05_Megaramp.png",
+      "sha256": "e111fe5d20ca6611c019f3bfc950cb407ac784d138d96d13bd9b520438e19706"
+    },
+    {
+      "path": "Render_06_Freight.png",
+      "sha256": "7e708742c316f4438b24c576e0e374d6f7e389d362717f8a4a4a447b8c3b4343"
+    },
+    {
+      "path": "Render_TOP_VIEW.png",
+      "sha256": "5bdd8a83a6ece63a67082ef79f15452adc3bc7cbbd78778653bd29df1d3eaa98"
+    },
+    {
+      "path": "Textures/Asphalt_BaseColor.png",
+      "sha256": "f516afe8103400206a5f473cb64122b8b5362329127dc26157e76082d3cfd3d5"
+    },
+    {
+      "path": "Textures/Asphalt_Normal.png",
+      "sha256": "32fb0a68a8597da94dbcd810c88d02f2cf44a57b6fd4420c506c8d502d93800d"
+    },
+    {
+      "path": "Textures/Asphalt_ORM.png",
+      "sha256": "85dc35be755784b0a68ca9cf0e2085125dcd27a693dc89c93e41475efa193b64"
+    },
+    {
+      "path": "Textures/Brick_BaseColor.png",
+      "sha256": "28ce414bf66b3517ca1b50f5efc69057450117a3ce3229013c3d12aed73fdf08"
+    },
+    {
+      "path": "Textures/Brick_Normal.png",
+      "sha256": "32fb0a68a8597da94dbcd810c88d02f2cf44a57b6fd4420c506c8d502d93800d"
+    },
+    {
+      "path": "Textures/Brick_ORM.png",
+      "sha256": "85dc35be755784b0a68ca9cf0e2085125dcd27a693dc89c93e41475efa193b64"
+    },
+    {
+      "path": "Textures/Concrete_BaseColor.png",
+      "sha256": "45c0cb542b2fab6ae5abaed7cf3e03821691412e50d7977922d7b4a1cd5cc22b"
+    },
+    {
+      "path": "Textures/Concrete_Normal.png",
+      "sha256": "32fb0a68a8597da94dbcd810c88d02f2cf44a57b6fd4420c506c8d502d93800d"
+    },
+    {
+      "path": "Textures/Concrete_ORM.png",
+      "sha256": "85dc35be755784b0a68ca9cf0e2085125dcd27a693dc89c93e41475efa193b64"
+    },
+    {
+      "path": "Textures/DarkSteel_BaseColor.png",
+      "sha256": "1052b0592d292e689f75f2e5b287035f63695d1395b40acedace37e9313956bc"
+    },
+    {
+      "path": "Textures/DarkSteel_Normal.png",
+      "sha256": "78b6c2138b1841166c7fa9a298cac48f88d8b3aeaaca5a5c0e78e0f6942d71a8"
+    },
+    {
+      "path": "Textures/DarkSteel_ORM.png",
+      "sha256": "40f09187b693e02b826a53babb67df716116447d4ee50e998e7323a54028ebb9"
+    },
+    {
+      "path": "Textures/Mural_1_BaseColor.png",
+      "sha256": "26265138285f48b4b37ac2f2e28cdbdc0f051b2670652669325642ec3516920f"
+    },
+    {
+      "path": "Textures/Mural_2_BaseColor.png",
+      "sha256": "a986bd016ae2bce1bc34b29d303dc23cea74364af3aee3f54770bcf7f3b7d3c8"
+    },
+    {
+      "path": "Textures/Mural_3_BaseColor.png",
+      "sha256": "254a9f66fba249f7004ca297b0787106882fe99c8da83342ca7b70ee41baae39"
+    },
+    {
+      "path": "Textures/Mural_4_BaseColor.png",
+      "sha256": "de362c2c5c7870b34021ad37d8e9899dca67443edeab8131c85040fe4ee9f793"
+    },
+    {
+      "path": "Textures/OchrePaint_BaseColor.png",
+      "sha256": "d97c782a0115f32dc16dadcd922b0b502134a284ff636d568156fc8e9d5e518f"
+    },
+    {
+      "path": "Textures/OchrePaint_Normal.png",
+      "sha256": "72e16a1d9d03860ebfd1398d2394edf3cfa2695bc8de36eaceadbaca2750f66c"
+    },
+    {
+      "path": "Textures/OchrePaint_ORM.png",
+      "sha256": "1e0b98e8b5c756e4da6f54e5062f1a3dd663e9059693923e774e3007ac1d4749"
+    },
+    {
+      "path": "Textures/RampPanel_BaseColor.png",
+      "sha256": "f5d313599a5bf05e35cc626d0afd6f9df498455d6c78d9d80888af7414ae4870"
+    },
+    {
+      "path": "Textures/RampPanel_Normal.png",
+      "sha256": "32fb0a68a8597da94dbcd810c88d02f2cf44a57b6fd4420c506c8d502d93800d"
+    },
+    {
+      "path": "Textures/RampPanel_ORM.png",
+      "sha256": "85dc35be755784b0a68ca9cf0e2085125dcd27a693dc89c93e41475efa193b64"
+    },
+    {
+      "path": "Textures/RustSteel_BaseColor.png",
+      "sha256": "6f954fc4a8b0ee72bbad33bfadaa1d6ea25134c7e0aad8038d12f72d5bfecb91"
+    },
+    {
+      "path": "Textures/RustSteel_Normal.png",
+      "sha256": "72e16a1d9d03860ebfd1398d2394edf3cfa2695bc8de36eaceadbaca2750f66c"
+    },
+    {
+      "path": "Textures/RustSteel_ORM.png",
+      "sha256": "1e0b98e8b5c756e4da6f54e5062f1a3dd663e9059693923e774e3007ac1d4749"
+    },
+    {
+      "path": "Textures/TealPaint_BaseColor.png",
+      "sha256": "ff74a814ad3edf20cdf5c71a9725b1ef0a88dfd2de30e2ffad655394f1f3d56d"
+    },
+    {
+      "path": "Textures/TealPaint_Normal.png",
+      "sha256": "72e16a1d9d03860ebfd1398d2394edf3cfa2695bc8de36eaceadbaca2750f66c"
+    },
+    {
+      "path": "Textures/TealPaint_ORM.png",
+      "sha256": "1e0b98e8b5c756e4da6f54e5062f1a3dd663e9059693923e774e3007ac1d4749"
+    }
+  ],
+  "outputs": [
+    {
+      "path": "IronDistrictSource.glb",
+      "sha256": "ba8860244612a184266d4afc8a116844b72f73e59106014a7c619061f184c636"
+    },
+    {
+      "path": "IronDistrict_Metadata.json",
+      "sha256": "5287dab9b47a720f9ad9dde45a902d399dd8cc87c0c109397328b25802ffb3f9"
+    },
+    {
+      "path": "IronDistrict_README.md",
+      "sha256": "959906002cee1bf9e802c989408b5af675840c8a2eac1dc7c9d1a03c98329ab5"
+    },
+    {
+      "path": "LICENSES.md",
+      "sha256": "b71ba73ae4277d49f8f55a9d859e824917aad6017f189133870cddc7e4da4acc"
+    },
+    {
+      "path": "original-transforms.json",
+      "sha256": "4594895f95ab361cd1f1a63f051f190b9276cbb4f9d2f13e8ac5bb61a9a6789c"
+    }
+  ],
+  "collisionPolicy": "Build from edited RIDE and corresponding VIS geometry; exclude stale COL objects."
+}

@@ -1,0 +1,33 @@
+{
+  "method": "lossless optional delivery; originals retained",
+  "assets": [
+    {
+      "asset": "spacepark/orbit.glb",
+      "optimized": "spacepark/orbit.glb.gz",
+      "originalBytes": 14473524,
+      "deliveredBytes": 8386149,
+      "sha256": "5038ff2ea2e65620faf098bbdf333b47163fe0837542e551e09561a2d45e674d",
+      "validation": "GLB bytes identical after gzip decompression"
+    },
+    {
+      "asset": "warehouse/granwarehouse.glb",
+      "optimized": "warehouse/granwarehouse.glb.gz",
+      "originalBytes": 13730256,
+      "deliveredBytes": 6033768,
+      "sha256": "fbc46ba3e414bb4380366c749fa0aa526e06328ae3bff702e956b43c37f0902c",
+      "validation": "GLB bytes identical after gzip decompression"
+    },
+    {
+      "asset": "spacepark/textures/galaxy-4k.png",
+      "optimized": "spacepark/textures/galaxy-4k.webp",
+      "originalBytes": 11943385,
+      "deliveredBytes": 7340296,
+      "dimensions": [
+        4096,
+        2048
+      ],
+      "sha256RGB": "0dcf5f02dcff9e0066c750cebfc11d4b95577ad91d811e16be48c97d9c82db23",
+      "validation": "Decoded RGB pixels identical; sky dimensions unchanged"
+    }
+  ]
+}

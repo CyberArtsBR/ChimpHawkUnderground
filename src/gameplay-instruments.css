@@ -1,0 +1,86 @@
+/* Gameplay-only instrument lanes. Trick artwork and menu styles stay intact. */
+.hud-total{position:fixed;left:max(24px,env(safe-area-inset-left));top:max(22px,env(safe-area-inset-top));z-index:9;pointer-events:none;display:flex;flex-direction:column;gap:9px;min-width:190px;max-width:calc(100vw - 190px);padding:13px 18px 14px;border:1px solid #9acbd13d;border-left:3px solid #87f1f0;border-radius:4px 15px 15px 4px;background:linear-gradient(130deg,#151d2ef0,#141a29d6);box-shadow:0 6px 24px #0003}
+body:not([data-screen='playing']) .hud-total{display:none}
+.hud-total>small{font:800 10px/1 'DM Sans',Arial,sans-serif;letter-spacing:.17em;color:#bdedf0}
+#score-value{--glyph-height:clamp(32px,3vw,42px);margin:0;color:#ffedac}
+.hud-glyph-value{display:inline-flex;align-items:center;justify-content:flex-start;flex-wrap:nowrap;vertical-align:middle;font:800 var(--glyph-height,48px)/1 'Barlow Condensed',Impact,sans-serif;font-variant-numeric:tabular-nums;letter-spacing:0!important;-webkit-text-stroke:0!important;text-shadow:none!important}
+.hud-glyph-value>.hud-glyph{display:inline-flex;align-items:center;justify-content:center;flex:0 0 calc(var(--glyph-height,48px)*.83333);width:calc(var(--glyph-height,48px)*.83333);height:var(--glyph-height,48px);min-width:0;background:center/contain no-repeat;font:inherit;letter-spacing:0!important;color:inherit;-webkit-text-fill-color:currentColor;text-shadow:1px 2px 1px #000b}
+.hud-glyph-value>.hud-glyph-colon{flex-basis:calc(var(--glyph-height,48px)*.38194);width:calc(var(--glyph-height,48px)*.38194)}
+.hud-glyph-value>.hud-glyph-infinity{flex-basis:calc(var(--glyph-height,48px)*1.18056);width:calc(var(--glyph-height,48px)*1.18056)}
+.hud-glyph-value>.hud-glyph-separator{flex-basis:calc(var(--glyph-height,48px)*.19);width:calc(var(--glyph-height,48px)*.19);font-size:.6em}
+.hud-glyph-value>.hud-glyph[data-glyph-ready='true']{color:transparent;-webkit-text-fill-color:transparent;text-shadow:none;-webkit-text-stroke:0}
+#run-timer{--glyph-height:clamp(38px,3.4vw,50px);position:fixed;top:max(22px,env(safe-area-inset-top));right:max(24px,env(safe-area-inset-right));z-index:9;display:flex;flex-direction:column;align-items:center;gap:9px;min-width:142px;padding:13px 17px 14px;border:1px solid #d6c17a50;border-top:3px solid #f7d873;border-radius:4px 4px 15px 15px;letter-spacing:0;color:#fff0b9;background:linear-gradient(130deg,#251f25f0,#171c2bdc);box-shadow:0 6px 24px #0003;pointer-events:none;backdrop-filter:none}
+#run-timer[hidden]{display:none}
+#run-timer::before{content:'TIME';font:800 10px/1 'DM Sans',Arial,sans-serif;letter-spacing:.17em;color:#f6e4b1;text-shadow:none;-webkit-text-stroke:0}
+#run-timer[data-practice='true']::before{content:'FREE SKATE'}
+#run-timer .hud-glyph-value{justify-content:center}
+#run-timer.time-low{border-color:#ffb770;background:#362322ed}
+#run-timer.time-critical{border-color:#ffa0ae;background:#79243de8}
+#run-timer::after{display:none}
+body[data-screen='playing'] .skate-hud{position:fixed;left:max(24px,env(safe-area-inset-left));bottom:max(24px,env(safe-area-inset-bottom))!important;z-index:9;display:flex;align-items:center;gap:17px;padding:13px 17px;border:1px solid #9acbd13d;border-left:3px solid #87f1f0;border-radius:4px 15px 15px 4px;background:linear-gradient(130deg,#151d2ef0,#141a29d6);box-shadow:0 6px 24px #0003;backdrop-filter:none;transition:none}
+.skate-hud .speed{display:flex;align-items:center;gap:10px}
+.skate-hud .speed>#speed-value{--glyph-height:54px;font-size:54px;line-height:1;letter-spacing:0;color:#ffeaa1;text-shadow:none;-webkit-text-stroke:0}
+.skate-hud .speed>small{display:flex;flex-direction:column;gap:4px;align-self:center;margin:0;font:800 12px/1 'DM Sans',Arial,sans-serif;letter-spacing:.09em;color:#d6f6f4}
+.skate-hud .speed>small::before{content:'SPEED';font-size:10px;letter-spacing:.16em;color:#a6c0ce}
+.skate-hud .ride-state{display:flex;flex-direction:column;align-items:flex-start;align-self:center;gap:5px;min-width:83px;padding-left:16px;border-left:1px solid #88b2c32e}
+.skate-hud .ride-state>#state-value{font:800 9px/1 'DM Sans',Arial,sans-serif;letter-spacing:.06em;color:#c4d7e2}
+.skate-hud .ride-state>#state-value.air{color:#ffe399}
+.skate-hud .charge{height:5px;width:78px;margin:0;border-radius:4px;background:#c6dfed25;overflow:hidden}
+.skate-hud .charge>i{background:linear-gradient(90deg,#77e9e8,#ffdb79)}
+.skate-hud .ride-state>.charge-label{font:700 7px/1 'DM Sans',Arial,sans-serif;letter-spacing:.09em;color:#96b3c6}
+body[data-screen='playing'] #now-playing,body[data-screen='playing'] #now-playing.song-compact{left:auto;top:auto;right:max(24px,env(safe-area-inset-right));bottom:max(24px,env(safe-area-inset-bottom));z-index:9;width:242px;max-width:calc(100vw - 330px);min-width:0;padding:8px 11px;gap:8px;border:1px solid #9acbd12e;border-radius:11px 4px 4px 11px;background:#141a29db;box-shadow:0 4px 16px #0002}
+body[data-screen='playing'] #now-playing .song-copy{gap:3px}
+body[data-screen='playing'] #now-playing .song-label{display:block;font-size:10px;letter-spacing:.14em;color:#a9bdcf}
+body[data-screen='playing'] #now-playing .song-title,body[data-screen='playing'] #now-playing.song-compact .song-title{font-size:12px;line-height:1.3;color:#dfeaf0}
+body[data-screen='playing'] #now-playing .song-emblem,body[data-screen='playing'] #now-playing.song-compact .song-emblem{flex-basis:25px;height:25px;background:#3144555c;border-color:#8ae8eb2e;border-radius:7px}
+body[data-screen='playing'] #now-playing .song-emblem svg{width:17px;height:17px}
+body[data-screen='playing'] #now-playing .song-note{font-size:10px}
+@media(max-width:720px){
+  .hud-total{left:max(12px,env(safe-area-inset-left));top:max(12px,env(safe-area-inset-top));padding:10px 12px 11px;gap:7px;min-width:125px;max-width:calc(100vw - 146px);border-radius:4px 11px 11px 4px}
+  .hud-total>small{font-size:10px;letter-spacing:.12em}
+  #score-value{--glyph-height:min(34px,calc((100vw - 160px)/var(--hud-glyph-units,1)))}
+  #score-value[data-digit-count='7'],#score-value[data-digit-count='8'],#score-value[data-digit-count='9']{--glyph-height:min(26px,calc((100vw - 160px)/var(--hud-glyph-units,1)))}
+  #run-timer{--glyph-height:35px;top:max(12px,env(safe-area-inset-top));right:max(12px,env(safe-area-inset-right));min-width:112px;padding:9px 11px 10px;gap:7px;border-radius:4px 4px 11px 11px}
+  #run-timer::before{font-size:10px}
+  body[data-screen='playing'] .skate-hud{left:max(12px,env(safe-area-inset-left));bottom:max(14px,env(safe-area-inset-bottom))!important;padding:10px 12px;gap:10px;border-radius:4px 11px 11px 4px}
+  .skate-hud .speed>#speed-value{--glyph-height:44px;font-size:44px}
+  .skate-hud .speed>#speed-value[data-digit-count='3']{--glyph-height:34px}
+  .skate-hud .speed{gap:7px}
+  .skate-hud .speed>small{font-size:10px;letter-spacing:.04em}
+  .skate-hud .speed>small::before{font-size:10px}
+  .skate-hud .ride-state{padding-left:10px;min-width:67px;gap:5px}
+  .skate-hud .ride-state>#state-value{font-size:10px;letter-spacing:.015em}
+  .skate-hud .charge{width:56px;height:4px}
+  .skate-hud .ride-state>.charge-label{font-size:6px}
+  body[data-screen='playing'] #now-playing,body[data-screen='playing'] #now-playing.song-compact{right:max(12px,env(safe-area-inset-right));bottom:max(14px,env(safe-area-inset-bottom));padding:7px;gap:5px;width:138px;max-width:calc(100vw - 245px)}
+  body[data-screen='playing'] #now-playing .song-title,body[data-screen='playing'] #now-playing.song-compact .song-title{font-size:11px}
+  body[data-screen='playing'] #now-playing .song-emblem,body[data-screen='playing'] #now-playing.song-compact .song-emblem{flex-basis:20px;height:20px}
+  body[data-screen='playing'] #now-playing .song-emblem svg{width:13px;height:13px}
+  body[data-screen='playing'] #now-playing .song-label{font-size:6px;letter-spacing:.07em}
+}
+@media(max-height:500px) and (min-width:721px){
+  .hud-total{top:12px;left:14px;padding:10px 14px;gap:6px;min-width:156px}
+  #score-value{--glyph-height:38px}
+  #run-timer{--glyph-height:35px;top:12px;right:14px;padding:8px 13px;gap:6px;min-width:122px}
+  body[data-screen='playing'] .skate-hud{left:14px;bottom:14px!important;padding:10px 13px}
+  .skate-hud .speed>#speed-value{--glyph-height:44px;font-size:44px}
+  body[data-screen='playing'] #now-playing,body[data-screen='playing'] #now-playing.song-compact{right:14px;bottom:14px}
+}
+@media(forced-colors:active){.hud-glyph-value>.hud-glyph[data-glyph-ready='true']{background-image:none!important;color:CanvasText;-webkit-text-fill-color:currentColor}.hud-total,#run-timer,body[data-screen='playing'] .skate-hud{border:1px solid CanvasText}}
+
+/* The generated numerals float over gameplay without solid instrument panels. */
+.hud-total,#run-timer,#run-timer.time-low,#run-timer.time-critical,
+body[data-screen='playing'] .skate-hud{
+  background:none;border:0;border-radius:0;box-shadow:none;backdrop-filter:none;padding:0;
+}
+.hud-total>small,#run-timer::before,.skate-hud .speed>small,
+.skate-hud .ride-state>#state-value,.skate-hud .ride-state>.charge-label{
+  text-shadow:0 1px 3px #000,0 0 6px #0009;
+}
+#run-timer.time-low::before{color:#ffd18a}
+#run-timer.time-critical::before{color:#ff9eae}
+
+/* Local score accent: preserve camera and lettering metrics. */
+#trick-feedback.exceptional-line{animation:landed-line-accent .65s ease-out}
+@keyframes landed-line-accent{from{filter:drop-shadow(0 0 10px #91f7dc)}to{filter:drop-shadow(0 0 0 transparent)}}
+@media(prefers-reduced-motion:reduce){#trick-feedback.exceptional-line{animation:none}}

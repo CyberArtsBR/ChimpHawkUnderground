@@ -1,0 +1,76 @@
+name: Phase 1 Core CI
+on:
+  push:
+    branches: [main, refactor/core-skate-controller-v1]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+concurrency:
+  group: core-ci-${{ github.workflow }}-${{ github.head_ref || github.ref_name }}
+  cancel-in-progress: true
+permissions:
+  contents: read
+jobs:
+  core-regressions:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install locked dependencies
+        run: npm ci
+      - name: Unit and deterministic regressions (no weakened assertions)
+        run: npm test
+      - name: Board / vert / pump verification even on unit failure
+        if: always()
+        run: npm run verify:physics
+  production-browser:
+    # Independent of core tests: failing physics still fails the PR, but cannot hide browser failures.
+    runs-on: ubuntu-latest
+    timeout-minutes: 22
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install locked dependencies
+        run: npm ci
+      - name: Build actual production bundle
+        run: npm run build
+      - name: Validate emitted release files
+        run: node tools/agent10-verify-dist.mjs
+      - name: Install isolated browser tooling
+        run: |
+          npm install --no-save --package-lock=false @playwright/test@1.56.1
+          npx playwright install --with-deps chromium
+      - name: Start production preview
+        run: |
+          nohup npm run preview -- --host 127.0.0.1 --port 4173 >/tmp/agent10-preview.log 2>&1 &
+          for i in $(seq 1 60); do
+            if curl -fsS http://127.0.0.1:4173/ >/dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat /tmp/agent10-preview.log
+          exit 1
+      - name: Browser production QA and telemetry
+        env:
+          STREETSKATE_URL: http://127.0.0.1:4173
+          AGENT10_ARTIFACT_DIR: artifacts/agent10
+        run: node tools/agent10-browser-qa.mjs
+      - name: Preserve preview logs
+        if: always()
+        run: |
+          mkdir -p artifacts/agent10
+          cp /tmp/agent10-preview.log artifacts/agent10/preview.log || true
+      - name: Upload screenshots and telemetry
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: agent10-production-browser-${{ github.run_id }}
+          path: artifacts/agent10/
+          if-no-files-found: warn
+          retention-days: 14

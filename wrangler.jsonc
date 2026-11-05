@@ -1,0 +1,10 @@
+// Cloudflare Workers static-assets deploy: `npm run build` then `npx wrangler deploy`.
+// Serves the Vite build in ./dist. Cache rules live in public/_headers.
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "streetskate",
+  "compatibility_date": "2026-10-01",
+  "assets": {
+    "directory": "./dist"
+  }
+}

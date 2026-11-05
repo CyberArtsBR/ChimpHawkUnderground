@@ -1,0 +1,24 @@
+#game-shell.menu-screen .graphics-glow-settings {
+  display:grid;gap:10px;padding:16px;border:1px solid #80c8c84d;
+  border-radius:6px;background:#0b1721;
+}
+#game-shell.menu-screen .graphics-glow-heading {display:flex;align-items:center;justify-content:space-between;gap:10px}
+#game-shell.menu-screen .graphics-glow-heading strong {font:800 16px/1.2 'DM Sans',sans-serif;color:#e7f4ee;letter-spacing:.04em}
+#game-shell.menu-screen .graphics-glow-heading span {font:700 10px/1.2 'DM Sans',sans-serif;color:#91cfc8;letter-spacing:.12em}
+#game-shell.menu-screen .menu-card .graphics-glow-settings p {margin:0;color:#b9cbd2;font-size:var(--ui-support);line-height:1.45}
+#game-shell.menu-screen .graphics-glow-row {display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:10px;padding-top:9px;border-top:1px solid #c0dbd61f}
+#game-shell.menu-screen .graphics-glow-copy {display:grid;gap:4px;min-width:0}
+#game-shell.menu-screen .graphics-glow-copy strong {font:700 14px/1.25 'DM Sans',sans-serif;color:#eff4ed}
+#game-shell.menu-screen .graphics-glow-copy span {font:500 12px/1.35 'DM Sans',sans-serif;color:#aebfca}
+#game-shell.menu-screen .graphics-glow-meter {display:block;overflow:hidden;width:100%;height:3px;margin-top:3px;background:#a6bbc530;border-radius:4px}
+#game-shell.menu-screen .graphics-glow-meter i {display:block;height:100%;background:linear-gradient(90deg,#6abcb2,#ead28e)}
+#game-shell.menu-screen .graphics-glow-control {display:grid;grid-template-columns:42px 58px 42px;align-items:center;gap:5px}
+#game-shell.menu-screen .graphics-glow-control output {text-align:center;font:700 14px/1 'DM Sans',sans-serif;color:#f4e1a4;font-variant-numeric:tabular-nums}
+#game-shell.menu-screen .menu-card .graphics-glow-control button {display:grid;place-items:center;width:42px;min-width:42px;min-height:44px;padding:0;font:700 22px/1 'DM Sans',sans-serif}
+#game-shell.menu-screen .menu-card .graphics-glow-control button:disabled {opacity:.4;cursor:not-allowed}
+#game-shell.menu-screen .menu-card .graphics-glow-reset {min-height:44px;margin-top:4px;padding:9px 12px;background:#1b3035;font-size:14px;text-align:center}
+#game-shell.menu-screen .graphics-glow-settings [data-glow-status] {min-height:1em;color:#a8d8cf;font-size:12px}
+@media(max-width:1100px) {
+  #game-shell.menu-screen .graphics-glow-row {grid-template-columns:1fr;gap:8px}
+  #game-shell.menu-screen .graphics-glow-control {justify-content:end}
+}

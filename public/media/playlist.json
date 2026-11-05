@@ -1,0 +1,32 @@
+{
+  "tracks": [
+    {
+      "title": "Chimpion Drip",
+      "src": "/media/chimpion-drip.mp3"
+    },
+    {
+      "title": "Chimpion Slide",
+      "src": "/media/chimpion-slide.mp3"
+    },
+    {
+      "title": "West Park",
+      "src": "/media/west-park.mp3"
+    },
+    {
+      "title": "Old School flip",
+      "src": "/media/old-school-flip.mp3"
+    },
+    {
+      "title": "Aerial Flute",
+      "src": "/media/aerial-flute.mp3"
+    },
+    {
+      "title": "Skate Vibe",
+      "src": "/media/skate-vibe.mp3"
+    },
+    {
+      "title": "808 Bas",
+      "src": "/media/808-bas.mp3"
+    }
+  ]
+}

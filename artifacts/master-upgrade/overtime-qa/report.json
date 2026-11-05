@@ -1,0 +1,35 @@
+{
+  "scenarios": [
+    {
+      "variant": "land",
+      "remaining": "Time remaining 1:29",
+      "before": {
+        "score": 0,
+        "combo": "Ollie · 50 × 1",
+        "grounded": false
+      },
+      "after": {
+        "score": 50,
+        "phase": "timeup"
+      },
+      "result": "PASS"
+    },
+    {
+      "variant": "bail",
+      "remaining": "Time remaining 1:29",
+      "before": {
+        "score": 0,
+        "combo": "Ollie · 50 × 1",
+        "grounded": false
+      },
+      "after": {
+        "score": 0,
+        "phase": "timeup"
+      },
+      "result": "PASS"
+    }
+  ],
+  "errors": [],
+  "note": "Synthetic browser-clock jump to zero; real physics and input afterwards. Not an additional real-time round.",
+  "result": "PASS"
+}
