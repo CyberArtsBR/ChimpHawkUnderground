@@ -3,7 +3,7 @@
 Browser street-skating game. TypeScript + Three.js 0.180 + Rapier physics, built with Vite.
 This is the v2 rebuild of [StreetSkate](https://github.com/CyberArtsBR/StreetSkate); the audit and roadmap behind it live in that repo (`docs/AAA-AUDIT-AND-ROADMAP-2026-11-05.md`).
 
-**Status: Phase 1 (foundation).** Two maps: the original **Skate Paradise** (v1's authored map with its photographic sunset sky, collision and 44 grind paths) and **The Lab** (code-built test park with every obstacle type). The five original riders and the original skateboard, the full Classic control scheme from v1, sunset lighting, bloom, effects and audio.
+**Status: Phase 1 (foundation).** Four maps: the original **Skate Paradise**, **Orbit** and **Grand Warehouse**, plus **The Lab** (code-built test park with every obstacle type). The five original riders and the original skateboard, the full Classic control scheme from v1, sunset lighting, bloom, effects and audio.
 
 ### Riders and uploading your own
 
