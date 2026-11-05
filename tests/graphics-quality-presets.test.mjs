@@ -54,7 +54,7 @@ test('unstable SSR is disabled across all tiers while preserving high preset blo
   assert.equal(GRAPHICS_PRESETS.high.ssr,false);
   assert.equal(GRAPHICS_PRESETS.ultra.ssr,false);
   assert.equal(GRAPHICS_PRESETS.cinematic.ssr,false);
-  assert.equal(GRAPHICS_PRESETS.performance.bloomStrength,1.09);
+  assert.equal(GRAPHICS_PRESETS.performance.bloomStrength,1.3);
   assert.ok(GRAPHICS_PRESETS.high.bloomStrength>0);
 });
 

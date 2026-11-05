@@ -13,7 +13,7 @@ test('agent07: all five presets retain 1024² shadows with bounded follow covera
     assert.ok(p.shadowNormalBias > 0 && p.shadowNormalBias < .05);
     assert.ok(p.bloomScale <= 1);
   }
-  assert.equal(GRAPHICS_PRESETS.performance.bloomStrength, 1.09);
+  assert.equal(GRAPHICS_PRESETS.performance.bloomStrength, 1.3);
   assert.equal(GRAPHICS_PRESETS.performance.sharpen, 0);
   assert.equal(GRAPHICS_PRESETS.high.ssr, false);
   // Screen-space reflections ghost/skew imported skatepark objects at high DPR.
@@ -135,6 +135,6 @@ test('Performance and 144 FPS with glow enabled render and composite their bloom
     pipeline.render();
     assert.equal(glow,1,name);assert.equal(composer,1);assert.equal(direct,0);
     assert.equal(pipeline.bloomComposite.enabled,true);
-    const status=pipeline.getStatus();assert.equal(status.bloomEnabled,true);assert.equal(status.glowTuning.bloom,1.09);
+    const status=pipeline.getStatus();assert.equal(status.bloomEnabled,true);assert.equal(status.glowTuning.bloom,1.3);
   }
 });

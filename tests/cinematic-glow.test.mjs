@@ -18,7 +18,7 @@ test('every tier renders the same glow response while retaining its own sampling
   for(const orbit of [false,true]) {
     const baseline=profile('high-refresh',orbit);
     for(const name of ['performance','balanced','high','ultra','cinematic'])assert.deepEqual(profile(name,orbit),baseline,name);
-    assert.equal(baseline.strength,1.09);assert.equal(baseline.mix,.1);assert.equal(baseline.radius,.11);assert.equal(baseline.enabled,true);
+    assert.equal(baseline.strength,1.3);assert.equal(baseline.mix,.13);assert.equal(baseline.radius,.16);assert.equal(baseline.enabled,true);
   }
 });
 
@@ -40,7 +40,7 @@ test('shared emission survives tier switches and repeated updates without compou
   pipeline.reflectionBase = new WeakMap();
   for(const name of ['cinematic','performance','high-refresh','balanced','ultra','high']) {
     pipeline.settings = resolveGraphicsSettings(name,{}, {legacyGlowDefaults:true});
-    pipeline.updateMaterials();assert.equal(material.emissiveIntensity,3,name);
-    pipeline.updateMaterials();assert.equal(material.emissiveIntensity,3,'repeated update remains based on authored emission');
+    pipeline.updateMaterials();assert.equal(material.emissiveIntensity,2*1.8,name);
+    pipeline.updateMaterials();assert.equal(material.emissiveIntensity,2*1.8,'repeated update remains based on authored emission');
   }
 });

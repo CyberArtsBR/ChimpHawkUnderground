@@ -18,7 +18,7 @@ function pipeline(name, enabled = true) {
 test('all preset and legacy baselines use the requested shared controls', () => {
   for(const name of GRAPHICS_PRESET_ORDER)for(const orbit of [false,true])for(const legacyGlowDefaults of [false,true]) {
     const settings=resolveGraphicsSettings(name,{}, {legacyGlowDefaults});
-    assert.deepEqual(resolveGlowTuning(settings,orbit),{emissive:1.5,bloom:1.09,glow:.1,radius:.11});
+    assert.deepEqual(resolveGlowTuning(settings,orbit),{emissive:1.8,bloom:1.3,glow:.13,radius:.16});
   }
   assert.equal(stepGlowValue(GLOW_CONTROLS[0],1.5,1),1.55);
 });
@@ -32,8 +32,8 @@ test('each control changes its real rendering value without compounding world em
   p.setGlowTuning({emissive:1.4,bloom:.7,glow:.6,radius:.3});
   assert.equal(material.emissiveIntensity,2.8,'repeated changes must not multiply the material again');
   p.setGlowTuning({});
-  assert.equal(material.emissiveIntensity,2*1.5);
-  assert.equal(p.bloom.strength,1.09);
+  assert.equal(material.emissiveIntensity,2*1.8);
+  assert.equal(p.bloom.strength,1.3);
 });
 
 test('saved values are per preset, clamped, and survive disabled storage', () => {
@@ -70,7 +70,7 @@ test('shared-default migration preserves explicit preset values and glow on/off 
     assert.deepEqual(readGlowPresets(store),overrides);
     for(const name of GRAPHICS_PRESET_ORDER){
       const settings=resolveGraphicsSettings(name,{}, {legacyGlowDefaults:true,glowTuning:readGlowPresets(store)[name],bloomEnabled:glowEnabled==='on'});
-      assert.deepEqual(resolveGlowTuning(settings,true),{emissive:1.5,bloom:1.09,glow:.1,radius:.11,...overrides[name]});
+      assert.deepEqual(resolveGlowTuning(settings,true),{emissive:1.8,bloom:1.3,glow:.13,radius:.16,...overrides[name]});
       assert.equal(settings.bloomStrength>0,glowEnabled==='on');
     }
     useCurrentGlowDefaults(store);assert.deepEqual(readGlowPresets(store),overrides);
@@ -78,5 +78,5 @@ test('shared-default migration preserves explicit preset values and glow on/off 
   const readOnly={getItem:()=> 'legacy',setItem(){throw Error('denied');}};
   assert.equal(initializeGlowDefaults(readOnly),false);
   assert.equal(initializeGlowDefaults(null),false);
-  assert.deepEqual(resolveGlowTuning(resolveGraphicsSettings('performance',{}, {legacyGlowDefaults:true})),{emissive:1.5,bloom:1.09,glow:.1,radius:.11});
+  assert.deepEqual(resolveGlowTuning(resolveGraphicsSettings('performance',{}, {legacyGlowDefaults:true})),{emissive:1.8,bloom:1.3,glow:.13,radius:.16});
 });

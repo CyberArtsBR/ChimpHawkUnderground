@@ -110,7 +110,8 @@ test('enhancement pass: hard landings throw a visible dust cloud and bails add o
 test('enhancement pass: metal grinds spray noticeably more sparks than before',()=>{
   const fx=new SkateEffects(),s=rider();s.grind={rail:{audioSurfaceTag:'metal'}};
   for(let i=0;i<30;i++)fx.update(1/60,s);
-  // The original emitted ~4 sparks in half a second at 12 m/s; the pass roughly doubles that (measured 8).
-  assert.ok(count(fx.glints)>=7);
+  // Count emissions (not live sparks, whose lifetimes are random): the original
+  // emitted ~4 in half a second at 12 m/s; the pass roughly doubles that.
+  assert.ok(fx.glints.cursor>=7,`emitted ${fx.glints.cursor}`);
   fx.dispose();
 });

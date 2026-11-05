@@ -2,7 +2,8 @@ import { GRAPHICS_PRESETS } from './GraphicsSettings.js';
 
 export const GLOW_TUNING_KEY = 'streetskate.glowTuning.v1';
 export const GLOW_DEFAULTS_KEY = 'streetskate.glowDefaults.v2';
-export const SHARED_GLOW_DEFAULTS = Object.freeze({emissive:1.5,bloom:1.09,glow:.1,radius:.11});
+// Enhancement pass (2026-11): stronger neon glow (was emissive 1.5, bloom 1.09, glow .1, radius .11).
+export const SHARED_GLOW_DEFAULTS = Object.freeze({emissive:1.8,bloom:1.3,glow:.13,radius:.16});
 // Compatibility export for callers from the earlier high-refresh-only rollout.
 export const HIGH_REFRESH_GLOW_DEFAULTS = SHARED_GLOW_DEFAULTS;
 export const GLOW_CONTROLS = Object.freeze([
