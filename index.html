@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#1a0f2a" />
+    <title>Chimp Hawk Underground</title>
+    <meta name="description" content="Chimp Hawk Underground: a browser street-skating game." />
+  </head>
+  <body>
+    <div id="app">
+      <div id="loading">Loading The Lab…</div>
+
+      <section id="title" aria-label="Title screen">
+        <div class="title-card">
+          <p class="kicker">PHASE 1 · THE LAB</p>
+          <p class="press">Click or press <b>Enter</b> to skate</p>
+          <p class="hint">Space ollie · ← flip · → grab · ↑ grind · W↓S manual · Q/E spin · Esc pause</p>
+        </div>
+      </section>
+
+      <section id="pause" aria-label="Pause menu">
+        <div class="pause-card">
+          <h2>PAUSED</h2>
+          <div class="pause-row">
+            <button id="resume" class="primary">▶ Resume</button>
+            <button id="next-track">Next track</button>
+            <button id="quality"></button>
+          </div>
+          <div class="pause-row sliders">
+            <label>Effects volume <input id="sfx-volume" type="range" min="0" max="1" step="0.05" /></label>
+            <label>Music volume <input id="music-volume" type="range" min="0" max="1" step="0.05" /></label>
+          </div>
+          <div id="controls-table"></div>
+        </div>
+      </section>
+    </div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

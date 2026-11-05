@@ -1,0 +1,18 @@
+# Cloudflare Pages cache rules (ignored by other hosts).
+# Vite's hashed bundles never change, so cache them forever.
+/assets/index-*
+  Cache-Control: public, max-age=31536000, immutable
+
+# Models, textures, audio and media keep their filenames between releases,
+# so browsers reuse them for a day and refresh quietly in the background.
+/assets/*
+  Cache-Control: public, max-age=86400, stale-while-revalidate=604800
+/media/*
+  Cache-Control: public, max-age=86400, stale-while-revalidate=604800
+/audio/*
+  Cache-Control: public, max-age=86400, stale-while-revalidate=604800
+
+# Pre-gzipped models are decoded by the game itself; serve them as plain bytes.
+# (Cache-Control comes from the /assets/* rule above; repeating it here duplicates the header.)
+/*.gz
+  Content-Type: application/octet-stream
