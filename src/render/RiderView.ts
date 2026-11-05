@@ -184,7 +184,8 @@ export class RiderView {
         landing: this.landing,
         flip: flip ? { name: flip.trick.name, progress: flipProgress } : null,
         grab: skater.air?.grab ? { name: skater.air.grab.trick.name } : null,
-        grind: skater.grind ? { name: skater.grind.trick.name, balance: skater.grind.lean } : null,
+        grind: skater.grind ? { name: skater.grind.trick.name, balance: skater.grind.lean }
+          : skater.lip ? { name: skater.lip.trick.name, balance: skater.lip.lean } : null,
         manual: skater.manual ? { kind: skater.manual.kind, balance: skater.manual.lean } : null,
         wallride: !!skater.air?.wall,
         bail: skater.state === 'bail' ? Math.min(1, this.bailSpin / 1.5) : 0,

@@ -91,6 +91,20 @@ export const MANUALS: Readonly<Record<'manual' | 'noseManual', ManualTrick>> = {
 
 export const OLLIE: Trick = { name: 'Ollie', points: 50 };
 export const WALLRIDE: Trick = { name: 'Wallride', points: 200 };
+export const REVERT: Trick = { name: 'Revert', points: 100 };
+
+/** Lip tricks: stalls on the coping at the top of a vert air. "to Fakie" ones drop in backwards. */
+export const LIP_TRICKS: Readonly<Record<Dir, Trick & { fakie: boolean }>> = {
+  none: { name: 'Axle Stall', points: 200, fakie: false },
+  up: { name: 'Rock to Fakie', points: 250, fakie: true },
+  down: { name: 'Blunt to Fakie', points: 300, fakie: true },
+  left: { name: 'Disaster', points: 275, fakie: false },
+  right: { name: 'Nose Pick', points: 250, fakie: false },
+  upLeft: { name: 'Nose Blunt Slide', points: 350, fakie: false },
+  upRight: { name: 'Invert', points: 400, fakie: false },
+  downLeft: { name: 'Smith Stall', points: 300, fakie: false },
+  downRight: { name: 'Feeble Stall', points: 300, fakie: false },
+};
 
 /** Spin names by half-turns completed (180, 360, 540 …). */
 export function spinName(halfTurns: number): string | null {

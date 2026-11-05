@@ -20,6 +20,7 @@ import { MAPS, loadMap, readMapId, saveMapId, type MapId } from './maps';
 import { RIDERS, loadCatalogRider, loadUploadedRider, readRiderId, saveRiderId } from './riders';
 import { loadGlb } from './render/loadGltf';
 import type { RigRider } from './render/RigRider';
+import { RunStats, ScoreRecords, Session, type SessionEvent } from './game/Session';
 
 type Quality = 'high' | 'low';
 
@@ -73,6 +74,7 @@ async function boot(): Promise<void> {
   const environment = new Environment(scene, renderer, { ...map.environment, quality });
   scene.add(map.visual);
   const skater = new Skater(physics, map.rails, map.spawn, map.regions);
+  const prev = new THREE.Vector3();
   const rider = new RiderView();
   scene.add(rider.root);
   // Real models stream in after the map; the placeholder covers the gap.
@@ -154,7 +156,64 @@ async function boot(): Promise<void> {
     chosenMap = button.dataset.map as MapId; renderSelect();
     selectStatus.textContent = chosenMap === mapId ? '' : 'The map loads when you press Skate.';
   });
+  // Mode: timed run or free skate (remembered).
+  const modeList = document.getElementById('mode-list')!;
+  let mode: 'run' | 'free' = (() => { try { return localStorage.getItem('chimphawk.mode') === 'free' ? 'free' : 'run'; } catch { return 'run'; } })();
+  const renderModes = () => modeList.querySelectorAll<HTMLButtonElement>('[data-mode]').forEach(b => b.classList.toggle('chosen', b.dataset.mode === mode));
+  modeList.addEventListener('click', e => {
+    const button = (e.target as HTMLElement).closest<HTMLButtonElement>('[data-mode]');
+    if (!button) return;
+    mode = button.dataset.mode as 'run' | 'free';
+    try { localStorage.setItem('chimphawk.mode', mode); } catch { /* ignore */ }
+    renderModes();
+  });
+  renderModes();
   renderSelect();
+
+  // ── Session Run ────────────────────────────────────────────────────────
+  const session = new Session();
+  const records = new ScoreRecords();
+  const stats = new RunStats();
+  (window as unknown as { __chimp: Record<string, unknown> }).__chimp.session = session;
+  const results = document.getElementById('results')!;
+  const beginRun = (practice: boolean) => {
+    results.classList.remove('show');
+    skater.resetRun();
+    prev.copy(skater.position);
+    stats.reset();
+    session.begin({ practice });
+    hud.setTimer(session.phase, session.remaining, session.overtimeRemaining, practice);
+    if (!practice) { hud.announce('READY', MAPS.find(m => m.id === mapId)!.name, 'bank'); audio.cue('ready'); }
+    else hud.announce('FREE SKATE', 'No clock · M / N markers', 'bank');
+    input.clear();
+  };
+  const showResults = () => {
+    const isBest = records.record(mapId, skater.score, stats.bestCombo.points);
+    const best = records.best(mapId);
+    const reasons: Record<string, string> = { clock: 'TIME!', bail: 'BAILED AT THE BUZZER', landed: 'LANDED IT!', 'grace-expired': 'TIME!', 'attempt-ended': 'TIME!' };
+    document.getElementById('results-title')!.textContent = reasons[session.finishReason ?? 'clock'];
+    document.getElementById('results-score')!.textContent = skater.score.toLocaleString();
+    const bestEl = document.getElementById('results-best')!;
+    bestEl.textContent = isBest && skater.score > 0 ? 'NEW BEST ON THIS SPOT!' : best ? `Best here: ${best.score.toLocaleString()}` : '';
+    bestEl.classList.toggle('new', isBest && skater.score > 0);
+    document.getElementById('results-stats')!.innerHTML =
+      `<div class="combo"><span>Best combo</span><b>${stats.bestCombo.points.toLocaleString()}</b><br><small>${stats.bestCombo.label || '—'}</small></div>`
+      + `<div><span>Combos landed</span><b>${stats.banked}</b></div><div><span>Tricks</span><b>${stats.tricks}</b></div>`
+      + `<div><span>Longest grind</span><b>${stats.longestGrind.toFixed(1)} s</b></div><div><span>Biggest air</span><b>${stats.biggestAir.toFixed(1)} s</b></div>`
+      + `<div><span>Bails</span><b>${stats.bails}</b></div>`;
+    results.classList.add('show');
+    audio.cue('over');
+  };
+  const onSessionEvent = (e: SessionEvent) => {
+    if (e === 'go') { hud.announce('GO!', '', 'bank'); audio.cue('go'); }
+    if (e === 'ten') { hud.showToast('10 seconds left'); audio.cue('ten'); }
+    if (e === 'five') audio.cue('five');
+    if (e === 'overtime') hud.announce('LAND IT!', 'Finish your combo', 'bank');
+    if (e === 'finish') showResults();
+  };
+  document.getElementById('run-again')!.onclick = () => beginRun(false);
+  document.getElementById('results-free')!.onclick = () => { mode = 'free'; renderModes(); beginRun(true); };
+  document.getElementById('results-change')!.onclick = () => { results.classList.remove('show'); openSelect(); };
 
   let started = false;
   let paused = false;
@@ -170,6 +229,7 @@ async function boot(): Promise<void> {
     if (chosenMap !== mapId) { saveMapId(chosenMap); location.search = `?map=${chosenMap}`; return; }
     select.classList.remove('show');
     if (!started) start(); else setPaused(false);
+    beginRun(mode === 'free');
   };
   const start = () => {
     if (started) return;
@@ -199,10 +259,11 @@ async function boot(): Promise<void> {
 
   // ── Loop ───────────────────────────────────────────────────────────────
   const clock = new THREE.Clock();
-  const prev = skater.position.clone();
+  prev.copy(skater.position);
   const renderPos = skater.position.clone();
   let accumulator = 0;
   let pending: InputFrame | null = null;
+  let lastAirTime = 0, lastGrindTime = 0;
   loading.remove();
 
   renderer.setAnimationLoop(() => {
@@ -214,8 +275,19 @@ async function boot(): Promise<void> {
       if (paused) frame = null;
     }
 
+    if (frame && session.phase === 'finished') frame = null;
     if (frame) {
       if (frame.cameraModePressed) hud.showToast(`Camera: ${follow.cycle()}`);
+      const attempt = {
+        comboActive: skater.combo.active,
+        bailed: skater.state === 'bail',
+        eligibleAttempt: skater.state !== 'bail' && (skater.combo.active || skater.state === 'air' || skater.state === 'grind' || skater.state === 'manual'),
+      };
+      for (const e of session.update(dt, attempt)) onSessionEvent(e);
+      hud.setTimer(session.phase, session.remaining, session.overtimeRemaining, session.practice);
+    }
+    if (frame && !session.allowSimulation) frame = null;
+    if (frame) {
       const merged = mergeEdges(pending, frame);
       accumulator += dt;
       let steps = 0;
@@ -226,12 +298,22 @@ async function boot(): Promise<void> {
         steps++;
       }
       pending = steps === 0 ? merged : null;
+      if (skater.air) lastAirTime = skater.air.time;
+      if (skater.grind) lastGrindTime = skater.grind.time;
       if (steps === 8) accumulator = 0;
       for (const event of skater.events.splice(0)) {
         hud.handle(event);
         audio.handle(event);
         effects.handle(event, skater);
-        if (event.type === 'land') rider.land(event.impact);
+        if (event.type === 'land') { rider.land(event.impact); follow.kick(event.impact); stats.biggestAir = Math.max(stats.biggestAir, lastAirTime); }
+        if (event.type === 'trick') stats.tricks++;
+        if (event.type === 'bail') stats.bails++;
+        if (event.type === 'grindEnd') stats.longestGrind = Math.max(stats.longestGrind, lastGrindTime);
+        if (event.type === 'bank') {
+          stats.banked++;
+          if (event.points > stats.bestCombo.points) stats.bestCombo = { points: event.points, label: event.label };
+          session.acceptSettlement();
+        }
       }
       if (frame.practiceMark) hud.showToast('Marker saved');
     }

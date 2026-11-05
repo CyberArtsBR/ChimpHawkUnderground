@@ -15,7 +15,7 @@
         <div class="title-card">
           <p class="kicker">PHASE 1 · THE LAB</p>
           <p class="press">Click or press <b>Enter</b> to skate</p>
-          <p class="hint">Space ollie · ← flip · → grab · ↑ grind · W↓S manual · Q/E spin · Esc pause</p>
+          <p class="hint">Space ollie · ← flip · → grab · ↑ grind · W then S manual · Q/E spin · Esc pause</p>
         </div>
       </section>
 
@@ -25,11 +25,30 @@
           <h3>Rider</h3>
           <div id="rider-list" class="pick-grid"></div>
           <input id="rider-upload" type="file" accept=".glb,model/gltf-binary" hidden />
+          <h3>Mode</h3>
+          <div id="mode-list" class="pick-grid maps">
+            <button class="pick" data-mode="run" style="--accent:var(--gold)"><b>90-second run</b><small>Score as much as you can. Best per spot is saved.</small></button>
+            <button class="pick" data-mode="free" style="--accent:var(--cyan)"><b>Free skate</b><small>No clock. Practise lines, markers with M / N.</small></button>
+          </div>
           <h3>Spot</h3>
           <div id="map-list" class="pick-grid maps"></div>
           <div class="select-footer">
             <p id="select-status" role="status"></p>
             <button id="skate" class="primary">LET'S SKATE →</button>
+          </div>
+        </div>
+      </section>
+
+      <section id="results" aria-label="Run results">
+        <div class="results-card">
+          <h2 id="results-title">TIME!</h2>
+          <div class="results-score" id="results-score">0</div>
+          <div class="results-best" id="results-best"></div>
+          <div class="results-stats" id="results-stats"></div>
+          <div class="results-actions">
+            <button id="run-again" class="primary">Run again</button>
+            <button id="results-free">Free skate</button>
+            <button id="results-change">Rider / map</button>
           </div>
         </div>
       </section>

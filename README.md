@@ -9,6 +9,12 @@ This is the v2 rebuild of [StreetSkate](https://github.com/CyberArtsBR/StreetSka
 
 Pick a rider on the **Build your line** screen, or choose **Upload rider** and load your own rigged character (`.glb`, textures embedded, up to 40 MB). Any humanoid skeleton works: bones are matched by name (Mixamo `mixamorig:*`, Unreal Mannequin `pelvis/thigh_l/calf_l…`, common Rigify/Blender names), then posed on the board with IK, so no retargeting is needed. The legs must be identifiable (hips, both thighs, calves and feet); arms, spine and head are optional.
 
+### Modes and moves
+
+- **90-second run** (v1 rules): READY → GO, 10 s / 5 s warnings, up to 6 s of overtime to land a combo that is still going at zero, then a results screen with your best score per spot. **Free skate** has no clock.
+- **Revert**: tap a spin key (Q/E, LB/RB) right after landing a vert air to keep the combo alive and chain into a manual.
+- **Lip tricks**: near the top of a vert air, press grind at the coping while barely moving sideways to stall (Axle Stall, Rock to Fakie, Blunt to Fakie, Disaster, Nose Pick…; direction picks the trick). Balance with left/right, release grind or ollie to drop back in.
+
 ## Run
 
 ```sh

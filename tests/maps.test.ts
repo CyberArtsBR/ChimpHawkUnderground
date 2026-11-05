@@ -37,3 +37,19 @@ describe('legacy map helpers', () => {
     expect(out).toHaveLength(2);
   });
 });
+
+describe('warehouse copings', () => {
+  it('turns a straight coping pipe into a grind segment along its top', async () => {
+    const { copingPaths } = await import('../src/park/LegacyMaps');
+    const pipe = new THREE.CylinderGeometry(0.04, 0.04, 6, 8).rotateZ(Math.PI / 2).translate(2, 1.5, 0);
+    const [path] = copingPaths(pipe);
+    expect(path).toHaveLength(2);
+    expect(Math.abs(path[1].x - path[0].x)).toBeCloseTo(6, 3);
+    expect(path[0].y).toBeCloseTo(1.54, 3);
+  });
+
+  it('ignores parts that are not long thin pipes', async () => {
+    const { copingPaths } = await import('../src/park/LegacyMaps');
+    expect(copingPaths(new THREE.BoxGeometry(1, 1, 1))).toEqual([]);
+  });
+});

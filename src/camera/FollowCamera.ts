@@ -75,12 +75,19 @@ export class FollowCamera {
   private occlusion: number | null = null;
   private wasVert = false;
   private initialized = false;
+  private shake = { value: 0, velocity: 0 };
 
   constructor(readonly camera: THREE.PerspectiveCamera, private world: PhysicsWorld | null = null) {
     try {
       const saved = localStorage.getItem('chimphawk.cameraMode');
       if (saved && (CAMERA_MODES as readonly string[]).includes(saved)) this.mode = saved as CameraMode;
     } catch { /* ignore */ }
+  }
+
+  /** Heavy landings dip the camera briefly (impact in m/s into the surface). */
+  kick(impact: number): void {
+    if (impact < 6) return;
+    this.shake.velocity -= Math.min(2.2, (impact - 6) * 0.35);
   }
 
   cycle(): string {
@@ -95,7 +102,7 @@ export class FollowCamera {
     const first = !this.initialized;
     const grounded = skater.state === 'ground' || skater.state === 'manual';
     const grinding = skater.state === 'grind';
-    const vert = skater.state === 'air' && !!skater.air?.vertNormal && !skater.air.released;
+    const vert = skater.state === 'lip' || (skater.state === 'air' && !!skater.air?.vertNormal && !skater.air.released);
     const wallride = !!skater.air?.wall;
     const horizontalSpeed = skater.state === 'air' ? Math.hypot(skater.velocity.x, skater.velocity.z)
       : grinding ? skater.grind!.speed : skater.speed;
@@ -201,6 +208,10 @@ export class FollowCamera {
     if (this.occlusion === null || clear < this.occlusion) this.occlusion = clear;
     else this.occlusion = THREE.MathUtils.lerp(this.occlusion, clear, 1 - Math.exp(-CAM.occlusionReleaseRate * dt));
     const eye = riderAnchor.addScaledVector(toCamera.normalize(), Math.min(wanted, this.occlusion));
+    // Landing kick: a damped spring on the eye height.
+    this.shake.velocity += (-this.shake.value * 140 - this.shake.velocity * 14) * dt;
+    this.shake.value += this.shake.velocity * dt;
+    eye.y += this.shake.value;
     this.camera.position.copy(eye);
     this.camera.lookAt(this.aim);
 

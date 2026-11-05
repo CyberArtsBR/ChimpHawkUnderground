@@ -23,6 +23,9 @@ export class Hud {
   private balanceNeedle: HTMLElement;
   private stateLabel: HTMLElement;
   private toast: HTMLElement;
+  private timer: HTMLElement;
+  private speedLines: HTMLElement;
+  private speedSpin = 0;
   private calloutTimer = 0;
   private toastTimer = 0;
   private lastComboText = '';
@@ -46,6 +49,8 @@ export class Hud {
     el('div', 'hud-balance-track', this.balance);
     this.balanceNeedle = el('div', 'hud-balance-needle', this.balance);
     this.toast = el('div', 'hud-toast', this.root);
+    this.speedLines = el('div', 'hud-speedlines', this.root);
+    this.timer = el('div', 'hud-timer', this.root);
     const help = el('div', 'hud-help', this.root);
     help.innerHTML = '<b>Esc</b> pause · <b>C</b> camera · <b>R</b> reset · <b>M</b>/<b>N</b> marker';
   }
@@ -54,6 +59,18 @@ export class Hud {
     if (event.type === 'bank') this.flash(`+${event.points.toLocaleString()}`, 'bank', event.multiplier > 1 ? `${event.label}  ×${event.multiplier}` : event.label);
     if (event.type === 'bail') this.flash('BAIL!', 'bail', event.lost > 0 ? `lost ${event.lost.toLocaleString()} · ${event.reason}` : event.reason);
   }
+
+  /** Session clock: m:ss, warning colour in the last 10 s, overtime countdown. */
+  setTimer(phase: string, remaining: number, overtime: number, practice: boolean): void {
+    if (practice) { this.timer.textContent = 'FREE SKATE'; this.timer.className = 'hud-timer free'; return; }
+    if (phase === 'overtime') { this.timer.textContent = `LAND IT! ${overtime.toFixed(1)}`; this.timer.className = 'hud-timer overtime'; return; }
+    const t = Math.ceil(Math.max(0, remaining));
+    this.timer.textContent = `${Math.floor(t / 60)}:${String(t % 60).padStart(2, '0')}`;
+    this.timer.className = `hud-timer${t <= 10 ? ' warn' : ''}`;
+  }
+
+  /** Big centred message (READY / GO! / TIME!). */
+  announce(big: string, small = '', kind = 'bank'): void { this.flash(big, kind, small); }
 
   showToast(text: string): void {
     this.toast.textContent = text;
@@ -73,13 +90,19 @@ export class Hud {
     if (skater.score !== this.shownScore) { this.shownScore = skater.score; this.score.textContent = skater.score.toLocaleString(); }
     const kmh = Math.round((skater.state === 'air' ? skater.velocity.length() : skater.grind ? skater.grind.speed : skater.speed) * 3.6);
     this.speed.textContent = String(kmh);
-    const label = skater.state === 'air' && skater.air?.wall ? 'WALLRIDE' : skater.state === 'air' && skater.air?.vertNormal ? 'VERT AIR' : skater.state.toUpperCase();
+    const label = skater.state === 'lip' ? 'LIP TRICK' : skater.state === 'air' && skater.air?.wall ? 'WALLRIDE' : skater.state === 'air' && skater.air?.vertNormal ? 'VERT AIR' : skater.state.toUpperCase();
     this.stateLabel.textContent = (skater.switchStance ? 'SWITCH · ' : '') + (skater.fakie ? 'FAKIE · ' : '') + label;
 
     const combo = skater.combo;
     const text = combo.active ? combo.label : '';
     if (text !== this.lastComboText) { this.lastComboText = text; this.comboName.textContent = text; }
     this.comboPoints.textContent = combo.active ? `${combo.base.toLocaleString()} × ${combo.multiplier}` : '';
+
+    // Speed lines fade in above ~60 km/h and shimmer by rotating the pattern.
+    const speed = skater.state === 'air' ? skater.velocity.length() : skater.grind ? skater.grind.speed : skater.speed;
+    const intensity = Math.min(1, Math.max(0, (speed - 16.5) / 7));
+    this.speedLines.style.opacity = (intensity * 0.55).toFixed(3);
+    if (intensity > 0) { this.speedSpin = (this.speedSpin + 37) % 360; this.speedLines.style.transform = `rotate(${this.speedSpin}deg) scale(1.6)`; }
 
     const balance = skater.balance;
     this.balance.classList.toggle('show', balance !== null);

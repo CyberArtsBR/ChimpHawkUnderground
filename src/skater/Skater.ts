@@ -9,11 +9,11 @@ import type { Region } from '../park/GlbPark';
 import type { InputFrame, Direction } from '../input/Input';
 import { Combo } from '../tricks/Combo';
 import {
-  BOARDSLIDE, DOUBLE_FLIP_TRICKS, DOUBLE_GRAB_TRICKS, FLIP_TRICKS, GRAB_TRICKS, GRIND_TRICKS, MANUALS, OLLIE, WALLRIDE,
+  BOARDSLIDE, LIP_TRICKS, REVERT, DOUBLE_FLIP_TRICKS, DOUBLE_GRAB_TRICKS, FLIP_TRICKS, GRAB_TRICKS, GRIND_TRICKS, MANUALS, OLLIE, WALLRIDE,
   directionKey, spinName, type FlipTrick, type Trick,
 } from '../tricks/catalog';
 
-export type SkaterState = 'ground' | 'air' | 'grind' | 'manual' | 'bail';
+export type SkaterState = 'ground' | 'air' | 'grind' | 'manual' | 'lip' | 'bail';
 
 export type SkaterEvent =
   | { type: 'trick'; name: string; points: number }
@@ -22,7 +22,8 @@ export type SkaterEvent =
   | { type: 'pop' }
   | { type: 'land'; impact: number }
   | { type: 'grind'; rail: string }
-  | { type: 'grindEnd' };
+  | { type: 'grindEnd' }
+  | { type: 'lip'; name: string };
 
 const UP = new THREE.Vector3(0, 1, 0);
 const tmp = new THREE.Vector3();
@@ -56,6 +57,16 @@ interface GrindState {
   leanVel: number;
   time: number;
   trick: Trick;
+}
+
+interface LipState {
+  rail: Rail;
+  point: THREE.Vector3;
+  normal: THREE.Vector3;
+  trick: Trick & { fakie: boolean };
+  time: number;
+  lean: number;
+  leanVel: number;
 }
 
 interface ManualState { kind: 'manual' | 'noseManual'; lean: number; leanVel: number; time: number }
@@ -93,6 +104,7 @@ export class Skater {
   air: AirState | null = null;
   grind: GrindState | null = null;
   manual: ManualState | null = null;
+  lip: LipState | null = null;
   bailTimer = 0;
   time = 0;
   score = 0;
@@ -105,6 +117,9 @@ export class Skater {
   private pendingBankAt: number | null = null;
   private ollieOnlyEntry = false;
   private taps: { dir: Direction; time: number }[] = [];
+  private prevSpin = 0;
+  private transitionLandingAt: number | null = null;
+  private reverted = false;
   private lastSafe = new THREE.Vector3();
   private lastSafeForward = new THREE.Vector3(0, 0, -1);
   private marker: { position: THREE.Vector3; forward: THREE.Vector3; switchStance: boolean } | null = null;
@@ -121,6 +136,12 @@ export class Skater {
   respawn(position: THREE.Vector3, heading: number): void {
     const forward = new THREE.Vector3(-Math.sin(heading), 0, -Math.cos(heading));
     this.place(position, forward);
+  }
+
+  /** Fresh run: back to the spawn with a zero score. */
+  resetRun(): void {
+    this.score = 0;
+    this.respawn(this.spawn.position, this.spawn.heading);
   }
 
   setMarker(): boolean {
@@ -156,8 +177,10 @@ export class Skater {
       case 'manual': this.stepManual(input, dt); break;
       case 'air': this.stepAir(input, dt); break;
       case 'grind': this.stepGrind(input, dt); break;
+      case 'lip': this.stepLip(input, dt); break;
       case 'bail': this.stepBail(dt); break;
     }
+    this.prevSpin = input.spin;
   }
 
   /** Board nose direction for presentation. */
@@ -173,6 +196,7 @@ export class Skater {
 
   get balance(): number | null {
     if (this.grind) return this.grind.lean;
+    if (this.lip) return this.lip.lean;
     if (this.manual) return this.manual.lean;
     return null;
   }
@@ -186,6 +210,14 @@ export class Skater {
     if (this.normal.y > 0.97 && this.speed < C.autoPushTarget + 2) {
       this.lastSafe.copy(this.position);
       this.lastSafeForward.copy(this.forward);
+    }
+    // Revert: tap spin just after landing on a transition keeps the line alive (THUG2).
+    const spinTap = input.spin !== 0 && this.prevSpin === 0;
+    if (spinTap && !this.reverted && this.transitionLandingAt !== null && this.time - this.transitionLandingAt <= C.revertWindow && this.combo.active) {
+      this.reverted = true;
+      this.fakie = !this.fakie;
+      this.addTrick(REVERT);
+      this.pendingBankAt = this.time + C.revertExtraGrace;
     }
     if (this.pendingBankAt !== null && this.time - this.pendingBankAt > C.landingManualGrace) this.bankCombo();
 
@@ -356,6 +388,7 @@ export class Skater {
     }
 
     this.airTricks(input, dt);
+    if (input.grindPressed && air.vertNormal && !air.released && this.grindCooldown <= 0 && this.velocity.y < 3 && this.tryCaptureLip(input)) return;
     if (input.grindHeld && this.grindCooldown <= 0 && this.velocity.y < 2.5 && this.tryCaptureGrind(input)) return;
 
     const gravity = air.wall ? C.gravity * 0.35 : C.gravity;
@@ -492,8 +525,11 @@ export class Skater {
       else this.addTrick({ name: spin, points: 75 * halfTurns });
     }
 
+    const fromVert = !!air.vertNormal && !air.released;
     this.air = null;
     this.state = 'ground';
+    this.reverted = false;
+    this.transitionLandingAt = fromVert || n.y < 0.9 ? this.time : null;
     this.events.push({ type: 'land', impact });
     if (this.combo.active) this.pendingBankAt = this.time;
     const manualKind = this.manualFromTaps();
@@ -607,6 +643,68 @@ export class Skater {
     this.enterAir(velocity, UP);
   }
 
+  // ── Lip tricks ──
+
+  private tryCaptureLip(input: InputFrame): boolean {
+    const air = this.air!;
+    const nh = air.vertNormal!;
+    const along = new THREE.Vector3();
+    let best: { rail: Rail; point: THREE.Vector3; dist: number } | null = null;
+    for (const rail of this.rails) {
+      if (rail.type !== 'coping') continue;
+      for (let i = 0; i < rail.points.length - 1; i++) {
+        const a = rail.points[i], b = rail.points[i + 1];
+        const ab = b.clone().sub(a);
+        const t = clamp(this.position.clone().sub(a).dot(ab) / ab.lengthSq(), 0, 1);
+        const point = a.clone().addScaledVector(ab, t);
+        const dist = point.distanceTo(this.position);
+        if (dist < C.lipCaptureRadius && (!best || dist < best.dist)) { best = { rail, point, dist }; along.copy(ab).normalize(); }
+      }
+    }
+    if (!best) return false;
+    // Moving along the coping is a coping grind, not a stall.
+    if (Math.abs(this.velocity.dot(along)) > C.lipMaxAlongSpeed) return false;
+    const trick = LIP_TRICKS[directionKey(input.steer, input.drive)];
+    this.lip = { rail: best.rail, point: best.point.clone(), normal: nh.clone(), trick, time: 0, lean: (this.random() - 0.5) * 0.12, leanVel: 0 };
+    this.air = null;
+    this.state = 'lip';
+    this.velocity.set(0, 0, 0);
+    this.position.copy(best.point);
+    this.normal.copy(nh);
+    this.addTrick(trick);
+    this.events.push({ type: 'lip', name: trick.name });
+    return true;
+  }
+
+  private stepLip(input: InputFrame, dt: number): void {
+    const lip = this.lip!;
+    lip.time += dt;
+    const instability = C.balanceDrift * (1 + C.balanceGrowth * 2 * lip.time);
+    lip.leanVel += (lip.lean * instability * 3 + (this.random() - 0.5) + input.steer * C.balanceControl) * dt;
+    lip.leanVel *= 0.985;
+    lip.lean += lip.leanVel * dt;
+    this.combo.addHeld(C.lipPointsPerSecond * dt);
+    if (Math.abs(lip.lean) > 1) { this.lip = null; this.startBail('Hung up on the lip'); return; }
+    if (input.ollieReleased || !input.grindHeld || lip.time > C.lipMaxDuration) this.dropIn();
+  }
+
+  /** Leave a lip trick back down into the ramp, forwards or to fakie. */
+  private dropIn(): void {
+    const lip = this.lip!;
+    this.lip = null;
+    this.charge = 0;
+    this.grindCooldown = C.grindCooldown;
+    this.position.copy(lip.point).addScaledVector(lip.normal, 0.12).add(new THREE.Vector3(0, -0.05, 0));
+    // Board points down the wall for a forward drop-in, up for "to fakie".
+    this.forward.set(0, lip.trick.fakie ? 1 : -1, 0);
+    this.state = 'air';
+    this.air = {
+      up: lip.normal.clone(), vertNormal: lip.normal.clone(), apexPassed: true, released: false, spin: 0, time: 0,
+      flip: null, grab: null, wall: null,
+    };
+    this.velocity.copy(lip.normal).multiplyScalar(0.3).add(new THREE.Vector3(0, -1.5, 0));
+  }
+
   // ── Manual ─────────────────────────────────────────────────────────────
 
   private manualFromTaps(): 'manual' | 'noseManual' | null {
@@ -656,7 +754,7 @@ export class Skater {
     this.combo.fail();
     this.pendingBankAt = null;
     this.ollieOnlyEntry = false;
-    this.air = null; this.grind = null; this.manual = null;
+    this.air = null; this.grind = null; this.manual = null; this.lip = null;
     this.charge = 0;
     this.state = 'bail';
     this.bailTimer = C.bailDuration;
@@ -702,7 +800,7 @@ export class Skater {
     this.speed = 0;
     this.fakie = false;
     this.charge = 0;
-    this.air = null; this.grind = null; this.manual = null;
+    this.air = null; this.grind = null; this.manual = null; this.lip = null;
     this.state = 'ground';
     this.pendingBankAt = null;
     this.ollieOnlyEntry = false;

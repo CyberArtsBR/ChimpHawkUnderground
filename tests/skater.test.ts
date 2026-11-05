@@ -168,6 +168,41 @@ describe('transitions', () => {
   });
 });
 
+describe('reverts and lip tricks', () => {
+  it('a spin tap right after a vert landing scores a Revert and keeps the combo going', () => {
+    const s = spotSkater(4, 34, 0);
+    const events: SkaterEvent[] = [];
+    let landedAt = -1;
+    for (let i = 0; i < 120 * 9; i++) {
+      const wasAir = s.state === 'air';
+      // Grab once in the vert air so there is a combo to keep alive.
+      const grab = s.state === 'air' && !!s.air?.vertNormal && !s.air.grab && s.velocity.y < 2;
+      const tap = landedAt >= 0 && i === landedAt + 6;
+      skaterStep(s, { grabPressed: grab, grabHeld: s.state === 'air', spin: tap ? 1 : 0 }, events);
+      if (wasAir && s.state === 'ground' && landedAt < 0) landedAt = i;
+      if (landedAt >= 0 && i > landedAt + 30) break;
+    }
+    expect(events.some(e => e.type === 'trick' && e.name === 'Revert')).toBe(true);
+    expect(events.some(e => e.type === 'bail')).toBe(false);
+  });
+
+  it('pressing grind at the coping at the top of a vert air stalls on the lip, then drops back in', () => {
+    const s = spotSkater(4, 34, 0);
+    const events: SkaterEvent[] = [];
+    let sawLip = false;
+    for (let i = 0; i < 120 * 9; i++) {
+      const nearTop = s.state === 'air' && !!s.air?.vertNormal && s.velocity.y < 1.5;
+      skaterStep(s, { grindPressed: nearTop && !sawLip, grindHeld: nearTop || s.state === 'lip' }, events);
+      if (s.state === 'lip') sawLip = true;
+      if (sawLip && s.state === 'lip' && s.lip!.time > 0.4) skaterStep(s, { grindHeld: false }, events);
+    }
+    expect(sawLip).toBe(true);
+    expect(events.find(e => e.type === 'lip')).toMatchObject({ name: 'Axle Stall' });
+    expect(['ground', 'air', 'manual']).toContain(s.state);
+    expect(events.some(e => e.type === 'bail')).toBe(false);
+  });
+});
+
 describe('world safety', () => {
   it('never leaves the park in a long hands-off session (walls, bails, respawns)', () => {
     const s = spotSkater(4, 34, 0);

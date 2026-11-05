@@ -17,6 +17,8 @@ const FOLEY = {
   grindMetal: ['scrape-skate-metal.mp3'],
   grindConcrete: ['scrape-skate-concrete.mp3'],
   ambience: ['ambience-paradise.wav'],
+  cueReady: ['cue-ready.ogg'], cueGo: ['cue-go.ogg'], cueTen: ['cue-tenSeconds.ogg'],
+  cueFive: ['cue-finalFive.ogg'], cueOver: ['cue-roundOver.ogg'], cueBack: ['cue-back.ogg'],
 } as const;
 type Bank = keyof typeof FOLEY;
 
@@ -143,6 +145,12 @@ export class SkateAudio {
     source.start();
   }
 
+  /** Session cue (ready, go, ten seconds, final five, round over). */
+  cue(name: 'ready' | 'go' | 'ten' | 'five' | 'over' | 'back'): void {
+    const bank = ({ ready: 'cueReady', go: 'cueGo', ten: 'cueTen', five: 'cueFive', over: 'cueOver', back: 'cueBack' } as const)[name];
+    this.play(bank, { volume: 0.55, jitter: 0 });
+  }
+
   handle(event: SkaterEvent): void {
     switch (event.type) {
       case 'pop': this.play('pop', { volume: 0.9 }); break;
@@ -154,6 +162,7 @@ export class SkateAudio {
         if (event.points >= 2500) this.play('claps', { volume: Math.min(0.8, 0.3 + event.points / 20000) });
         break;
       case 'grind': this.play('land', { volume: 0.5, rate: 1.3 }); break;
+      case 'lip': this.play('land', { volume: 0.7, rate: 1.15 }); break;
       default: break;
     }
   }

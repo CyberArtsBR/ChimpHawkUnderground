@@ -58,6 +58,14 @@ export const SKATER = Object.freeze({
   manualTapWindow: 0.35,     // W then S (or S then W) within this window
   landingManualGrace: 0.3,   // start a manual this soon after landing to keep the combo
 
+  // Reverts and lip tricks
+  revertWindow: 0.3,         // tap spin this soon after a transition landing
+  revertExtraGrace: 0.55,    // extra time after a revert to link into a manual
+  lipCaptureRadius: 0.7,
+  lipMaxAlongSpeed: 2.2,     // slower than this along the coping = lip trick, faster = coping grind
+  lipMaxDuration: 2.5,
+  lipPointsPerSecond: 50,
+
   // Bail / respawn
   bailDuration: 1.25,        // v1
 });

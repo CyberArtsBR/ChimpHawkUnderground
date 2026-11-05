@@ -139,6 +139,25 @@ export function tubePaths(geometry: THREE.BufferGeometry): { points: THREE.Vecto
   return paths;
 }
 
+/**
+ * Grind paths for a coping part: swept-tube rings when available, otherwise a
+ * straight pipe (long and thin bounding box) becomes one segment along its top.
+ */
+export function copingPaths(geometry: THREE.BufferGeometry): THREE.Vector3[][] {
+  const tubes = tubePaths(geometry);
+  if (tubes.length) return tubes.filter(t => t.points.length >= 2).map(t => t.points.map(p => p.clone().setY(p.y + t.radius)));
+  geometry.computeBoundingBox();
+  const box = geometry.boundingBox!;
+  const size = box.getSize(new THREE.Vector3());
+  const long = size.x >= size.z ? 'x' : 'z';
+  const across = long === 'x' ? size.z : size.x;
+  if (size[long] < 0.8 || across > 0.25 || size.y > 0.25) return [];
+  const centre = box.getCenter(new THREE.Vector3());
+  const a = centre.clone().setY(box.max.y), b = centre.clone().setY(box.max.y);
+  a[long] = box.min[long]; b[long] = box.max[long];
+  return [[a, b]];
+}
+
 /** The warehouse export repeats some rails per material slot; keep one of each path. */
 export function dedupeRails(rails: Rail[]): Rail[] {
   const seen = new Set<string>();
@@ -184,6 +203,13 @@ export function assembleWarehouse(scene: THREE.Object3D): LegacyMapWorld {
     }
     if (WAREHOUSE_DECOR.test(name) || !mesh.visible) continue;
     collision.push(worldGeometry(mesh));
+    // Copings are metal parts inside the ramp models: rebuild a grind path for each.
+    const materialName = (Array.isArray(mesh.material) ? mesh.material[0] : mesh.material)?.name ?? '';
+    if (/Stainless_Coping/.test(materialName)) {
+      for (const points of copingPaths(worldGeometry(mesh))) {
+        rails.push({ name: `${name.split(' / ')[1] ?? 'Ramp'} coping`, type: 'coping', points });
+      }
+    }
   }
   for (const object of remove) object.removeFromParent();
   return {
