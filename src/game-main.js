@@ -48,6 +48,7 @@ import './player-settings.css';
 import './graphics-glow.css';
 import './round-flow.css';
 import './menu-skin.css';
+import './hud-skin.css';
 
 const container = document.querySelector('#viewport');
 installModuleLoadRecovery();
@@ -557,6 +558,35 @@ function setMode(nextMode) {
   } else setExploreView('overview');
 }
 
+// HUD flair (enhancement pass): speed gauge fill and a score bump with a
+// floating "+points" when a combo banks. Presentation only.
+let hudFlairScore = 0, hudFlairSpeed = -1;
+function updateHudFlair(kmh) {
+  const panel = document.querySelector('.skate-hud');
+  const ratio = Math.min(1, kmh / 75);
+  if (panel && Math.abs(ratio - hudFlairSpeed) > 0.01) {
+    hudFlairSpeed = ratio;
+    panel.style.setProperty('--speed', ratio.toFixed(3));
+    panel.classList.toggle('speed-hot', ratio > 0.82);
+  }
+  const score = skater.score || 0;
+  if (score > hudFlairScore) {
+    const total = document.querySelector('.hud-total');
+    if (total) {
+      total.classList.remove('score-bump');
+      void total.offsetWidth;
+      total.classList.add('score-bump');
+      const gain = document.createElement('span');
+      gain.className = 'score-gain';
+      gain.textContent = `+${(score - hudFlairScore).toLocaleString()}`;
+      total.appendChild(gain);
+      gain.addEventListener('animationend', () => gain.remove(), { once: true });
+      setTimeout(() => gain.remove(), 2500);
+    }
+  }
+  hudFlairScore = score;
+}
+
 function updateHud() {
   if (!skater) return;
   const kmh = Math.round(Math.abs(skater.speed) * 3.6);
@@ -577,6 +607,7 @@ function updateHud() {
   if(hud['state-value'].textContent!==state)hud['state-value'].textContent=state;
   const scoreText=skater.score.toLocaleString();
   setHudGlyphValue(hud['score-value'],scoreText);
+  updateHudFlair(kmh);
   const trickNode = hud['trick-feedback'];
   const trickLabel = skater.feedbackTime > 0 ? skater.feedback : skater.tricks.comboText();
   const comboPhase=skater.bailTime>0?'bail':skater.tricks.combo.length?'active':'notice';

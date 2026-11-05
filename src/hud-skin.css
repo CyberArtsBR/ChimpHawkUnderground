@@ -1,0 +1,145 @@
+/* CHIMP HAWK HUD SKIN (2026-11 enhancement pass)
+   Visual layer over the existing in-game instruments: same elements, same
+   positions. Grip-texture 3D panels, a speed gauge, a score bump with a
+   floating "+points", and a skateboard-deck balance meter. */
+
+/* ── Panels: score (top-left), speed (bottom-left), clock (top-right) ── */
+.hud-total,
+.skate-hud,
+#run-timer {
+  background: var(--skin-grip), linear-gradient(160deg, rgba(40, 28, 60, .88), rgba(14, 12, 28, .9)) !important;
+  background-size: 120px 120px, 100% 100% !important;
+  background-blend-mode: soft-light, normal;
+  border: 1px solid rgba(255, 140, 200, .32) !important;
+  border-radius: 18px !important;
+  box-shadow:
+    0 5px 0 rgba(8, 5, 14, .85),
+    0 12px 26px rgba(0, 0, 0, .45),
+    inset 0 1px 0 rgba(255, 255, 255, .12) !important;
+}
+.hud-total > small,
+.skate-hud .speed small {
+  font-family: 'Barlow Condensed', 'Arial Narrow', sans-serif !important;
+  font-weight: 800 !important;
+  letter-spacing: .24em !important;
+  color: #ffd96a !important;
+}
+
+/* Score: bump and a floating "+points" when a combo banks. */
+.hud-total { position: fixed; overflow: visible; }
+.hud-total.score-bump { animation: score-bump .45s cubic-bezier(.2, 1.7, .4, 1); }
+@keyframes score-bump {
+  0% { transform: scale(1); }
+  35% { transform: scale(1.14) rotate(-1.5deg); box-shadow: 0 5px 0 rgba(8, 5, 14, .85), 0 0 34px rgba(255, 200, 70, .7), inset 0 1px 0 rgba(255, 255, 255, .2); }
+  100% { transform: scale(1) rotate(0); }
+}
+.hud-total .score-gain {
+  position: absolute;
+  left: 100%;
+  top: 50%;
+  margin-left: 12px;
+  font: 400 clamp(22px, 2.2vw, 34px)/1 'Bangers', Impact, sans-serif;
+  letter-spacing: .05em;
+  color: #fff3a0;
+  white-space: nowrap;
+  pointer-events: none;
+  text-shadow: 0 2px 0 #b8560b, 0 3px 0 #6e2f05, 0 6px 12px rgba(0, 0, 0, .6), 0 0 16px rgba(255, 200, 70, .6);
+  animation: score-gain 1.4s cubic-bezier(.2, .9, .3, 1) forwards;
+}
+@keyframes score-gain {
+  0% { opacity: 0; transform: translate(-8px, -30%) scale(.6); }
+  15% { opacity: 1; transform: translate(0, -50%) scale(1.15); }
+  30% { transform: translate(0, -55%) scale(1); }
+  100% { opacity: 0; transform: translate(14px, -170%) scale(1); }
+}
+
+/* Speed: segmented gauge under the number that fills with speed. */
+.skate-hud { --speed: 0; overflow: visible; }
+.skate-hud .speed { position: relative; padding-bottom: 12px; }
+.skate-hud .speed::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  min-width: 120px;
+  height: 6px;
+  border-radius: 3px;
+  background:
+    linear-gradient(90deg, #7edcff 0%, #ffd34f 60%, #ff3d8b 100%) 0 0 / calc(var(--speed) * 100%) 100% no-repeat,
+    rgba(255, 255, 255, .12);
+  -webkit-mask: repeating-linear-gradient(90deg, #000 0 9px, transparent 9px 12px);
+  mask: repeating-linear-gradient(90deg, #000 0 9px, transparent 9px 12px);
+  filter: drop-shadow(0 0 4px rgba(126, 220, 255, .5));
+  transition: background-size .12s linear;
+}
+.skate-hud.speed-hot {
+  border-color: rgba(255, 90, 160, .75) !important;
+  box-shadow:
+    0 5px 0 rgba(8, 5, 14, .85),
+    0 12px 26px rgba(0, 0, 0, .45),
+    0 0 26px rgba(255, 61, 139, .45),
+    inset 0 1px 0 rgba(255, 255, 255, .16) !important;
+}
+.skate-hud.speed-hot .speed::after { filter: drop-shadow(0 0 7px rgba(255, 61, 139, .85)); animation: speed-flicker .18s steps(2) infinite; }
+@keyframes speed-flicker { 50% { opacity: .82; } }
+.skate-hud .charge { border-radius: 99px !important; height: 5px !important; background: rgba(255, 255, 255, .12) !important; }
+.skate-hud .charge i { background: linear-gradient(90deg, #ffd34f, #ff7a3d) !important; box-shadow: 0 0 8px rgba(255, 180, 60, .7); border-radius: 99px; }
+.skate-hud .ride-state > span { font-family: 'Barlow Condensed', sans-serif !important; font-weight: 800 !important; letter-spacing: .14em !important; }
+.skate-hud .ride-state > span.air { color: #ffd96a !important; text-shadow: 0 0 10px rgba(255, 210, 90, .55); }
+
+/* Clock: last ten seconds go hot pink. */
+#run-timer.time-critical {
+  background: var(--skin-grip), linear-gradient(160deg, #e0216f, #8d0f43) !important;
+  background-size: 120px 120px, 100% 100% !important;
+  border-color: #ffd8ec !important;
+  box-shadow: 0 5px 0 #4d0626, 0 0 28px rgba(255, 61, 139, .65), inset 0 1px 0 rgba(255, 255, 255, .3) !important;
+}
+
+/* ── Balance meter as a skateboard deck ─────────────────────────────── */
+#balance-hud .balance-label {
+  font: 400 15px/1 'Bangers', Impact, sans-serif !important;
+  letter-spacing: .14em !important;
+  color: #fff3c8;
+  text-align: center;
+  text-shadow: 0 2px 0 rgba(0, 0, 0, .7), 0 0 10px rgba(0, 0, 0, .5) !important;
+}
+#balance-hud .balance-track {
+  height: 14px !important;
+  border: 2px solid rgba(255, 255, 255, .7) !important;
+  border-radius: 99px !important;
+  background:
+    var(--skin-grip),
+    linear-gradient(90deg, #ff2e6c 0%, #ff8a3d 14%, #2a2236 26%, #2a2236 74%, #ff8a3d 86%, #ff2e6c 100%) !important;
+  background-size: 120px 120px, 100% 100% !important;
+  background-blend-mode: soft-light, normal;
+  box-shadow: 0 4px 0 rgba(8, 5, 14, .9), 0 8px 16px rgba(0, 0, 0, .5), inset 0 1px 0 rgba(255, 255, 255, .25) !important;
+}
+#balance-hud[data-axis="vertical"] .balance-track {
+  width: 14px !important;
+  background:
+    var(--skin-grip),
+    linear-gradient(0deg, #ff2e6c 0%, #ff8a3d 14%, #2a2236 26%, #2a2236 74%, #ff8a3d 86%, #ff2e6c 100%) !important;
+  background-size: 120px 120px, 100% 100% !important;
+}
+#balance-hud .balance-center { background: rgba(126, 220, 255, .9) !important; box-shadow: 0 0 8px rgba(126, 220, 255, .8); }
+#balance-hud .balance-marker {
+  width: 18px !important;
+  height: 24px !important;
+  border-radius: 7px !important;
+  background: linear-gradient(180deg, #fff6b0, #ffc53d) !important;
+  border: 2px solid #3a2203;
+  box-shadow: 0 0 14px rgba(255, 210, 80, .85), 0 3px 0 #6b3f05 !important;
+}
+#balance-hud[data-axis="vertical"] .balance-marker { width: 24px !important; height: 18px !important; }
+#balance-hud.danger .balance-marker {
+  background: linear-gradient(180deg, #ff9ac4, #ff2e6c) !important;
+  box-shadow: 0 0 20px rgba(255, 46, 108, 1), 0 3px 0 #5d0a26 !important;
+  animation: balance-danger .22s ease-in-out infinite alternate;
+}
+#balance-hud.danger .balance-track { border-color: #ffb3cc !important; }
+@keyframes balance-danger { to { filter: brightness(1.35); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .hud-total.score-bump, .hud-total .score-gain, .skate-hud.speed-hot .speed::after, #balance-hud.danger .balance-marker { animation: none !important; }
+}
