@@ -355,8 +355,26 @@ export class GameShell {
       if(index>=0)this.selection=index;
       this.focusHint=null;
     }
-    if(this.phase==='results')this.content.scrollTop=0;
+    if(this.phase==='results'){this.content.scrollTop=0;this.animateResultsScore();}
     this.focusSelection(this.phase!=='results');
+  }
+  /** Results presentation: the final score counts up from zero (visual only). */
+  animateResultsScore(){
+    const el=this.content?.querySelector?.('[data-final-score]');
+    const raf=globalThis.requestAnimationFrame;
+    if(!el||typeof raf!=='function')return;
+    if(globalThis.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches)return;
+    const target=Number(String(el.textContent).replace(/[^0-9]/g,''))||0;
+    if(target<=0)return;
+    const start=performance.now(),duration=Math.min(1800,600+target/150);
+    const step=now=>{
+      if(!el.isConnected)return;
+      const t=Math.min(1,(now-start)/duration),eased=1-Math.pow(1-t,3);
+      el.textContent=Math.round(target*eased).toLocaleString();
+      if(t<1)raf(step);else{el.textContent=target.toLocaleString();el.classList.add('score-landed');}
+    };
+    el.textContent='0';
+    raf(step);
   }
   renderResults(){
     const run=this.runSummary||{};

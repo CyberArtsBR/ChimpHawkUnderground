@@ -622,3 +622,125 @@
   #game-shell.loadout-screen .selected-rider .rider-portrait::before,
   #game-shell.loadout-screen .rider-stage-number { animation: none !important; }
 }
+
+/* ── Main actions stay gold when highlighted (fix: pink hover used to win) ── */
+#game-shell .menu-card button[data-action="resume"]:not(.audio-volume-control button):is(:hover, .selected),
+#game-shell .loadout-shell footer button[data-action="confirmLoadout"]:not(:disabled):is(:hover, .selected),
+#game-shell .run-results-actions button[data-action="restart"]:is(:hover, .selected),
+#game-shell .timeup-burst button[data-action="skipTimeup"]:is(:hover, .selected) {
+  color: #2a1600 !important;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, .5) !important;
+  background: var(--skin-grip), var(--skin-gold) !important;
+  background-size: 120px 120px, 100% 100% !important;
+  border-color: #fffbe0 !important;
+  transform: translateY(-2px) !important;
+}
+
+/* ── Pause and other menu screens: panels slide in, buttons follow ───── */
+#game-shell.menu-screen .menu-card { animation: panel-in .38s cubic-bezier(.2, .9, .3, 1.15) both; }
+#game-shell.menu-screen .shell-content > :not(.menu-card) { animation: panel-in-left .42s cubic-bezier(.2, .9, .3, 1.1) both; }
+@keyframes panel-in {
+  from { opacity: 0; transform: translateY(16px) scale(.97); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes panel-in-left {
+  from { opacity: 0; transform: translateX(-26px) rotate(-1.5deg); }
+  to { opacity: 1; transform: none; }
+}
+#game-shell.menu-screen .menu-card > button,
+#game-shell .run-results-actions > button {
+  animation: deck-in .32s cubic-bezier(.2, .9, .3, 1.3) both;
+}
+#game-shell.menu-screen .menu-card > button:nth-of-type(1), #game-shell .run-results-actions > button:nth-of-type(1) { animation-delay: .06s; }
+#game-shell.menu-screen .menu-card > button:nth-of-type(2), #game-shell .run-results-actions > button:nth-of-type(2) { animation-delay: .1s; }
+#game-shell.menu-screen .menu-card > button:nth-of-type(3), #game-shell .run-results-actions > button:nth-of-type(3) { animation-delay: .14s; }
+#game-shell.menu-screen .menu-card > button:nth-of-type(4), #game-shell .run-results-actions > button:nth-of-type(4) { animation-delay: .18s; }
+#game-shell.menu-screen .menu-card > button:nth-of-type(5) { animation-delay: .22s; }
+#game-shell.menu-screen .menu-card > button:nth-of-type(n+6) { animation-delay: .26s; }
+@keyframes deck-in {
+  from { opacity: 0; transform: translateX(22px) scale(.96); }
+  to { opacity: 1; }
+}
+
+/* ── Results ───────────────────────────────────────────────────────────── */
+#game-shell .run-results { animation: panel-in .45s cubic-bezier(.2, .9, .3, 1.1) both; }
+#game-shell .run-score-panel { animation: panel-in-left .5s cubic-bezier(.2, .9, .3, 1.1) .08s both; }
+#game-shell .run-detail-column { animation: panel-in .5s cubic-bezier(.2, .9, .3, 1.1) .16s both; }
+
+/* Final score: big gold lettering that pops when the count-up lands. */
+#game-shell .run-total-score strong[data-final-score] {
+  display: inline-block;
+  font-family: 'Bangers', Impact, sans-serif !important;
+  font-weight: 400 !important;
+  letter-spacing: .03em !important;
+  color: #fff3c4 !important;
+  font-variant-numeric: tabular-nums;
+  text-shadow:
+    0 2px 0 #f2b33a, 0 4px 0 #c98118, 0 6px 0 #8f520a, 0 8px 0 #5c3205,
+    0 14px 22px rgba(0, 0, 0, .65), 0 0 30px rgba(255, 196, 64, .35) !important;
+}
+#game-shell .run-total-score strong.score-landed { animation: score-land .5s cubic-bezier(.2, 1.7, .4, 1); }
+@keyframes score-land {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.12) rotate(-1.5deg); filter: brightness(1.25); }
+  100% { transform: scale(1); }
+}
+
+/* New park best: gold glow pulse with a shine sweep. */
+#game-shell .run-personal-best { position: relative; overflow: hidden; border-radius: 12px; }
+#game-shell .run-personal-best strong {
+  font-family: 'Bangers', Impact, sans-serif !important;
+  font-weight: 400 !important;
+  letter-spacing: .08em !important;
+  color: #c9ff6b;
+  text-shadow: 0 2px 0 rgba(0, 0, 0, .6), 0 0 16px rgba(190, 255, 90, .6);
+  animation: best-glow 1.6s ease-in-out infinite;
+}
+@keyframes best-glow { 50% { text-shadow: 0 2px 0 rgba(0, 0, 0, .6), 0 0 26px rgba(190, 255, 90, .95); } }
+
+/* Best combo: a medal-style card with a slow gold shine. */
+#game-shell .run-best-combo {
+  position: relative;
+  overflow: hidden;
+  border-radius: 14px !important;
+  background: var(--skin-grip), linear-gradient(150deg, rgba(70, 46, 16, .55), rgba(28, 18, 36, .85)) !important;
+  background-size: 120px 120px, 100% 100% !important;
+  border: 1px solid rgba(255, 200, 80, .45) !important;
+  box-shadow: 0 5px 0 rgba(8, 5, 14, .8), inset 0 1px 0 rgba(255, 240, 180, .18), 0 0 24px rgba(255, 190, 60, .15) !important;
+}
+#game-shell .run-best-combo::after {
+  content: '';
+  position: absolute;
+  inset: -50% -80%;
+  pointer-events: none;
+  background: linear-gradient(105deg, transparent 42%, rgba(255, 230, 150, .22) 50%, transparent 58%);
+  animation: medal-shine 3.4s ease-in-out 1s infinite;
+}
+@keyframes medal-shine {
+  0% { transform: translateX(-60%); }
+  45%, 100% { transform: translateX(60%); }
+}
+
+/* Achievement rows and top tricks slide in one by one. */
+#game-shell .run-achievements li,
+#game-shell .run-top-tricks li,
+#game-shell .run-stats > * {
+  animation: row-in .4s cubic-bezier(.2, .9, .3, 1.1) both;
+}
+#game-shell .run-achievements li:nth-child(1), #game-shell .run-top-tricks li:nth-child(1) { animation-delay: .3s; }
+#game-shell .run-achievements li:nth-child(2), #game-shell .run-top-tricks li:nth-child(2) { animation-delay: .38s; }
+#game-shell .run-achievements li:nth-child(3), #game-shell .run-top-tricks li:nth-child(3) { animation-delay: .46s; }
+#game-shell .run-achievements li:nth-child(n+4), #game-shell .run-top-tricks li:nth-child(n+4) { animation-delay: .54s; }
+#game-shell .run-stats > *:nth-child(odd) { animation-delay: .4s; }
+#game-shell .run-stats > *:nth-child(even) { animation-delay: .5s; }
+@keyframes row-in {
+  from { opacity: 0; transform: translateX(18px); }
+  to { opacity: 1; transform: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #game-shell.menu-screen .menu-card, #game-shell.menu-screen .shell-content > *, #game-shell .menu-card > button,
+  #game-shell .run-results, #game-shell .run-score-panel, #game-shell .run-detail-column, #game-shell .run-results-actions > button,
+  #game-shell .run-total-score strong, #game-shell .run-personal-best strong, #game-shell .run-best-combo::after,
+  #game-shell .run-achievements li, #game-shell .run-top-tricks li, #game-shell .run-stats > * { animation: none !important; }
+}
