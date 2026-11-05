@@ -143,6 +143,7 @@ export class GameShell {
       this.loadoutGeneration++;
       if(this.selectBusy)this.actions.cancelLoadout?.();
       this.selectBusy=false;
+      this.updateLoadingOverlay();
     }
     this.phase=phase;this.selection=0;this.navRepeat=.2;this.render();
   }
@@ -618,6 +619,7 @@ export class GameShell {
       await this.actions.loadout({hero,board,location});
       if(generation!==this.loadoutGeneration||this.phase!=='select')return;
       this.selectBusy=false;this.selectError='';
+      this.updateLoadingOverlay();
       this.finishIndex=board.finishIndex;
       this.tutorialSeen=true;
       const practice=this.pendingMode==='practice';

@@ -811,11 +811,13 @@
 /* A board grinding back and forth along a rail, throwing sparks. */
 #game-shell .drop-in-rail {
   position: relative;
+  border: 0 !important;
+  background: none !important;
   height: 46px;
   margin: 0 6% 14px;
-  border-bottom: 4px solid #c9ced8;
+  border-bottom: 4px solid #c9ced8 !important;
   border-radius: 2px;
-  box-shadow: 0 6px 0 -2px #6c7180, 0 0 12px rgba(201, 206, 216, .25);
+  box-shadow: 0 6px 0 -2px #6c7180;
 }
 #game-shell .drop-in-deck {
   position: absolute;

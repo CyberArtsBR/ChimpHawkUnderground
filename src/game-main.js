@@ -33,6 +33,7 @@ import { graffitiLettering, graffitiPalette, installGraffitiFallback, prepareGra
 import { fitGraffitiHud } from './game/GraffitiHudLayout.js';
 import { GraphicsPipeline } from './graphics/GraphicsPipeline.js';
 import { SkateEffects } from './graphics/SkateEffects.js';
+import { WorldLife } from './graphics/WorldLife.js';
 import { GRAPHICS_PRESET_ORDER, loadGraphicsPreset, storeGraphicsPreset, normalizedGraphicsPreset, qualityFogDistance } from './graphics/GraphicsSettings.js';
 import { normalizeGlowOverrides, readGlowPresets, saveGlowPresets, initializeGlowDefaults, useCurrentGlowDefaults } from './graphics/GlowTuning.js';
 import './style.css';
@@ -128,6 +129,7 @@ const frameMetrics=new FrameMetrics(renderer,performanceHud);
 let playerPreferences=applyPlayerPreferences(readPlayerPreferences());
 frameMetrics.setEnabled(playerPreferences.performance);
 const skateEffects = new SkateEffects(scene);
+const worldLife = new WorldLife(scene);
 graphicsPipeline.setEffectsTarget(skateEffects.root);
 let effectsWereActive = false;
 const graphicsStorage = (() => { try { return window.localStorage; } catch { return null; } })();
@@ -166,6 +168,7 @@ const debugOverlay = new URLSearchParams(location.search).get('debug') === '1' ?
 }) : { update() {}, toggle() {} };
 const clock = new THREE.Clock();
 const skateAudio = new SkateAudio();
+worldLife.setAudio(skateAudio);
 window.addEventListener('pointerdown', () => skateAudio.unlock(), { passive: true });
 window.addEventListener('keydown', () => skateAudio.unlock(), { passive: true });
 const legacyPark = new URLSearchParams(location.search).get('park') === 'legacy';
@@ -357,6 +360,7 @@ function applyGraphicsPreset(name) {
     glowTuning:glowPresets[requestedPreset], legacyGlowDefaults, renderScale:playerPreferences.renderScale });
   graphicsPreset=accepted.name;
   skateEffects.setQuality(graphicsPipeline.settings);
+  worldLife.setQuality(graphicsPipeline.settings);
   skateEffects.setSize(innerHeight,renderer.getPixelRatio());
   gameShell.graphicsIndex = GRAPHICS_PRESET_ORDER.indexOf(graphicsPreset);
   storeGraphicsPreset(graphicsStorage, graphicsPreset);
@@ -743,6 +747,7 @@ function commitWorld(world, runtime) {
     bindParkRuntime(skater, runtime);
     skateEffects.reset(skater);
     currentWorld = world;
+    worldLife.setWorld(world);
     ({ park, collision, manifest } = world);
     scene.add(park);
     graphicsPipeline.setWorld(park);
@@ -842,6 +847,7 @@ async function loadGame() {
     followCamera = new FollowCamera(camera);
     followCamera.setPreferences(playerPreferences);
     currentWorld = initialWorld;
+    worldLife.setWorld(initialWorld);
     ({ park, collision, manifest } = initialWorld);
     scene.add(park, sun.target);
     graphicsPipeline.setWorld(park);
@@ -1067,6 +1073,7 @@ renderer.setAnimationLoop(() => {
       }
       if (skater.respawnSerial !== respawn) followCamera.snap(skater);
       skateEffects.update(dt,skater);
+      worldLife.update(dt,skater,camera);
       followCamera.update(skater, dt, state, skater._smoothedVisualPosition);
       if (state.reset) followCamera.snap(skater);
     }
