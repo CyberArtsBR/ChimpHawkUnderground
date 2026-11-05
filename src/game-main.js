@@ -34,6 +34,7 @@ import { fitGraffitiHud } from './game/GraffitiHudLayout.js';
 import { GraphicsPipeline } from './graphics/GraphicsPipeline.js';
 import { SkateEffects } from './graphics/SkateEffects.js';
 import { WorldLife } from './graphics/WorldLife.js';
+import { ComboCallouts } from './game/ComboCallouts.js';
 import { GRAPHICS_PRESET_ORDER, loadGraphicsPreset, storeGraphicsPreset, normalizedGraphicsPreset, qualityFogDistance } from './graphics/GraphicsSettings.js';
 import { normalizeGlowOverrides, readGlowPresets, saveGlowPresets, initializeGlowDefaults, useCurrentGlowDefaults } from './graphics/GlowTuning.js';
 import './style.css';
@@ -169,6 +170,7 @@ const debugOverlay = new URLSearchParams(location.search).get('debug') === '1' ?
 const clock = new THREE.Clock();
 const skateAudio = new SkateAudio();
 worldLife.setAudio(skateAudio);
+const comboCallouts = new ComboCallouts({ audio: skateAudio });
 window.addEventListener('pointerdown', () => skateAudio.unlock(), { passive: true });
 window.addEventListener('keydown', () => skateAudio.unlock(), { passive: true });
 const legacyPark = new URLSearchParams(location.search).get('park') === 'legacy';
@@ -322,6 +324,7 @@ function observeRunScoring(controller) {
         const oldBest=scoreRecords.get(currentWorld.id)?.bestCombo;
         skateAudio.onComboSettled?.({points:moment.points,id:currentWorld.id+':'+sessionEventTime,location:currentWorld.id,
           personalBest:!gameShell.practice&&oldBest>0&&moment.points>oldBest});
+        comboCallouts.show(moment.points);
         if(moment.points>=1200){const node=document.getElementById('trick-feedback');node?.classList.remove('exceptional-line');
           requestAnimationFrame(()=>node?.classList.add('exceptional-line'));}
       }

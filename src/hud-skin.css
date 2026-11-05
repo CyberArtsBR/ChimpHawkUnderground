@@ -143,3 +143,91 @@
 @media (prefers-reduced-motion: reduce) {
   .hud-total.score-bump, .hud-total .score-gain, .skate-hud.speed-hot .speed::after, #balance-hud.danger .balance-marker { animation: none !important; }
 }
+
+/* ── Combo callouts: NICE / SICK / INSANE / CHIMPTASTIC ─────────────── */
+#combo-callout {
+  --c1: #7edcff; --c2: #2a8fd0; --c3: #0e3d66; --flash: rgba(126, 220, 255, .22);
+  position: fixed;
+  inset: 0;
+  z-index: 46;
+  pointer-events: none;
+  display: none;
+}
+#combo-callout[data-tone='gold'] { --c1: #fff08a; --c2: #f6a92c; --c3: #6b3a05; --flash: rgba(255, 200, 70, .26); }
+#combo-callout[data-tone='fire'] { --c1: #ffd36e; --c2: #ff5a2c; --c3: #6d1405; --flash: rgba(255, 90, 40, .3); }
+#combo-callout[data-tone='legend'] { --c1: #ffffff; --c2: #ff3d8b; --c3: #4a0b6b; --flash: rgba(255, 61, 139, .36); }
+body[data-screen='playing'] #combo-callout.show { display: block; }
+
+#combo-callout .callout-flash {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at 50% 40%, var(--flash), transparent 65%);
+  opacity: 0;
+}
+#combo-callout.show .callout-flash { animation: callout-flash .7s ease-out both; }
+@keyframes callout-flash { 0% { opacity: 0; } 18% { opacity: 1; } 100% { opacity: 0; } }
+
+#combo-callout .callout-word {
+  position: absolute;
+  left: 50%;
+  top: 34%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transform: translate(-50%, -50%);
+  white-space: nowrap;
+}
+#combo-callout .callout-word b {
+  font: 400 clamp(54px, 8vw, 128px)/1 'Bangers', Impact, 'Arial Black', sans-serif;
+  letter-spacing: .05em;
+  color: var(--c1);
+  -webkit-text-stroke: 2px var(--c3);
+  text-shadow:
+    0 2px 0 var(--c2), 0 4px 0 var(--c2), 0 6px 0 var(--c3), 0 8px 0 var(--c3),
+    0 14px 24px rgba(0, 0, 0, .65), 0 0 40px var(--flash);
+}
+#combo-callout[data-level='4'] .callout-word b { font-size: clamp(60px, 9.5vw, 150px); }
+#combo-callout .callout-word span {
+  margin-top: .1em;
+  font: 400 clamp(22px, 2.6vw, 40px)/1 'Bangers', Impact, sans-serif;
+  letter-spacing: .08em;
+  color: #fff7e6;
+  text-shadow: 0 2px 0 rgba(0, 0, 0, .7), 0 0 14px var(--flash);
+}
+#combo-callout.show .callout-word { animation: callout-slam 1.85s cubic-bezier(.2, .9, .3, 1) both; }
+#combo-callout.show[data-level='3'] .callout-word,
+#combo-callout.show[data-level='4'] .callout-word { animation: callout-slam 1.85s cubic-bezier(.2, .9, .3, 1) both, callout-shake .32s steps(6) .42s; }
+@keyframes callout-slam {
+  0% { opacity: 0; transform: translate(-50%, -50%) scale(2.6) rotate(-8deg); filter: blur(6px); }
+  22% { opacity: 1; transform: translate(-50%, -50%) scale(.92) rotate(-3deg); filter: blur(0); }
+  32% { transform: translate(-50%, -50%) scale(1.05) rotate(-3deg); }
+  40%, 78% { transform: translate(-50%, -50%) scale(1) rotate(-3deg); opacity: 1; }
+  100% { opacity: 0; transform: translate(-50%, -120%) scale(.85) rotate(-3deg); }
+}
+@keyframes callout-shake {
+  0%, 100% { margin-left: 0; margin-top: 0; }
+  20% { margin-left: -9px; margin-top: 4px; }
+  40% { margin-left: 8px; margin-top: -5px; }
+  60% { margin-left: -6px; margin-top: 3px; }
+  80% { margin-left: 4px; margin-top: -2px; }
+}
+/* CHIMPTASTIC gets a rainbow sheen sweeping through the letters. */
+#combo-callout[data-tone='legend'] .callout-word b {
+  background: linear-gradient(100deg, #fff 0%, #ffd34f 25%, #ff5fae 45%, #7edcff 65%, #fff 85%);
+  background-size: 250% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  -webkit-text-stroke: 2px #4a0b6b;
+  text-shadow: none;
+  filter: drop-shadow(0 3px 0 #ff3d8b) drop-shadow(0 4px 0 #4a0b6b) drop-shadow(0 12px 18px rgba(0, 0, 0, .6));
+  animation: callout-rainbow 1.2s linear infinite;
+}
+@keyframes callout-rainbow { to { background-position: -250% 0; } }
+
+@media (prefers-reduced-motion: reduce) {
+  #combo-callout.show .callout-flash { animation: none; opacity: 0; }
+  #combo-callout.show .callout-word { animation: callout-fade 1.8s ease both !important; }
+  #combo-callout[data-tone='legend'] .callout-word b { animation: none; }
+}
+@keyframes callout-fade { 0%, 100% { opacity: 0; } 15%, 80% { opacity: 1; } }
