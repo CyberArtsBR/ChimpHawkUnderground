@@ -47,6 +47,7 @@ import './flip-school.css';
 import './player-settings.css';
 import './graphics-glow.css';
 import './round-flow.css';
+import './menu-skin.css';
 
 const container = document.querySelector('#viewport');
 installModuleLoadRecovery();
