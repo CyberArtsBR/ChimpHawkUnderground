@@ -230,6 +230,16 @@ export class StreetSkater extends StatefulSkillStreetPhysics {
       p.landingSeverity = clamp(impact / 10 + airFactor * 0.12, 0.1, 1);
       p.landingDuration = 0.32 + p.landingSeverity * 0.18;
       p.landingTime = p.landingDuration;
+      // Sloppy landing (2026-11): board sideways to travel, or a very hard
+      // impact, makes the rider flail for a moment. Fakie counts as clean.
+      const travel = before.velocity.clone().setY(0);
+      if (!this.bailTime && travel.lengthSq() > 4 && this.forward) {
+        const forward = this.forward.clone().setY(0).normalize();
+        const off = Math.acos(Math.min(1, Math.abs(travel.normalize().dot(forward))));
+        const sloppy = Math.max(clamp((off - .26) / .5, 0, 1), clamp((p.landingSeverity - .82) * 4, 0, 1));
+        this.lastLandingSloppiness = sloppy;
+        if (sloppy > .2) this.rider?.gesture?.('stumble', .45 + sloppy * .55);
+      } else this.lastLandingSloppiness = 0;
     } else p.landingTime = Math.max(0, p.landingTime - delta);
 
     const controlIntent = groundControlIntent({

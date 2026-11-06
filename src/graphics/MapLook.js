@@ -4,8 +4,10 @@ export const MAP_LOOKS = Object.freeze({
   // Enhancement pass (2026-11): lower, warmer sunset key (~18 degrees up), warm
   // haze and stronger reflections of the photographic sky.
   'skate-paradise': Object.freeze({
-    grade: Object.freeze({ contrast: 1.14, saturation: 1.16, shadowTint: [-.12, -.02, .2], highlightTint: [.22, .1, -.06], vignette: .34 }),
-    exposure: 1.03, ambientSky: '#b9c4e5', ambientGround: '#6a5458', ambientIntensity: .62,
+    grade: Object.freeze({ contrast: 1.14, saturation: 1.16, shadowTint: [-.08, -.01, .14], highlightTint: [.22, .1, -.06], vignette: .34 }),
+    // Warmer shadow fill: ground bounce from the far side of the sun.
+    exposure: 1.03, ambientSky: '#c3c3e0', ambientGround: '#9a6a50', ambientIntensity: .7,
+    bounceColor: '#ffa36c', bounceIntensity: .6,
     keyColor: '#ffbc85', keyIntensity: 2.85, keyPosition: [-60, 45, -20],
     environmentIntensity: .8,
     fillColor: '#a5b4e9', fillIntensity: .5, fillPosition: [155, 40, -155],

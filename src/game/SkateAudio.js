@@ -69,6 +69,7 @@ export class SkateAudio {
       this.concreteScrape = this.loop('bandpass', 1700);
       this.metalScrape = this.loop('bandpass', 2200);
       this.ambience = this.loop('lowpass', 1600);
+      this.woodRoll = this.loop('lowpass', 2600);
       this.impacts = Object.fromEntries(['pop','landing','grind','bail','loss','catch','push']
         .map(kind => [kind, createSkateImpact(c, kind)]));
       // Decode in the background without blocking controls or the first frame.
@@ -110,13 +111,19 @@ export class SkateAudio {
         }
         this.recordedFoley.add(kind);
       });
-      this.bankLoad = loadSkateFoleyBanks(c, (kind, buffer) => {
+      this.onBankClip = (kind, buffer) => {
         if (this.disposed || this.context !== c) return;
         const bank=this.banks[kind] ||= [];
         if(bank.includes(buffer))return;
         bank.push(buffer);
         if (kind === 'voicePain') this.voiceLevels.set(buffer, recordedVoiceGain(buffer));
         if(kind.startsWith('ambience'))this.refreshAmbience();
+        if (kind === 'rollWood' && !this.woodRoll.recorded) {
+          const previous = this.woodRoll.source, source = c.createBufferSource();
+          source.buffer = buffer; source.loop = true; source.connect(this.woodRoll.filter); source.start();
+          this.woodRoll.source = source; this.woodRoll.recorded = true;
+          try { previous.stop(); previous.disconnect(); } catch {}
+        }
         if (['scrapeConcrete','scrapeMetal'].includes(kind)) {
           const layer = kind === 'scrapeMetal' ? this.metalScrape : this.concreteScrape;
           if (layer.recorded) return;
@@ -124,7 +131,10 @@ export class SkateAudio {
           source.buffer = seamlessFoleyLoop(c,buffer,SKATE_SCRAPE_WINDOWS[kind]); source.loop = true; source.connect(layer.filter); source.start(); layer.source = source; layer.recorded = true;
           try { previous.stop(); previous.disconnect(); } catch {}
         }
-      });
+      };
+      this.bankLoad = loadSkateFoleyBanks(c, this.onBankClip);
+      this.ambienceRequests = new Set();
+      this.refreshAmbience();
     const pending=Promise.all([this.foleyLoad,this.bankLoad]).then(()=>this.getAudioStatus());
     this.foleyPending=pending;
     pending.finally(()=>{if(this.foleyPending===pending)this.foleyPending=null;});
@@ -179,8 +189,10 @@ export class SkateAudio {
     source.onended = () => { this.voices.delete(source); this.replayVoices.delete(source); source.disconnect(); filter.disconnect(); gain.disconnect(); };
 
     if (kind === 'landing') {
-      const layer = surface === 'metal' ? 'landingMetal' : surface === 'concrete' ? 'landingConcrete' : null;
-      if (layer) this.playBank(layer, this.master, power*(layer === 'landingMetal' ? .08 : .045),{replay});
+      const layer = surface === 'metal' ? 'landingMetal' : surface === 'concrete' ? 'landingConcrete'
+        : surface === 'wood' ? 'landingWood' : surface === 'rubber' ? 'landingRubber' : null;
+      const layerLevel = { landingMetal: .08, landingConcrete: .045, landingWood: .11, landingRubber: .08 }[layer];
+      if (layer) this.playBank(layer, this.master, power*layerLevel,{replay});
     }
     // A short low-frequency pitch fall gives heavier landings substance without
     // shipping samples. Guard for lightweight test/audio shims.
@@ -303,11 +315,15 @@ export class SkateAudio {
       this.roll.filter.frequency.setTargetAtTime(Math.min(3000,(550 + speed * 70) * surface.rollPitch), now, 0.06);
       this.roll.source?.playbackRate?.setTargetAtTime(0.7 + level * 1.8, now, 0.06);
       this.texture?.gain.gain.setTargetAtTime(rolling ? rollLevel * 0.15 * surface.texture : 0, now, 0.035);
+      // Plywood: a warm rumble with seam knocks that speed up with the board.
+      const onWood = rolling && this.surfaceTag === 'wood' && this.woodRoll?.recorded;
+      this.woodRoll?.gain.gain.setTargetAtTime(onWood ? rollLevel * .34 : 0, now, .05);
+      this.woodRoll?.source.playbackRate?.setTargetAtTime(.55 + level * 1.1, now, .08);
       this.texture?.filter.frequency.setTargetAtTime(1600 * surface.rollPitch, now, .06);
       const metalGrind = grinding && this.surfaceTag === 'metal' && this.metalScrape?.recorded;
       this.metalScrape?.gain.gain.setTargetAtTime(metalGrind ? .14+level*.12 : 0,now,.025);
       this.metalScrape?.source.playbackRate?.setTargetAtTime(.8+level*.65,now,.06);
-      this.ambience?.gain.gain.setTargetAtTime(audible&&this.ambience.recorded ? (this.location.includes('orbit')?.025:.055) : 0,now,.35);
+      this.ambience?.gain.gain.setTargetAtTime(audible&&this.ambience.recorded ? (this.location.includes('orbit')?(this.banks.ambienceOrbit?.[0]?.06:.025):.055) : 0,now,.35);
       const concreteGrind = grinding && this.surfaceTag === 'concrete' && this.concreteScrape?.recorded;
       this.concreteScrape?.gain.gain.setTargetAtTime(concreteGrind ? .09 + level*.08 : 0, now, .035);
       this.concreteScrape?.source.playbackRate?.setTargetAtTime(.8 + level*.5, now, .06);
@@ -326,6 +342,11 @@ export class SkateAudio {
         if (newContact) {
           const contactSpeed = Number(impact.speed) || 0;
           this.impact(.45 + Math.min(.5, contactSpeed / 14), false, 'bail');
+          if (contactSpeed >= 5 && !this.location.includes('orbit') && now - (this.lastGroan ?? -Infinity) > 8) {
+            this.lastGroan = now;
+            this.playBank('crowdGroan', this.crowd, .16 + Math.min(.12, contactSpeed / 80), { maxDuration: 1.7, attack: .06, release: .4,
+              pan: this.location.includes('paradise') ? -.32 : .25 });
+          }
           if (this.reactions.contact(contactSpeed, now)) vocalReaction = this.playBank('voicePain', this.characterVoice, .22 + Math.min(.2,contactSpeed/50), {
             maxDuration: .85, musicDuck: contactSpeed >= 7 ? { amount: .7, releaseMs: 80 } : null,
           }) && contactSpeed >= 7;
@@ -336,7 +357,11 @@ export class SkateAudio {
             const severity = Math.max(p.landingSeverity || 0, Math.min(1, this.previous.impactSpeed / 10));
             this.impact(0.5 + Math.min(0.45, severity * 0.45));
           }
-          if (state.grind && !this.previous.grind) this.impact(0.65, true);
+          if (state.grind && !this.previous.grind) {
+            this.impact(0.65, true);
+            // A sharp clack as the trucks lock in; brightest on metal.
+            this.playBank('grindClack', this.master, this.surfaceTag === 'metal' ? .2 : .09);
+          }
           if (state.flipPhase === 'CATCH' && this.previous.flipPhase !== 'CATCH') this.impact(0.32, false, 'catch');
           if (rolling && state.pushWeight > 0.4 && state.pushPhase >= 0.26
             && (this.previous.pushPhase < 0.26 || state.pushPhase < this.previous.pushPhase)) this.impact(0.22, false, 'push');
@@ -358,7 +383,14 @@ export class SkateAudio {
 
   refreshAmbience() {
     if(!this.context||!this.ambience)return;
-    const kind=this.location.includes('paradise')?'ambienceParadise':this.location.includes('warehouse')||this.location.includes('orbit')?'ambienceWarehouse':null;
+    // Fetch this map's ambience on first visit (it is not part of the start-up load).
+    const wantedKind=this.location.includes('paradise')?'ambienceParadise':this.location.includes('orbit')?'ambienceOrbit':this.location.includes('warehouse')?'ambienceWarehouse':null;
+    if(wantedKind&&this.onBankClip&&!this.banks[wantedKind]?.length&&!this.ambienceRequests?.has(wantedKind)){
+      this.ambienceRequests?.add(wantedKind);
+      loadSkateFoleyBanks(this.context,this.onBankClip,{include:[wantedKind]});
+    }
+    const orbitOwn=this.location.includes('orbit')&&this.banks.ambienceOrbit?.[0];
+    const kind=this.location.includes('paradise')?'ambienceParadise':orbitOwn?'ambienceOrbit':this.location.includes('warehouse')||this.location.includes('orbit')?'ambienceWarehouse':null;
     const buffer=this.banks[kind]?.[0],layer=this.ambience;
     const now = this.context.currentTime;
     if(!buffer){layer.gain.gain.setTargetAtTime(0,now,.12);layer.recorded=false;return;}
@@ -377,8 +409,8 @@ export class SkateAudio {
       } else {try{previous.stop();previous.disconnect();}catch{}}
     }
     layer.recorded=true;
-    layer.source.playbackRate?.setTargetAtTime(this.location.includes('orbit')?.72:1,this.context.currentTime,.2);
-    layer.filter.frequency.setTargetAtTime(this.location.includes('orbit')?600:this.location.includes('paradise')?2200:1500,this.context.currentTime,.25);
+    layer.source.playbackRate?.setTargetAtTime(this.location.includes('orbit')&&!orbitOwn?.72:1,this.context.currentTime,.2);
+    layer.filter.frequency.setTargetAtTime(this.location.includes('orbit')?(orbitOwn?3200:600):this.location.includes('paradise')?2200:1500,this.context.currentTime,.25);
   }
 
   // Shared bounded playback. Recordings fail independently; reactions never fall back to a fake voice.
@@ -441,6 +473,13 @@ export class SkateAudio {
       pan: this.location.includes('paradise') ? -.32 : .25,
       musicDuck: reaction.exceptional ? { amount: .65, releaseMs: 200 } : null,
     });
+    // Voices on top of the claps, bigger with the combo.
+    const points = Number(event?.points) || 0;
+    const cheer = reaction.exceptional ? 'cheerBig' : reaction.kind === 'crowdMedium' ? 'cheerMedium' : 'cheerSmall';
+    if (played) this.playBank(cheer, this.crowd, reaction.level * (.75 + Math.min(.5, points / 16000)), {
+      maxDuration: cheer === 'cheerBig' ? 3.6 : cheer === 'cheerMedium' ? 2.2 : 1.4, attack: .05, release: .5,
+      pan: this.location.includes('paradise') ? -.25 : .2,
+    });
     return played && reaction.exceptional;
   }
 
@@ -465,7 +504,7 @@ export class SkateAudio {
     this.resetReplay();
     this.previous = null;
     if (!this.context) return;
-    for (const layer of [this.roll, this.texture, this.grind, this.brake, this.wind, this.concreteScrape, this.metalScrape, this.ambience])
+    for (const layer of [this.roll, this.texture, this.grind, this.brake, this.wind, this.concreteScrape, this.metalScrape, this.ambience, this.woodRoll])
       layer?.gain.gain.setTargetAtTime(0, this.context.currentTime, 0.02);
     for (const voice of this.voices) { try { voice.stop(); } catch {} }
     this.cancelMusicDucks();
@@ -508,7 +547,7 @@ export class SkateAudio {
     if(this.context)disposeFoleyCache(this.context);
     this.enabled = false;
     this.silence();
-    for (const layer of [this.roll, this.texture, this.grind, this.brake, this.wind, this.concreteScrape, this.metalScrape, this.ambience]) {
+    for (const layer of [this.roll, this.texture, this.grind, this.brake, this.wind, this.concreteScrape, this.metalScrape, this.ambience, this.woodRoll]) {
       if (!layer) continue;
       try { layer.source.stop(); } catch {}
       layer.source.disconnect();

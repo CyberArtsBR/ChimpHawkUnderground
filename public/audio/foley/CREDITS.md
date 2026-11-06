@@ -41,3 +41,10 @@ These new sounds still require owner audition. Browser decode, waveform and sche
 ## Runtime continuity refinement — 2026-11-03
 
 Original audio bytes and source hashes remain unchanged. The metal skate loop uses the sustained 2.35–3.80-second pass; the concrete skate loop uses 19.70–21.75 seconds. Both receive an 80ms mono overlap crossfade in memory, excluding the full field takes' separate mounting contacts and quiet gaps. Voice pain playback uses bounded gain correction without pitch changes; the quiet take receives at most +2.6dB. See `docs/evolution-cycle2-audio.md` for measurements and local before/after audition files. No new recordings, generated sounds or replacement source identities were added.
+
+## 2026-11 audio pass (synthesized in-house)
+
+These were generated for Chimp Hawk with the Web Audio API (offline render), not recorded or downloaded:
+`landing-wood-1/2.wav`, `landing-rubber-1.wav`, `roll-wood.wav`, `grind-clack-1/2.wav`, `ambience-orbit.wav`,
+`crowd-cheer-small/medium/big.wav`, `crowd-groan.wav`.
+`voice-effort-2/3/4.wav` are pitched and EQ'd variants of the existing `voice-effort-1.mp3` take (same license as that file).

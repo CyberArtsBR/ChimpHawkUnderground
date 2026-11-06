@@ -1,5 +1,19 @@
-.round-cue{position:absolute;left:50%;top:23%;transform:translateX(-50%);padding:12px 24px;border:1px solid #ffe69a;border-radius:6px;background:#131a20ec;color:#fff1c2;font:700 clamp(20px,2.5vw,34px) 'Barlow Condensed',sans-serif;letter-spacing:.05em;pointer-events:none;z-index:12;text-align:center}
-.round-cue[data-phase="overtime"]{top:92px;font-size:calc(16px * var(--ui-scale,1));color:#fff;max-width:70vw}
+/* Round cue (2026-11): graffiti lettering like the trick callouts, no box. */
+.round-cue{position:absolute;left:50%;top:21%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:4px;padding:0;border:0;background:none;pointer-events:none;z-index:12;text-align:center;filter:drop-shadow(0 6px 0 rgba(10,6,20,.55)) drop-shadow(0 0 18px rgba(0,0,0,.35))}
+.round-cue .round-cue-word{display:block;line-height:0}
+.round-cue .graffiti-word{display:inline-flex;align-items:flex-end}
+.round-cue .graffiti-word img{height:clamp(54px,8vw,104px);width:auto;margin:0 -.04em}
+.round-cue .graffiti-punctuation{font:400 clamp(54px,8vw,104px)/1 Bangers,Impact,sans-serif;color:#9dff5a;-webkit-text-stroke:3px #10220c}
+.round-cue small{font:400 clamp(15px,1.5vw,22px)/1 Bangers,Impact,sans-serif;letter-spacing:.08em;color:#fff6d8;background:#120c1ccc;border:2px solid #ffd23f;border-radius:999px;padding:5px 14px;transform:rotate(-2deg)}
+.round-cue[data-phase="ready"] .round-cue-word{animation:cue-bob 1.4s ease-in-out infinite}
+.round-cue:not([data-phase="ready"]):not([data-phase="overtime"]) .round-cue-word{animation:cue-pop .5s cubic-bezier(.2,1.6,.4,1) both}
+.round-cue[data-phase="overtime"]{top:86px}
+.round-cue[data-phase="overtime"] .graffiti-word img{height:clamp(36px,4.6vw,62px)}
+.round-cue[data-phase="overtime"] small{border-color:#ff4d4d;animation:cue-pulse 1s ease-in-out infinite}
+@keyframes cue-pop{0%{transform:scale(.3) rotate(-8deg);opacity:0}60%{transform:scale(1.18) rotate(3deg);opacity:1}100%{transform:scale(1) rotate(-2deg)}}
+@keyframes cue-bob{0%,100%{transform:translateY(0) rotate(-2deg)}50%{transform:translateY(-6px) rotate(1deg)}}
+@keyframes cue-pulse{0%,100%{transform:rotate(-2deg) scale(1)}50%{transform:rotate(-2deg) scale(1.08)}}
+@media (prefers-reduced-motion:reduce){.round-cue .round-cue-word,.round-cue small{animation:none!important}}
 .round-cue[hidden],.frame-metrics[hidden]{display:none}
 .frame-metrics{position:absolute;left:18px;top:90px;padding:5px 8px;background:#101820d9;color:#dce8e9;font:13px 'DM Sans',sans-serif;pointer-events:none;z-index:10;font-variant-numeric:tabular-nums}
 .run-personal-best{padding:14px 0;color:#d9ff9c}.run-personal-best p{margin:6px 0;color:#e0e7e5;font-size:calc(15px * var(--ui-scale,1))}

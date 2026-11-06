@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { scanMap, seededRandom, spreadPick } from './MapScan.js';
+import { buildOrbitDetail, buildWarehouseProps } from './MapDetail.js';
 
 /**
  * Map dressing (2026-11 enhancement pass). Presentation only: no collision,
@@ -158,6 +159,14 @@ export class MapDressing {
     const clearOfSpawn = spawn => edges.filter(e => !spawn || e.point.distanceTo(spawn) > 32);
     if (!space) this.buildStrings(clearOfSpawn(Array.isArray(world.manifest?.spawn) ? new THREE.Vector3(...world.manifest.spawn) : null), rand, indoor);
     if (indoor) this.buildLamps(scan, rand);
+    // Extra detail: Orbit trims and stencils; Warehouse props and roller door.
+    const ys = scan.floor.map(f => f.point.y).sort((x, y) => x - y);
+    const floorY = world.userData?.finishMask?.floorY ?? ys[Math.floor(ys.length / 2)] ?? 0;
+    if (space) this.detail = buildOrbitDetail(this.root, world, scan, rand, floorY);
+    if (indoor) {
+      const avoid = this.strings.flatMap(s => [s.a, s.b]).map(e => e?.point || e).filter(p => p?.isVector3);
+      this.detail = buildWarehouseProps(this.root, scan, rand, avoid);
+    }
     this.patchPalms(world.park);
   }
 
@@ -214,9 +223,12 @@ export class MapDressing {
       this.root.add(mesh);
     }
     for (const p of spots) {
-      const pool = this.lightPool('#ffd9a0', 10, 10, .3);
-      pool.position.copy(p).setY(p.y + .03); pool.rotation.x = -Math.PI / 2;
-      this.root.add(pool);
+      // A wide warm pool plus a brighter core right under the lamp.
+      for (const [size, opacity, color] of [[13, .5, '#ffcf8f'], [5, .42, '#fff0d4']]) {
+        const pool = this.lightPool(color, size, size, opacity);
+        pool.position.copy(p).setY(p.y + .03); pool.rotation.x = -Math.PI / 2;
+        this.root.add(pool);
+      }
     }
   }
 
