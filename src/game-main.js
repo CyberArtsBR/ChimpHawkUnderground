@@ -35,6 +35,8 @@ import { GraphicsPipeline } from './graphics/GraphicsPipeline.js';
 import { SkateEffects } from './graphics/SkateEffects.js';
 import { WorldLife } from './graphics/WorldLife.js';
 import { ComboCallouts } from './game/ComboCallouts.js';
+import { SkateFlair } from './graphics/SkateFlair.js';
+import { SkyLife } from './graphics/SkyLife.js';
 import { GRAPHICS_PRESET_ORDER, loadGraphicsPreset, storeGraphicsPreset, normalizedGraphicsPreset, qualityFogDistance } from './graphics/GraphicsSettings.js';
 import { normalizeGlowOverrides, readGlowPresets, saveGlowPresets, initializeGlowDefaults, useCurrentGlowDefaults } from './graphics/GlowTuning.js';
 import './style.css';
@@ -171,6 +173,8 @@ const clock = new THREE.Clock();
 const skateAudio = new SkateAudio();
 worldLife.setAudio(skateAudio);
 const comboCallouts = new ComboCallouts({ audio: skateAudio });
+const skateFlair = new SkateFlair(); // rider rim light
+const skyLife = new SkyLife(scene);
 window.addEventListener('pointerdown', () => skateAudio.unlock(), { passive: true });
 window.addEventListener('keydown', () => skateAudio.unlock(), { passive: true });
 const legacyPark = new URLSearchParams(location.search).get('park') === 'legacy';
@@ -291,7 +295,7 @@ const gameShell = new GameShell({
   deck: index => skater?.board?.setFinish(index),
   effectsVolume: value => skateAudio.setEffectsVolume(value),
   cancelLoadout: () => { loadoutRequest++; skater?.cancelRiderSwap?.(); },
-  loadout: ({hero,board,location}) => selectLocation(location?.id, {hero,finish:board.finishIndex}),
+  loadout: ({hero,board,location}) => { skateFlair.setRiderAccent(hero?.accent); return selectLocation(location?.id, {hero,finish:board.finishIndex}); },
   testMap: ({file,hero,board,onProgress}) => selectLocation('test-map', {file,hero,finish:board.finishIndex,onProgress}),
 });
 skateAudio.onMusicDuck=({durationMs,amount,releaseMs})=>gameShell.music.duck(durationMs,amount,releaseMs);
@@ -324,7 +328,8 @@ function observeRunScoring(controller) {
         const oldBest=scoreRecords.get(currentWorld.id)?.bestCombo;
         skateAudio.onComboSettled?.({points:moment.points,id:currentWorld.id+':'+sessionEventTime,location:currentWorld.id,
           personalBest:!gameShell.practice&&oldBest>0&&moment.points>oldBest});
-        comboCallouts.show(moment.points);
+        const calloutTier = comboCallouts.show(moment.points);
+        if (calloutTier) skateFlair.comboGlow(calloutTier.level);
         if(moment.points>=1200){const node=document.getElementById('trick-feedback');node?.classList.remove('exceptional-line');
           requestAnimationFrame(()=>node?.classList.add('exceptional-line'));}
       }
@@ -364,6 +369,7 @@ function applyGraphicsPreset(name) {
   graphicsPreset=accepted.name;
   skateEffects.setQuality(graphicsPipeline.settings);
   worldLife.setQuality(graphicsPipeline.settings);
+  skyLife.setQuality(graphicsPipeline.settings);
   skateEffects.setSize(innerHeight,renderer.getPixelRatio());
   gameShell.graphicsIndex = GRAPHICS_PRESET_ORDER.indexOf(graphicsPreset);
   storeGraphicsPreset(graphicsStorage, graphicsPreset);
@@ -755,6 +761,7 @@ function commitWorld(world, runtime) {
     skateEffects.reset(skater);
     currentWorld = world;
     worldLife.setWorld(world);
+    skyLife.setWorld(world);
     ({ park, collision, manifest } = world);
     scene.add(park);
     graphicsPipeline.setWorld(park);
@@ -803,6 +810,7 @@ async function selectLocation(id, { hero, finish, file, onProgress } = {}) {
     if (hero?.url) {
       progress('LOADING YOUR CHARACTER…');
       preparedRider=await skater.prepareRiderModel(hero.url, { uploadFilename: hero.id === 'custom' ? hero.uploadFilename : '' });
+      skateFlair.patchRider(preparedRider?.root); // rim light compiles with the rider, not mid-run
     }
     progress('PREPARING PARK LIGHTING…');
     // Compile staged assets against the current lighting without attaching them
@@ -851,10 +859,13 @@ async function loadGame() {
     // Actor-only bloom: visual contains the skateboard and currently selected GLB rider.
     // Keeping the group reference automatically tracks later character hot-swaps.
     graphicsPipeline.setGlowTarget(skater.visual);
+    skateFlair.setRiderAccent(gameShell.heroes[gameShell.heroIndex]?.accent);
+    skateFlair.patchRider(skater.rider?.root);
     followCamera = new FollowCamera(camera);
     followCamera.setPreferences(playerPreferences);
     currentWorld = initialWorld;
     worldLife.setWorld(initialWorld);
+    skyLife.setWorld(initialWorld);
     ({ park, collision, manifest } = initialWorld);
     scene.add(park, sun.target);
     graphicsPipeline.setWorld(park);
@@ -963,6 +974,7 @@ document.querySelector('#wireframe').onclick = (event) => {
 };
 document.querySelector('#lighting').onclick = (event) => {
   dusk = !dusk;
+  skyLife.setDusk(dusk);
   applyLighting();
   event.currentTarget.setAttribute('aria-label', dusk ? 'Switch to afternoon' : 'Switch to blue hour');
 };
@@ -1082,6 +1094,7 @@ renderer.setAnimationLoop(() => {
       skateEffects.update(dt,skater);
       worldLife.update(dt,skater,camera);
       followCamera.update(skater, dt, state, skater._smoothedVisualPosition);
+      skateFlair.update(dt, skater);
       if (state.reset) followCamera.snap(skater);
     }
     updateHud();
@@ -1117,6 +1130,7 @@ renderer.setAnimationLoop(() => {
   // rather than running HDR and bloom behind an opaque title/options screen.
   if(gameShell.phase!=='select'&&(gameShell.active||(gameShell.phase==='highlights'&&document.hasFocus())||mode==='explore'||sceneNeedsRender)){
     if(gameShell.simulating)frameMetrics.begin();
+    skyLife.update(realDelta, camera);
     graphicsPipeline.render({ contactSource: gameShell.phase === 'highlights' ? null : skater });sceneNeedsRender=false;
     if(gameShell.simulating)frameMetrics.end();else frameMetrics.suspend();
     if(import.meta.env.DEV&&artCaptureMap&&!document.getElementById('art-thumbnail')){
