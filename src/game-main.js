@@ -43,6 +43,9 @@ import { ComboCallouts } from './game/ComboCallouts.js';
 import { SkyLife } from './graphics/SkyLife.js';
 import { MapDressing } from './graphics/MapDressing.js';
 import { MapAmbience } from './graphics/MapAmbience.js';
+import { Rumble } from './game/Rumble.js';
+import { ReactiveMusic } from './game/ReactiveMusic.js';
+import { LocalLeaderboard } from './game/LocalLeaderboard.js';
 import { GRAPHICS_PRESET_ORDER, loadGraphicsPreset, storeGraphicsPreset, normalizedGraphicsPreset, qualityFogDistance } from './graphics/GraphicsSettings.js';
 import { normalizeGlowOverrides, readGlowPresets, saveGlowPresets, initializeGlowDefaults, useCurrentGlowDefaults } from './graphics/GlowTuning.js';
 import './style.css';
@@ -187,6 +190,9 @@ window.addEventListener('keydown', () => skateAudio.unlock(), { passive: true })
 const legacyPark = new URLSearchParams(location.search).get('park') === 'legacy';
 const runSummary = new RunSummary();
 const scoreRecords=new ScoreRecords(graphicsStorage);
+const leaderboard=new LocalLeaderboard(graphicsStorage);
+const rumble=new Rumble();
+const reactiveMusic=new ReactiveMusic();
 let overtimeFirstRecord=false;
 const highlightRecorder = new HighlightRecorder();
 let runInProgress = false;
@@ -293,7 +299,7 @@ const gameShell = new GameShell({
     if(gameShell.sessionFlow.finishReason!=='landed')skater?.tricks.cancelCombo();
     const run=runSummary.finish({ totalScore: skater?.score || 0,
       durationSeconds: gameShell.practice ? runSummary.elapsedSeconds : gameShell.sessionFlow.elapsed });
-    return {...run,parkRecord:scoreRecords.record(currentWorld.id,run)};
+    return {...run,parkRecord:scoreRecords.record(currentWorld.id,run),leaderboard:leaderboard.record(currentWorld.id,run)};
   },
   canWatchHighlights: () => highlightClips.length > 0,
   watchHighlights: () => highlightPlayback.start(highlightClips),
@@ -318,6 +324,7 @@ const gameShell = new GameShell({
   portalsStart: (mapId, practice) => portalsPhase1?.gateway.track('skate_run_start', { map: mapId || 'rooftop', practice }),
   cancelLoadout: () => { loadoutRequest++; skater?.cancelRiderSwap?.(); },
   loadout: ({hero,board,location}) => selectLocation(location?.id, {hero,finish:board.finishIndex}),
+  boardStyle: style => skater?.board?.setStyle?.(style),
   testMap: ({file,hero,board,onProgress}) => selectLocation('test-map', {file,hero,finish:board.finishIndex,onProgress}),
 });
 skateAudio.onMusicDuck=({durationMs,amount,releaseMs})=>gameShell.music.duck(durationMs,amount,releaseMs);
@@ -1146,6 +1153,7 @@ renderer.setAnimationLoop(() => {
       worldLife.update(dt,skater,camera);
       followCamera.update(skater, dt, state, skater._smoothedVisualPosition);
       mapAmbience.update(dt, skater, camera);
+      rumble.update(dt, skater, gameShell.active);
       if (state.reset) followCamera.snap(skater);
     }
     updateHud();
@@ -1183,6 +1191,7 @@ renderer.setAnimationLoop(() => {
   if(gameShell.phase!=='select'&&(gameShell.active||(gameShell.phase==='highlights'&&document.hasFocus())||mode==='explore'||sceneNeedsRender)){
     if(gameShell.simulating)frameMetrics.begin();
     skyLife.update(realDelta, camera);
+    reactiveMusic.update(Math.min(realDelta, .1), { music: gameShell.music, audio: skateAudio, skater, active: gameShell.active });
     mapDressing.update(realDelta, skater, camera);
     graphicsPipeline.render({ contactSource: gameShell.phase === 'highlights' ? null : skater });sceneNeedsRender=false;
     if(gameShell.simulating)frameMetrics.end();else frameMetrics.suspend();
