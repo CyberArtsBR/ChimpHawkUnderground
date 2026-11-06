@@ -927,3 +927,90 @@
   #game-shell .drop-in-tips p { animation: none !important; opacity: 0; }
   #game-shell .drop-in-tips p:first-child { opacity: 1; }
 }
+
+/* ── Rider stage art: the crew's own render drops in when picked, then
+   stands still (no idle float, by request). ─────────────────────────── */
+#game-shell.loadout-screen .selected-rider .rider-art-stage {
+  position: relative;
+  overflow: visible;
+  min-height: 165px;
+}
+#game-shell.loadout-screen .selected-rider .rider-art-stage img.rider-art {
+  position: absolute;
+  left: 50%;
+  bottom: 4%;
+  top: auto;
+  width: auto;
+  height: 104%;
+  max-width: 118%;
+  object-fit: contain;
+  object-position: 50% 100%;
+  transform-origin: 50% 100%;
+  translate: -50% 0;
+  filter: drop-shadow(0 10px 8px rgba(4, 6, 14, .6)) drop-shadow(0 0 18px color-mix(in srgb, var(--stage, #ff5fae), transparent 70%));
+  animation: rider-art-drop .8s cubic-bezier(.3, .7, .3, 1) backwards;
+  z-index: 2;
+}
+@keyframes rider-art-drop {
+  0% { opacity: 0; transform: translateY(-70%) scale(.7) rotate(-8deg); }
+  38% { opacity: 1; transform: translateY(0) scaleX(.9) scaleY(1.12) rotate(2deg); }
+  50% { transform: translateY(0) scaleX(1.16) scaleY(.84) rotate(0); }
+  66% { transform: translateY(-9%) scaleX(.95) scaleY(1.06) rotate(-2deg); }
+  82% { transform: translateY(0) scaleX(1.04) scaleY(.97) rotate(0); }
+  100% { transform: translateY(0) scale(1) rotate(0); }
+}
+
+/* Colour burst behind the rider as they land. */
+#game-shell.loadout-screen .selected-rider .rider-art-burst {
+  position: absolute;
+  left: 50%;
+  top: 52%;
+  width: 150%;
+  aspect-ratio: 1;
+  translate: -50% -50%;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle, rgba(255, 255, 255, .9) 0 6%, color-mix(in srgb, var(--stage, #ff5fae), transparent 25%) 14%, transparent 42%),
+    repeating-conic-gradient(from 10deg, color-mix(in srgb, var(--stage, #ff5fae), transparent 40%) 0 6deg, transparent 6deg 24deg);
+  -webkit-mask: radial-gradient(circle, #000 10%, transparent 60%);
+  mask: radial-gradient(circle, #000 10%, transparent 60%);
+  mix-blend-mode: screen;
+  pointer-events: none;
+  opacity: 0;
+  z-index: 1;
+  animation: rider-art-burst .9s ease-out .26s both;
+}
+@keyframes rider-art-burst {
+  0% { opacity: 0; transform: scale(.2) rotate(0deg); }
+  25% { opacity: 1; }
+  100% { opacity: 0; transform: scale(1.15) rotate(40deg); }
+}
+
+/* Dust ring kicked up on the floor at landing. */
+#game-shell.loadout-screen .selected-rider .rider-art-dust {
+  position: absolute;
+  left: 50%;
+  bottom: 2%;
+  width: 90%;
+  height: 22%;
+  translate: -50% 0;
+  border-radius: 50%;
+  border: 2px solid color-mix(in srgb, var(--stage, #ff5fae), white 35%);
+  background: radial-gradient(ellipse, rgba(255, 255, 255, .35), transparent 70%);
+  box-shadow: 0 0 18px color-mix(in srgb, var(--stage, #ff5fae), transparent 35%);
+  pointer-events: none;
+  opacity: 0;
+  z-index: 1;
+  animation: rider-art-dust .7s ease-out .3s both;
+}
+@keyframes rider-art-dust {
+  0% { opacity: 0; transform: scale(.3, .5); }
+  20% { opacity: 1; }
+  100% { opacity: 0; transform: scale(1.5, 1.2); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #game-shell.loadout-screen .selected-rider .rider-art-stage img.rider-art { animation: none !important; }
+  #game-shell.loadout-screen .selected-rider .rider-art-burst,
+  #game-shell.loadout-screen .selected-rider .rider-art-dust { display: none; }
+}
