@@ -139,7 +139,9 @@ export class SkateEffects {
     // A real flickering light at the grind contact (always present, dark when idle).
     this.grindLight=new THREE.PointLight('#ffab4a',0,FX_TUNING.grindLightDistance,2);
     this.grindLight.name='Grind spark light';
-    this.root.add(this.grindLight);
+    // Lives in the scene, not in this root: the root is hidden in menus and in
+    // the glow pass, and a changing light count makes every shader recompile.
+    (scene||this.root).add(this.grindLight);
     this.puddles=this.bailLiquid.puddles;
   }
 
@@ -378,6 +380,7 @@ export class SkateEffects {
 
   dispose() {
     this.bailLiquid.dispose();
+    this.grindLight.removeFromParent();
     this.root.removeFromParent();
     this.dust.points.geometry.dispose();this.dust.points.material.dispose();
     this.glints.points.geometry.dispose();this.glints.points.material.dispose();

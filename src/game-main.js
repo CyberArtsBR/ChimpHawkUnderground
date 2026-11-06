@@ -1,7 +1,7 @@
 import { surfaceTagFor } from './game/SurfaceAudio.js';
 import { installModuleLoadRecovery } from './game/ModuleLoadRecovery.js';
 import { freezeStaticParkTransforms } from './graphics/StaticParkTransforms.js';
-import { warmScenePrograms, renderGameplayWarmup } from './graphics/ShaderWarmup.js';
+import { warmScenePrograms, warmFlashPrograms, renderGameplayWarmup } from './graphics/ShaderWarmup.js';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
@@ -862,6 +862,23 @@ function commitWorld(world, runtime) {
   if (previousWorld && previousWorld !== world) disposeParkWorld(previousWorld, world);
 }
 
+// While true the animation loop skips its draw, so shaders compile in the
+// background instead of linking synchronously on the first frame (page freeze).
+let shadersWarming = false;
+
+/** Compile every program the real frame will use, without blocking the page. */
+async function warmAllPrograms() {
+  if(mapDressing.pending&&mapDressing.world){mapDressing.pending=false;await mapDressing.build(mapDressing.world).catch(error=>console.warn('Map dressing skipped',error));}
+  await warmScenePrograms(renderer,scene,camera,{target:warmupTarget(),reveal:[skateEffects.root]});
+  await graphicsPipeline.compileBloomVariants?.().catch(()=>{});
+  await warmFlashPrograms(renderer,camera,scene,{skater,target:warmupTarget(),reveal:[skateEffects.root],alsoCompile:()=>graphicsPipeline.compileBloomVariants()});
+}
+
+/** The off-screen buffer the game actually draws the scene into (see ShaderWarmup). */
+function warmupTarget() {
+  return graphicsPipeline.settings?.postProcessing !== false ? graphicsPipeline.composer?.readBuffer || null : null;
+}
+
 async function selectLocation(id, { hero, finish, file, onProgress } = {}) {
   if (!loaded || !skater) throw new Error('Wait for the game to finish loading.');
   if (switchingWorld) throw new Error('A location is already loading.');
@@ -898,13 +915,17 @@ async function selectLocation(id, { hero, finish, file, onProgress } = {}) {
       }
     }
     await warmScenePrograms(renderer,scene,camera,{
-      isCurrent:()=>request===loadoutRequest,
+      isCurrent:()=>request===loadoutRequest,target:warmupTarget(),reveal:[skateEffects.root],
     });
     if(request!==loadoutRequest){if(nextWorld)disposeParkWorld(nextWorld,currentWorld);return false;}
     // One synchronous commit boundary: Back cannot interleave halfway through.
     if(runtime)commitWorld(candidate,runtime);
     preparedRider?.commit();
     if(finish!=null)skater.board.setFinish(finish);
+    // The committed map changes fog / environment and adds its dressing, so
+    // compile once more against the final scene before the first real frame.
+    progress('PREPARING SHADERS…');
+    await warmAllPrograms();
     followCamera.snap(skater);
     try{renderGameplayWarmup({skater,effects:skateEffects,
       render:()=>graphicsPipeline.render({contactSource:skater,warmup:true})});}catch(error){console.warn('Presentation warmup skipped',error);}
@@ -931,6 +952,7 @@ async function loadGame() {
       rails: initialWorld.manifest.rails, playableRegions: initialWorld.manifest.playableRegions })
       .load({riderUrl:gameShell.heroes[0].url});
     observeRunScoring(skater);
+    shadersWarming = true;
     scene.add(skater.root);
     // Actor-only bloom: visual contains the skateboard and currently selected GLB rider.
     // Keeping the group reference automatically tracks later character hot-swaps.
@@ -964,10 +986,13 @@ async function loadGame() {
     const soundButton = document.querySelector('#sound-toggle');
     setSkateSound(skateAudio.enabled);
     soundButton.onclick = () => { setSkateSound(!skateAudio.enabled); portalsPhase1?.settingsChanged(); soundButton.blur(); };
-    document.querySelector('#loading').classList.add('done');
+    document.querySelector('#load-progress').textContent = 'Preparing shaders';
     loaded = true;
     setMode('skate');
     setPaused(true);
+    // Warm with the final skating setup (mode, pause, camera) in place.
+    try { await warmAllPrograms(); } finally { shadersWarming = false; }
+    document.querySelector('#loading').classList.add('done');
     gameShell.setReady();
     portalsPhase1.onGameReady();
     // A managed Portals Party launches online immediately, no manual sub-lobby.
@@ -1020,6 +1045,7 @@ async function loadGame() {
       }
     }
   } catch (error) {
+    shadersWarming = false;
     loaded = false;
     gameShell.ready = false;
     if (initialWorld) disposeParkWorld(initialWorld);
@@ -1232,7 +1258,7 @@ renderer.setAnimationLoop(() => {
     updateFloorFinishTime(elapsed);
     reactiveMusic.update(Math.min(realDelta, .1), { music: gameShell.music, audio: skateAudio, skater, active: gameShell.active });
     mapDressing.update(realDelta, skater, camera);
-    graphicsPipeline.render({ contactSource: gameShell.phase === 'highlights' ? null : skater });sceneNeedsRender=false;
+    if (!shadersWarming) { graphicsPipeline.render({ contactSource: gameShell.phase === 'highlights' ? null : skater });sceneNeedsRender=false; }
     if(gameShell.simulating)frameMetrics.end();else frameMetrics.suspend();
     if(import.meta.env.DEV&&artCaptureMap&&!document.getElementById('art-thumbnail')){
       // Bake a compact WebP directly from the rendered canvas, after this frame.

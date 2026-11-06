@@ -271,6 +271,35 @@ export class GraphicsPipeline {
     }
   }
 
+  /**
+   * Compile the glow-mask variants ahead of time: the selective bloom pass draws
+   * the rider and LED meshes with fog off into the bloom buffer, which needs its
+   * own shader variants. Without this they link synchronously on the first frame.
+   */
+  compileBloomVariants() {
+    if (!this.glowRoot?.parent || !this.renderer?.compileAsync || !this.bloomComposer) return Promise.resolve();
+    this.refreshBloomSceneCache();
+    const roots = [this.glowRoot, ...this.bloomEnvironmentEmissives];
+    const fog = this.scene.fog, previous = this.renderer.getRenderTarget();
+    // Mirror renderSelectiveBloom exactly: fog off and the effects (with the
+    // grind spark light), reflections and contact patch hidden. Light count and
+    // fog are part of the shader variant.
+    const hidden = [this.effectsRoot, this.reflectionRoot, this.wheelContactShadows?.mesh].filter(o => o?.visible);
+    const pending = [];
+    try {
+      this.scene.fog = null;
+      for (const object of hidden) object.visible = false;
+      this.renderer.setRenderTarget(this.bloomComposer.readBuffer);
+      // compile() runs synchronously here; only completion is awaited later.
+      for (const root of roots) pending.push(this.renderer.compileAsync(root, this.camera, this.scene));
+    } finally {
+      this.scene.fog = fog;
+      for (const object of hidden) object.visible = true;
+      this.renderer.setRenderTarget(previous);
+    }
+    return Promise.allSettled(pending);
+  }
+
   refreshBloomSceneCache() {
     const meshes = [];
     this.scene.traverse(object => { if (object.isMesh) meshes.push(object); });
