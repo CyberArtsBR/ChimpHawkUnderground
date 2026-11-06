@@ -40,6 +40,9 @@ import { GraphicsPipeline } from './graphics/GraphicsPipeline.js';
 import { SkateEffects } from './graphics/SkateEffects.js';
 import { WorldLife } from './graphics/WorldLife.js';
 import { ComboCallouts } from './game/ComboCallouts.js';
+import { SkyLife } from './graphics/SkyLife.js';
+import { MapDressing } from './graphics/MapDressing.js';
+import { MapAmbience } from './graphics/MapAmbience.js';
 import { GRAPHICS_PRESET_ORDER, loadGraphicsPreset, storeGraphicsPreset, normalizedGraphicsPreset, qualityFogDistance } from './graphics/GraphicsSettings.js';
 import { normalizeGlowOverrides, readGlowPresets, saveGlowPresets, initializeGlowDefaults, useCurrentGlowDefaults } from './graphics/GlowTuning.js';
 import './style.css';
@@ -176,6 +179,9 @@ const clock = new THREE.Clock();
 const skateAudio = new SkateAudio();
 worldLife.setAudio(skateAudio);
 const comboCallouts = new ComboCallouts({ audio: skateAudio });
+const skyLife = new SkyLife(scene);
+const mapDressing = new MapDressing(scene);
+const mapAmbience = new MapAmbience(scene);
 window.addEventListener('pointerdown', () => skateAudio.unlock(), { passive: true });
 window.addEventListener('keydown', () => skateAudio.unlock(), { passive: true });
 const legacyPark = new URLSearchParams(location.search).get('park') === 'legacy';
@@ -393,6 +399,9 @@ function applyGraphicsPreset(name) {
   graphicsPreset=accepted.name;
   skateEffects.setQuality(graphicsPipeline.settings);
   worldLife.setQuality(graphicsPipeline.settings);
+  skyLife.setQuality(graphicsPipeline.settings);
+  mapDressing.setQuality(graphicsPipeline.settings);
+  mapAmbience.setQuality(graphicsPipeline.settings);
   skateEffects.setSize(innerHeight,renderer.getPixelRatio());
   gameShell.graphicsIndex = GRAPHICS_PRESET_ORDER.indexOf(graphicsPreset);
   storeGraphicsPreset(graphicsStorage, graphicsPreset);
@@ -790,6 +799,9 @@ function commitWorld(world, runtime) {
     skateEffects.reset(skater);
     currentWorld = world;
     worldLife.setWorld(world);
+    skyLife.setWorld(world);
+    mapDressing.setWorld(world);
+    mapAmbience.setWorld(world);
     ({ park, collision, manifest } = world);
     scene.add(park);
     graphicsPipeline.setWorld(park);
@@ -890,6 +902,9 @@ async function loadGame() {
     followCamera.setPreferences(playerPreferences);
     currentWorld = initialWorld;
     worldLife.setWorld(initialWorld);
+    skyLife.setWorld(initialWorld);
+    mapDressing.setWorld(initialWorld);
+    mapAmbience.setWorld(initialWorld);
     ({ park, collision, manifest } = initialWorld);
     scene.add(park, sun.target);
     graphicsPipeline.setWorld(park);
@@ -920,7 +935,7 @@ async function loadGame() {
     // A managed Portals Party launches online immediately, no manual sub-lobby.
     void portalsOnline?.autoJoinHostedSession();
     window.streetSkate = {
-      ready: true, scene, renderer, camera, manifest, park, collision, skater,
+      ready: true, scene, renderer, camera, manifest, park, collision, skater, mapDressing, mapAmbience, followCamera,
       currentLocation: currentWorld.id, selectLocation,
       graphicsStatus: () => graphicsPipeline.getStatus(),
       performanceMetrics:()=>({...frameMetrics.value}),
@@ -1130,6 +1145,7 @@ renderer.setAnimationLoop(() => {
       skateEffects.update(dt,skater);
       worldLife.update(dt,skater,camera);
       followCamera.update(skater, dt, state, skater._smoothedVisualPosition);
+      mapAmbience.update(dt, skater, camera);
       if (state.reset) followCamera.snap(skater);
     }
     updateHud();
@@ -1166,6 +1182,8 @@ renderer.setAnimationLoop(() => {
   // rather than running HDR and bloom behind an opaque title/options screen.
   if(gameShell.phase!=='select'&&(gameShell.active||(gameShell.phase==='highlights'&&document.hasFocus())||mode==='explore'||sceneNeedsRender)){
     if(gameShell.simulating)frameMetrics.begin();
+    skyLife.update(realDelta, camera);
+    mapDressing.update(realDelta, skater, camera);
     graphicsPipeline.render({ contactSource: gameShell.phase === 'highlights' ? null : skater });sceneNeedsRender=false;
     if(gameShell.simulating)frameMetrics.end();else frameMetrics.suspend();
     if(import.meta.env.DEV&&artCaptureMap&&!document.getElementById('art-thumbnail')){

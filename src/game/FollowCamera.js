@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { resolveCameraClearance } from './CameraClearance.js';
-import { CAMERA_MODES } from './CameraModes.js';
+import { CAMERA_MODES, DEFAULT_CAMERA_MODE } from './CameraModes.js';
 import {
   captureCameraState,
   resolveCameraTravelDirection,
@@ -58,7 +58,20 @@ export const THPS_CAMERA = Object.freeze({
   landingHoldTime: 0.9,
   returnReframeRate: 8,
   reverseReturnReframeRate: 2.4,
+  // Follow Classic 2 (2026-11): the vert-air swing pauses at a raised side view on
+  // the open side of the ramp, then finishes behind the rider on the way down.
+  testOrbitMinimumAngle: 100 * Math.PI / 180,
+  testRiseSeconds: .38,
+  testHoldMinimum: .22,
+  testHoldMaximum: .9,
+  testFinishSeconds: .5,
+  testCraneHeight: 3,     // camera rises during the swing so it passes above the coping
+  testCranePull: .15,      // and comes ~15% closer at the halfway pause
 });
+
+const easeInOut = t => t * t * (3 - 2 * t);
+const yawOf = v => Math.atan2(v.x, v.z);
+const directionOfYaw = yaw => new THREE.Vector3(Math.sin(yaw), 0, Math.cos(yaw));
 
 function wrapAngle(value) {
   let result = (value + Math.PI) % (Math.PI * 2);
@@ -157,7 +170,7 @@ export class FollowCamera {
     this.camera = camera;
     this.preferences = { cameraDistance: 1, cameraFov: 58, speedFov: 1 };
     this.motionPreference=globalThis.matchMedia?.('(prefers-reduced-motion: reduce)');
-    this.mode = 'follow';
+    this.mode = DEFAULT_CAMERA_MODE;
     this.position = new THREE.Vector3();
     this.target = new THREE.Vector3();
     this.direction = new THREE.Vector3(0, 0, -1);
@@ -179,10 +192,56 @@ export class FollowCamera {
     this.aimTarget = null;
     this.airborneTime = 0;
     this.landingSettle = 0;
+    this.testOrbit = null;
+    this.testCrane = 0;
+  }
+
+  /**
+   * Follow Test: choose the halfway (side-view) yaw with the most clear space,
+   * checked with the same camera collision ray the rig uses everywhere else.
+   */
+  chooseOrbitSide(player, fromYaw, deltaYaw, distance, height) {
+    const natural = Math.sign(deltaYaw) || 1;
+    const surface = player?.surface;
+    if (!surface?.camera || !player?.position) return natural;
+    const anchor = player.position.clone().addScaledVector(UP, THPS_CAMERA.anchorHeight);
+    const clearance = side => {
+      const eye = anchor.clone().addScaledVector(directionOfYaw(fromYaw + side * Math.PI / 2), -distance)
+        .addScaledVector(UP, height + THPS_CAMERA.testCraneHeight);
+      return surface.camera(anchor, eye, .28).distanceTo(anchor);
+    };
+    const a = clearance(natural), b = clearance(-natural);
+    return b > a + .75 ? -natural : natural;
+  }
+
+  /** Advance the staged Follow Test swing; returns the camera yaw to use. */
+  stepTestOrbit(state, dt, landed) {
+    const o = this.testOrbit, C = THPS_CAMERA;
+    o.time += dt;
+    if (o.stage === 'rise') {
+      const t = Math.min(1, o.time / C.testRiseSeconds);
+      o.yaw = o.from + o.side * (Math.PI / 2) * easeInOut(t);
+      this.testCrane = C.testCraneHeight * easeInOut(t);
+      if (t >= 1) { o.stage = 'hold'; o.time = 0; }
+    } else if (o.stage === 'hold') {
+      o.yaw = o.from + o.side * Math.PI / 2;
+      this.testCrane = C.testCraneHeight;
+      const pastApex = state.verticalSpeed <= 0 && o.time >= C.testHoldMinimum;
+      if (pastApex || o.time >= C.testHoldMaximum || landed) { o.stage = 'finish'; o.time = 0; o.mid = o.yaw; }
+    } else {
+      // Finish the swing in the same rotational direction, onto the return heading.
+      const remaining = wrapAngle(o.to - o.mid);
+      const sweep = Math.sign(remaining) === o.side || Math.abs(remaining) < 1e-3 ? remaining : remaining + o.side * Math.PI * 2;
+      const t = Math.min(1, o.time / (landed ? C.testFinishSeconds * .5 : C.testFinishSeconds));
+      o.yaw = o.mid + sweep * easeInOut(t);
+      this.testCrane = C.testCraneHeight * (1 - easeInOut(t));
+      if (t >= 1) { this.testOrbit = null; this.testCrane = 0; this.testOrbitCooldown = .8; return o.yaw; }
+    }
+    return o.yaw;
   }
 
   setMode(mode, player = null) {
-    this.mode = CAMERA_MODES.includes(mode) ? mode : 'follow';
+    this.mode = CAMERA_MODES.includes(mode) ? mode : DEFAULT_CAMERA_MODE;
     this.camera.fov = this.preferences.cameraFov;
     this.camera.updateProjectionMatrix();
     if (player) this.snap(player);
@@ -213,6 +272,8 @@ export class FollowCamera {
     this.aimTarget = null;
     this.airborneTime = 0;
     this.landingSettle = 0;
+    this.testOrbit = null;
+    this.testCrane = 0;
     this.update(player, 1, {});
   }
 
@@ -226,7 +287,8 @@ export class FollowCamera {
       presentationPosition,
     });
     const classic = this.mode !== 'fixed';
-    const highFollow = this.mode === 'follow' || this.mode === 'follow-close' || this.mode === 'follow-low';
+    const highFollow = this.mode === 'follow' || this.mode === 'follow-test' || this.mode === 'follow-close' || this.mode === 'follow-low';
+    const testOrbitMode = this.mode === 'follow-test';
     const returning = state.transitionReturning;
     this.landingSettle = Math.max(0, this.landingSettle - dt);
     if (!state.grounded && !state.grindActive && !state.bailing) this.airborneTime += dt;
@@ -245,6 +307,29 @@ export class FollowCamera {
         // A trick/vert transition must not reset a player-selected look angle
         // in one frame. Release manual look through the normal damped recovery.
         if (highFollow) this.lookHold = 0;
+        if (testOrbitMode && !firstFrame) {
+          const from = yawOf(this.direction), to = yawOf(this.vertDirection), delta = wrapAngle(to - from);
+          if (Math.abs(delta) >= THPS_CAMERA.testOrbitMinimumAngle) {
+            const frame = highFollowFraming({ ...state, transitionReturning: true });
+            const side = this.chooseOrbitSide(player, from, delta, frame.distance, frame.height);
+            this.testOrbit = { stage: 'rise', time: 0, from, to, side, yaw: from, mid: from, source: 'vert' };
+          }
+        }
+      }
+      // Vert air off any ramp (rising mostly straight up): start the staged
+      // orbit as the rider climbs, so the camera is at the side view, above
+      // the coping, before the ramp can come between it and the rider.
+      this.testOrbitCooldown = Math.max(0, (this.testOrbitCooldown || 0) - dt);
+      if (testOrbitMode && !this.testOrbit && !firstFrame && !this.testOrbitCooldown && !state.bailing
+        && !state.grindActive && !state.grounded && this.airborneTime > .04 && state.verticalSpeed > 3
+        && state.horizontalSpeed < Math.max(3.5, state.verticalSpeed * .7)) {
+        const from = yawOf(this.direction), to = wrapAngle(from + Math.PI);
+        const frame = highFollowFraming({ ...state, transitionReturning: true });
+        const side = this.chooseOrbitSide(player, from, Math.PI, frame.distance, frame.height);
+        this.testOrbit = { stage: 'rise', time: 0, from, to, side, yaw: from, mid: from, source: 'air' };
+      }
+      if (this.testOrbit && !returning && state.grounded && this.testOrbit.stage !== 'finish') {
+        this.testOrbit.stage = 'finish'; this.testOrbit.time = 0; this.testOrbit.mid = this.testOrbit.yaw;
       }
       if (returning) this.returnHold = THPS_CAMERA.landingHoldTime;
       else {
@@ -260,7 +345,13 @@ export class FollowCamera {
       }
       // High Follow anticipates the downhill return as soon as vert air begins.
       // Classic retains its original ramp-side framing. Trick spins steer neither.
-      if (returning || this.returnHold > 0) {
+      if (this.testOrbit) {
+        // Aim the end of the swing at the return heading: the vert return when the
+        // game reports one, otherwise the real travel once the rider is coming back.
+        if (this.testOrbit.source === 'vert') this.testOrbit.to = yawOf(this.vertDirection);
+        else if (state.verticalSpeed < 0 && state.horizontalSpeed > 2) this.testOrbit.to = yawOf(state.travelDirection);
+        this.direction.copy(directionOfYaw(this.stepTestOrbit(state, dt, state.grounded && !returning)));
+      } else if (returning || this.returnHold > 0) {
         if (highFollow) {
           // Even a true 180-degree coping reversal must not whip the camera.
           const reverse = this.direction.dot(this.vertDirection) < THPS_CAMERA.reverseDotThreshold;
@@ -348,8 +439,10 @@ export class FollowCamera {
       ? baseLead + (returning ? 0 : fastLead * (highFollow ? 1 : 0.45)) : 0;
     this.lookAhead = classic ? THREE.MathUtils.lerp(this.lookAhead, lookAheadTarget,
       this.initialized ? 1 - Math.exp(-8 * dt) : 1) : 0;
-    let frameDistance = this.distance * this.preferences.cameraDistance;
-    let frameHeight = this.height + (classic ? this.lookTilt * 3 : 0);
+    let frameDistance = this.distance * this.preferences.cameraDistance
+      * (testOrbitMode ? 1 - THPS_CAMERA.testCranePull * (this.testCrane / THPS_CAMERA.testCraneHeight) : 1);
+    if (!this.testOrbit) this.testCrane = Math.max(0, this.testCrane - dt * 4);
+    let frameHeight = this.height + (classic ? this.lookTilt * 3 : 0) + (testOrbitMode ? this.testCrane : 0);
     if (this.mode === 'follow-close' || this.mode === 'follow-low') {
       // Scale the whole eye-to-target vector to keep the Follow viewing angle;
       // the low variant uses the same closer distance with a lower eye.

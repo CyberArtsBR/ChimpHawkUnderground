@@ -20,7 +20,7 @@ import { STICK_DEAD_ZONES } from '../input/SkateInput.js';
 import { SessionFlow } from './SessionFlow.js';
 import { renderPlayerSettings, PlayerSettingsPanel } from './PlayerSettingsPanel.js';
 import { readPlayerPreferences, applyPlayerPreferences } from './PlayerPreferences.js';
-import { CAMERA_MODES, CAMERA_LABELS } from './CameraModes.js';
+import { CAMERA_MODES, CAMERA_LABELS, DEFAULT_CAMERA_MODE } from './CameraModes.js';
 import { GLOW_CONTROLS, stepGlowValue } from '../graphics/GlowTuning.js';
 
 const safe = value => String(value).replace(/[&<>"']/g, ch =>
@@ -42,7 +42,11 @@ export class GameShell {
     this.selection=0;this.previousPad={};this.padFocused=false;this.padIdentity=null;this.navRepeat=0;this.tutorialSeen=false;this.page=0;
     this.pages=[{image:gameAssetUrl('/media/trick-guide-16x9.webp')},...tutorialPages()];
     this.flipLessonIndex=0;this.flipInputMode='xbox';this.flipPlayer=null;
-    this.cameraIndex=Math.max(0,CAMERA_MODES.indexOf(stored('streetskate.camera','follow')));
+    // Follow Classic 2 became the default (2026-11): switch every player to it
+    // once, then remember whatever camera they pick afterwards.
+    const cameraDefaultApplied=stored('streetskate.cameraDefault','')===DEFAULT_CAMERA_MODE;
+    if(!cameraDefaultApplied){persist('streetskate.cameraDefault',DEFAULT_CAMERA_MODE);persist('streetskate.camera',DEFAULT_CAMERA_MODE);}
+    this.cameraIndex=Math.max(0,CAMERA_MODES.indexOf(cameraDefaultApplied?stored('streetskate.camera',DEFAULT_CAMERA_MODE):DEFAULT_CAMERA_MODE));
     this.graphicsIndex=GRAPHICS_PRESET_ORDER.indexOf(DEFAULT_GRAPHICS_PRESET);
     this.bloomEnabled=stored('streetskate.bloomEnabled','on')!=='off';
     this.smoothEdges=stored('streetskate.smoothEdges','on')==='on';
