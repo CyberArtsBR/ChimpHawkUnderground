@@ -86,7 +86,11 @@ export class DownhillRun {
     this.cones = [];
     this.centre = [];
     this.progress = 0;
-    this.onRestart = null;
+    this.onAdvance = null;     // async: build the next stretch, resolve true on success
+    this.onRestart = null;     // fallback: back to the top of this stretch
+    this.swapping = false;
+    this.stretch = 1;
+    this.distanceBase = 0;
     this.geometry = typeof document === 'undefined' ? null : bananaGeometry();
     this.glow = typeof document === 'undefined' ? null : glowTexture();
     this.matrix = new THREE.Matrix4(); this.quat = new THREE.Quaternion(); this.scaleV = new THREE.Vector3(); this.pos = new THREE.Vector3();
@@ -95,14 +99,14 @@ export class DownhillRun {
   }
 
   /** Game simulation speed multiplier (1 normally, slower in bullet time). */
-  get timeScale() { return this.active ? this.scale : 1; }
+  get timeScale() { return this.active ? (this.swapping ? 0 : this.scale) : 1; }
 
   buildHud() {
     if (typeof document === 'undefined') return;
     const hud = document.createElement('div');
     hud.id = 'banana-hud'; hud.hidden = true;
     hud.innerHTML = `<svg viewBox="0 0 64 64" aria-hidden="true"><path d="M10 40c10 14 34 16 46-6 2-4-2-6-4-3-10 15-28 13-38 2-2-2-6 3-4 7z" fill="#ffd93b" stroke="#3a2a10" stroke-width="3" stroke-linejoin="round"/><path d="M52 31l5-9" stroke="#5a4320" stroke-width="5" stroke-linecap="round"/></svg>
-      <span class="banana-count"><b>0</b><i>/${DOWNHILL_RUN.bananasForBulletTime}</i></span><span class="banana-meter"><span></span></span>`;
+      <span class="stretch-label">STRETCH <b>1</b></span><span class="banana-count"><b>0</b><i>/${DOWNHILL_RUN.bananasForBulletTime}</i></span><span class="banana-meter"><span></span></span>`;
     document.body.append(hud);
     this.hud = hud;
   }
@@ -115,9 +119,13 @@ export class DownhillRun {
     }
     this.bananas = []; this.cones = [];
     const data = world?.downhill;
+    // A new stretch in the same run keeps bananas and bullet time; a new map starts fresh.
+    const continuing = this.active && Boolean(data) && (data.stretch || 1) > 1;
     this.active = Boolean(data);
-    this.endBulletTime(true);
-    this.count = 0; this.progress = 0;
+    if (!continuing) { this.endBulletTime(true); this.count = 0; this.distanceBase = 0; }
+    this.stretch = data?.stretch || 1;
+    this.progress = 0;
+    if (this.hud) this.hud.querySelector('.stretch-label b').textContent = String(this.stretch);
     if (this.hud) this.hud.hidden = !this.active;
     this.updateHud();
     if (!this.active || !this.geometry) return;
@@ -197,6 +205,28 @@ export class DownhillRun {
     if (was && !silent) this.whoosh(false);
   }
 
+  async enterTunnel() {
+    this.swapping = true;
+    document.body.classList.add('downhill-fade');
+    const finished = this.length || 0;
+    await new Promise(resolve => setTimeout(resolve, 380));
+    let advanced = false;
+    try { advanced = Boolean(await this.onAdvance?.()); } catch (error) { console.warn('Next stretch failed', error); }
+    if (advanced) {
+      this.distanceBase += finished;
+      const km = (this.distanceBase / 1000).toFixed(1);
+      setTimeout(() => this.callouts?.showLabel?.(`STRETCH ${this.stretch}`, `${km} KM`, { letters: 'cyan-purple', digits: 'gold', tone: 'gold', level: 2 }), 250);
+    } else {
+      // Could not build a new hill: ride this one again from the top.
+      this.onRestart?.();
+      for (const b of this.bananas) { b.taken = false; b.pop = 0; }
+      for (const c of this.cones) { c.hit = false; c.tip = 0; c.group.position.copy(c.home); c.group.quaternion.copy(c.homeQuat); }
+      this.progress = 0;
+    }
+    document.body.classList.remove('downhill-fade');
+    this.swapping = false;
+  }
+
   /** Nearest centre-line index near the last one (cheap progress tracking). */
   track(position) {
     let best = this.progress, bestD = Infinity;
@@ -270,21 +300,10 @@ export class DownhillRun {
         if (cone.tip > 1.2) cone.velocity.y = Math.max(0, cone.velocity.y);
       }
     }
-    // Reaching the tunnel: back to the top.
-    if (rider && this.centre.length) {
+    // Reaching the tunnel: freeze behind a fade and build the next stretch.
+    if (rider && this.centre.length && !this.swapping) {
       const i = this.track(rider);
-      if (i >= this.centre.length - Math.round(26 / 1.5) && !this.restarting) {
-        this.restarting = true;
-        document.body.classList.add('downhill-fade');
-        setTimeout(() => {
-          this.onRestart?.();
-          for (const b of this.bananas) { b.taken = false; b.pop = 0; }
-          for (const c of this.cones) { c.hit = false; c.tip = 0; c.group.position.copy(c.home); c.group.quaternion.copy(c.homeQuat); }
-          this.progress = 0;
-          document.body.classList.remove('downhill-fade');
-          this.restarting = false;
-        }, 450);
-      }
+      if (i >= this.centre.length - Math.round(26 / 1.5)) this.enterTunnel();
     }
   }
 }

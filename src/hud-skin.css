@@ -327,3 +327,5 @@ body.downhill-fade::before {
 }
 @keyframes downhill-fade { from { opacity: 0; } to { opacity: 1; } }
 @media (prefers-reduced-motion: reduce) { body.banana-time::after { animation: none; } }
+#banana-hud .stretch-label { font: 800 11px/1 'Barlow Condensed', sans-serif; letter-spacing: .2em; color: #9fe8ff; padding-right: 8px; margin-right: 2px; border-right: 1px solid rgba(255, 255, 255, .15); }
+#banana-hud .stretch-label b { display: block; font: 400 22px/1 'Bangers', Impact, sans-serif; letter-spacing: .04em; color: #ffffff; text-align: center; }

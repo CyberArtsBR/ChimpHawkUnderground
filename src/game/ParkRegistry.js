@@ -48,7 +48,7 @@ export const PARK_REGISTRY = Object.freeze({
   'downhill-bomb': {
     name: 'Downhill Bomb',
     create: async () => (await import('../park/DownhillBomb.js')).createDownhillBomb(),
-    presentation: { center: [0, -80, -800], sky: true, exposure: 1.04,
+    presentation: { center: [0, 120, -800], sky: true, exposure: 1.04,
       fogColor: '#b98f9c', fogDensity: 0.0011,
       ambientSky: '#c0c6e8', ambientGround: '#6a5458', ambientIntensity: .66,
       keyColor: '#ffbc85', keyIntensity: 2.8, keyPosition: [-60, 40, -30],

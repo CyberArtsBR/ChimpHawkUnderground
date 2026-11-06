@@ -138,10 +138,21 @@ const BUILDING_STYLES = [
 ];
 
 // ── The generator ───────────────────────────────────────────────────────
-export function createDownhillBomb({ seed = (Date.now() & 0xffffff) } = {}) {
+/** Endless mode: the next stretch to build (1 = the first hill of a session). */
+const nextStretch = { stretch: 1, seed: null };
+export function setDownhillStretch(stretch = 1, seed = null) {
+  nextStretch.stretch = Math.max(1, Math.floor(Number(stretch) || 1));
+  nextStretch.seed = seed;
+}
+
+/** How much harder each stretch gets (0 on the first, capped). */
+export function stretchDifficulty(stretch) { return Math.min(1, (Math.max(1, stretch) - 1) / 5); }
+
+export function createDownhillBomb({ seed = nextStretch.seed ?? (Date.now() & 0xffffff), stretch = nextStretch.stretch } = {}) {
+  const hard = stretchDifficulty(stretch);
   const rand = seeded(seed);
   const C = DOWNHILL, W = C.halfWidth;
-  const park = new THREE.Group(); park.name = `Downhill Bomb (seed ${seed})`;
+  const park = new THREE.Group(); park.name = `Downhill Bomb (stretch ${stretch}, seed ${seed})`;
   const collision = new THREE.Group(); collision.name = 'Downhill Bomb collision';
   const rails = [];
   const bananas = [];
@@ -152,8 +163,8 @@ export function createDownhillBomb({ seed = (Date.now() & 0xffffff) } = {}) {
   const kappaRaw = new Float32Array(count);
   let s = C.startFlat + 50, sign = rand() < .5 ? 1 : -1;
   while (s < C.length - 80) {
-    s += 25 + rand() * 40; // straight
-    const radius = 48 + rand() * 55, angle = (35 + rand() * 50) * Math.PI / 180, len = radius * angle;
+    s += (25 + rand() * 40) * (1 - hard * .35); // straight
+    const radius = (48 + rand() * 55) * (1 - hard * .2), angle = (35 + rand() * 50) * Math.PI / 180, len = radius * angle;
     if (rand() < .72) sign = -sign;
     const i0 = Math.floor(s / C.step), i1 = Math.min(count - 1, Math.floor((s + len) / C.step));
     for (let i = i0; i <= i1; i++) kappaRaw[i] = sign / radius;
@@ -172,8 +183,11 @@ export function createDownhillBomb({ seed = (Date.now() & 0xffffff) } = {}) {
   let x = 0, z = 0, y = 0, th = 0;
   for (let i = 0; i < count; i++) {
     const si = i * C.step; sArr[i] = si;
-    const intro = clamp((si - C.startFlat) / 45, 0, 1), outro = clamp((C.length - 30 - si) / 25, 0, 1);
-    const g = smooth(intro) * outro * (C.gradeStart + (C.gradeEnd - C.gradeStart) * (si / C.length) + .02 * Math.sin(si / 41) * (si > 120 ? 1 : 0));
+    // Later stretches start on a short flat (the spawn must be level) and ramp
+    // in quickly; the slope runs almost to the tunnel so speed carries through.
+    const flat = stretch > 1 ? 22 : C.startFlat, rampIn = stretch > 1 ? 22 : 45;
+    const intro = clamp((si - flat) / rampIn, 0, 1), outro = clamp((C.length - 14 - si) / 14, 0, 1);
+    const g = smooth(intro) * outro * (C.gradeStart + hard * .04 + (C.gradeEnd - C.gradeStart) * (si / C.length) + .02 * Math.sin(si / 41) * (si > 120 ? 1 : 0));
     grade[i] = g; theta[i] = th;
     const dir = new THREE.Vector3(-Math.sin(th), 0, -Math.cos(th));
     const right = new THREE.Vector3(Math.cos(th), 0, -Math.sin(th));
@@ -185,6 +199,10 @@ export function createDownhillBomb({ seed = (Date.now() & 0xffffff) } = {}) {
     x += dir.x * C.step; z += dir.z * C.step; y -= g * C.step;
     th -= kappa[i] * C.step;
   }
+  // The game resets any rider below y = -6 as "fallen out of the world", so the
+  // whole hill is lifted until its lowest point sits safely above ground level.
+  const lowest = Math.min(...P.map(p => p.y));
+  for (const p of P) p.y += 4 - lowest;
   const point = (i, u, h) => P[i].clone().addScaledVector(L[i], u).addScaledVector(N[i], h);
   /** Interpolated local frame at distance s (for features). */
   const frameAt = si => {
@@ -397,7 +415,7 @@ export function createDownhillBomb({ seed = (Date.now() & 0xffffff) } = {}) {
   while (fs < C.length - 70) {
     const f = frameAt(fs);
     const curvy = Math.abs(kappa[f.i]) > 1 / 120;
-    const difficulty = fs / C.length;
+    const difficulty = Math.min(1.4, fs / C.length + hard * .6);
     const lane = lanes[Math.floor(rand() * 3)];
     const free = lanes.filter(l => l !== lane);
     const roll = rand();
@@ -464,14 +482,14 @@ export function createDownhillBomb({ seed = (Date.now() & 0xffffff) } = {}) {
     bananaLine(fs + used + 6, free[Math.floor(rand() * free.length)], .8, 5, 2.4);
     if (rand() < .7) bananaLine(fs + used + 24, lanes[Math.floor(rand() * 3)], .8, 5, 2.4);
     featureCount++;
-    fs += used + 34 + rand() * 40 * (1.1 - difficulty * .4);
+    fs += (used + 34 + rand() * 40 * (1.1 - Math.min(1, difficulty) * .4)) * (1 - hard * .3);
   }
 
   // 7) City around the hill.
   buildCity({ park, rand, count, P, L, D, theta, sArr, W, sidewalk: C.sidewalk, point, kappa, taper, bankSide });
 
   // 8) Start platform gate and the tunnel at the bottom.
-  buildGateAndTunnel({ park, collision, mats, point, frameAt, local, count, sArr, W, C, addMesh });
+  buildGateAndTunnel({ park, collision, mats, point, frameAt, local, count, sArr, W, C, addMesh, stretch });
 
   // Playable regions: generous boxes per 60 m of road.
   const playableRegions = [];
@@ -495,7 +513,7 @@ export function createDownhillBomb({ seed = (Date.now() & 0xffffff) } = {}) {
     park, collision, manifest, visualTriangles: 0,
     ready: surfaceTexturesReady().catch(() => {}),
     downhill: {
-      seed, length: C.length, step: C.step, halfWidth: W,
+      seed, stretch, length: C.length, step: C.step, halfWidth: W,
       centre: P.map(p => p.toArray()), headings: Array.from(theta),
       bananas, cones,
     },
@@ -838,7 +856,7 @@ function mergeSimple(geometries) {
 }
 
 // ── Start gate at the top, tunnel mouth at the bottom ───────────────────
-function buildGateAndTunnel({ park, collision, mats, point, frameAt, local, count, sArr, W, C, addMesh }) {
+function buildGateAndTunnel({ park, collision, mats, point, frameAt, local, count, sArr, W, C, addMesh, stretch = 1 }) {
   const neon = (text, color) => {
     const c = document.createElement('canvas'); c.width = 1024; c.height = 192;
     const ctx = c.getContext('2d');
@@ -860,7 +878,7 @@ function buildGateAndTunnel({ park, collision, mats, point, frameAt, local, coun
     sign.lookAt(sign.position.clone().sub(f.D.clone().setY(0)));
     park.add(sign);
   };
-  gate(26, 'DOWNHILL BOMB', '#ff3d8b');
+  gate(26, stretch > 1 ? `STRETCH ${stretch}` : 'DOWNHILL BOMB', stretch > 1 ? '#ffd23f' : '#ff3d8b');
   gate(sArr[count - 1] - 40, 'NEXT STRETCH →', '#4fe3ff');
   // Tunnel mouth: dark arch over the last metres; a wall deep inside stops the rider.
   const f = frameAt(sArr[count - 1] - 30);
