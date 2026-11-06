@@ -35,7 +35,6 @@ import { GraphicsPipeline } from './graphics/GraphicsPipeline.js';
 import { SkateEffects } from './graphics/SkateEffects.js';
 import { WorldLife } from './graphics/WorldLife.js';
 import { ComboCallouts } from './game/ComboCallouts.js';
-import { SkateFlair } from './graphics/SkateFlair.js';
 import { SkyLife } from './graphics/SkyLife.js';
 import { GRAPHICS_PRESET_ORDER, loadGraphicsPreset, storeGraphicsPreset, normalizedGraphicsPreset, qualityFogDistance } from './graphics/GraphicsSettings.js';
 import { normalizeGlowOverrides, readGlowPresets, saveGlowPresets, initializeGlowDefaults, useCurrentGlowDefaults } from './graphics/GlowTuning.js';
@@ -173,7 +172,6 @@ const clock = new THREE.Clock();
 const skateAudio = new SkateAudio();
 worldLife.setAudio(skateAudio);
 const comboCallouts = new ComboCallouts({ audio: skateAudio });
-const skateFlair = new SkateFlair(); // rider rim light
 const skyLife = new SkyLife(scene);
 window.addEventListener('pointerdown', () => skateAudio.unlock(), { passive: true });
 window.addEventListener('keydown', () => skateAudio.unlock(), { passive: true });
@@ -295,7 +293,7 @@ const gameShell = new GameShell({
   deck: index => skater?.board?.setFinish(index),
   effectsVolume: value => skateAudio.setEffectsVolume(value),
   cancelLoadout: () => { loadoutRequest++; skater?.cancelRiderSwap?.(); },
-  loadout: ({hero,board,location}) => { skateFlair.setRiderAccent(hero?.accent); return selectLocation(location?.id, {hero,finish:board.finishIndex}); },
+  loadout: ({hero,board,location}) => selectLocation(location?.id, {hero,finish:board.finishIndex}),
   testMap: ({file,hero,board,onProgress}) => selectLocation('test-map', {file,hero,finish:board.finishIndex,onProgress}),
 });
 skateAudio.onMusicDuck=({durationMs,amount,releaseMs})=>gameShell.music.duck(durationMs,amount,releaseMs);
@@ -328,8 +326,7 @@ function observeRunScoring(controller) {
         const oldBest=scoreRecords.get(currentWorld.id)?.bestCombo;
         skateAudio.onComboSettled?.({points:moment.points,id:currentWorld.id+':'+sessionEventTime,location:currentWorld.id,
           personalBest:!gameShell.practice&&oldBest>0&&moment.points>oldBest});
-        const calloutTier = comboCallouts.show(moment.points);
-        if (calloutTier) skateFlair.comboGlow(calloutTier.level);
+        comboCallouts.show(moment.points);
         if(moment.points>=1200){const node=document.getElementById('trick-feedback');node?.classList.remove('exceptional-line');
           requestAnimationFrame(()=>node?.classList.add('exceptional-line'));}
       }
@@ -810,7 +807,6 @@ async function selectLocation(id, { hero, finish, file, onProgress } = {}) {
     if (hero?.url) {
       progress('LOADING YOUR CHARACTER…');
       preparedRider=await skater.prepareRiderModel(hero.url, { uploadFilename: hero.id === 'custom' ? hero.uploadFilename : '' });
-      skateFlair.patchRider(preparedRider?.root); // rim light compiles with the rider, not mid-run
     }
     progress('PREPARING PARK LIGHTING…');
     // Compile staged assets against the current lighting without attaching them
@@ -859,8 +855,6 @@ async function loadGame() {
     // Actor-only bloom: visual contains the skateboard and currently selected GLB rider.
     // Keeping the group reference automatically tracks later character hot-swaps.
     graphicsPipeline.setGlowTarget(skater.visual);
-    skateFlair.setRiderAccent(gameShell.heroes[gameShell.heroIndex]?.accent);
-    skateFlair.patchRider(skater.rider?.root);
     followCamera = new FollowCamera(camera);
     followCamera.setPreferences(playerPreferences);
     currentWorld = initialWorld;
@@ -974,7 +968,6 @@ document.querySelector('#wireframe').onclick = (event) => {
 };
 document.querySelector('#lighting').onclick = (event) => {
   dusk = !dusk;
-  skyLife.setDusk(dusk);
   applyLighting();
   event.currentTarget.setAttribute('aria-label', dusk ? 'Switch to afternoon' : 'Switch to blue hour');
 };
@@ -1094,7 +1087,6 @@ renderer.setAnimationLoop(() => {
       skateEffects.update(dt,skater);
       worldLife.update(dt,skater,camera);
       followCamera.update(skater, dt, state, skater._smoothedVisualPosition);
-      skateFlair.update(dt, skater);
       if (state.reset) followCamera.snap(skater);
     }
     updateHud();
