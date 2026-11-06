@@ -897,7 +897,7 @@ async function loadGame() {
     setPaused(true);
     gameShell.setReady();
     window.streetSkate = {
-      ready: true, scene, renderer, camera, manifest, park, collision, skater, mapDressing, mapAmbience,
+      ready: true, scene, renderer, camera, manifest, park, collision, skater, mapDressing, mapAmbience, followCamera,
       currentLocation: currentWorld.id, selectLocation,
       graphicsStatus: () => graphicsPipeline.getStatus(),
       performanceMetrics:()=>({...frameMetrics.value}),
