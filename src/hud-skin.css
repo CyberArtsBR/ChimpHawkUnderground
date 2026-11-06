@@ -291,3 +291,18 @@ body[data-screen='playing'] #combo-callout.show { display: block; }
 /* Score "+points" float in graffiti digits. */
 .hud-total .score-gain.graffiti-gain { --letter-height: clamp(26px, 2.6vw, 38px); font-size: var(--letter-height); text-shadow: none; }
 .hud-total .score-gain.graffiti-gain .graffiti-word img { margin-right: calc(var(--letter-height) * -.1); }
+
+/* ── Speed rush: wind streaks at the screen edges at high speed ─────────── */
+#speed-rush {
+  --rush: 0;
+  position: fixed; inset: -10%; z-index: 12; pointer-events: none; display: none;
+  background: repeating-conic-gradient(from 0deg at 50% 50%,
+    rgba(255, 255, 255, 0) 0deg 2.6deg, rgba(235, 245, 255, .6) 2.6deg 2.9deg, rgba(255, 255, 255, 0) 2.9deg 7.5deg);
+  -webkit-mask: radial-gradient(ellipse at 50% 50%, transparent 46%, #000 82%);
+  mask: radial-gradient(ellipse at 50% 50%, transparent 46%, #000 82%);
+  opacity: calc(var(--rush) * .32);
+  animation: speed-rush .22s steps(3) infinite;
+}
+body[data-screen='playing'] #speed-rush { display: block; }
+@keyframes speed-rush { 0% { transform: rotate(0deg) scale(1); } 50% { transform: rotate(1.4deg) scale(1.02); } 100% { transform: rotate(-1deg) scale(1.01); } }
+@media (prefers-reduced-motion: reduce) { #speed-rush { display: none !important; } }

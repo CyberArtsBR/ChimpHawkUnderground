@@ -112,7 +112,7 @@ export async function createParkWorld(id, onProgress = () => {}) {
       world.manifest.routes = buildParkRouteMetadata(world.manifest, id);
     validateParkWorld(world);
     world.id = id;
-    world.park.userData.contactDepth = ['orbit','grand-warehouse'].includes(id);
+    world.park.userData.contactDepth = ['orbit','grand-warehouse','skate-paradise'].includes(id);
     world.presentation = resolveMapLook(id,
       { ...entry.presentation, ...world.manifest.environment, ...world.presentation });
     refineMapSurfaces(world.park, id);

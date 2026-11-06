@@ -68,6 +68,16 @@ function placeOnWall(mesh, point, normal, roll = 0, lift = .03) {
   mesh.rotateZ(roll);
 }
 
+/**
+ * Glow sprites keep a sane on-screen size: they shrink and fade as the camera
+ * gets close instead of turning into screen-filling blobs.
+ */
+export function glowScaleForDistance(distance) {
+  if (!(distance > 0)) return 0;
+  if (distance < 2.5) return 0;
+  return Math.min(1, (distance - 2.5) / 5);
+}
+
 const mat = (color, extra = {}) => new THREE.MeshStandardMaterial({ color, roughness: .7, ...extra });
 
 export class MapDressing {
@@ -131,6 +141,12 @@ export class MapDressing {
         placeOnWall(mesh, wall.point.clone().setY(wall.groundY + 2.6), wall.normal, 0, .05);
         this.root.add(mesh);
         this.signs.push({ mesh, flicker: 0, next: 3 + rand() * 8 });
+        // Coloured light pool on the ground in front of the sign.
+        const pool = this.lightPool(color, 4.4, 3.2, .42);
+        pool.position.copy(wall.point).setY(wall.groundY + .03).addScaledVector(wall.normal, 1.7);
+        pool.rotation.set(-Math.PI / 2, 0, Math.atan2(wall.normal.x, wall.normal.z));
+        this.root.add(pool);
+        this.signs.at(-1).pool = pool;
       });
     }
 
@@ -138,8 +154,70 @@ export class MapDressing {
     let edges = scan.edges.slice();
     const take = (list, count, gap) => { const picked = spreadPick(list, count, gap, rand); edges = edges.filter(e => !picked.includes(e)); return picked; };
     if (!space) for (const spot of take(edges, DRESSING.flags, 10)) this.buildFlag(spot, rand);
-    if (!space) this.buildStrings(edges.slice(), rand, indoor);
+    // String lights stay clear of the start area so they never block the opening view.
+    const clearOfSpawn = spawn => edges.filter(e => !spawn || e.point.distanceTo(spawn) > 32);
+    if (!space) this.buildStrings(clearOfSpawn(Array.isArray(world.manifest?.spawn) ? new THREE.Vector3(...world.manifest.spawn) : null), rand, indoor);
+    if (indoor) this.buildLamps(scan, rand);
     this.patchPalms(world.park);
+  }
+
+  /** A soft additive pool of coloured light lying on the ground. */
+  lightPool(color, width, depth, opacity) {
+    this.poolMaterials ||= new Map();
+    const key = `${color}|${opacity}`;
+    if (!this.poolMaterials.has(key)) this.poolMaterials.set(key, new THREE.MeshBasicMaterial({
+      map: this.glow, color, transparent: true, opacity, depthWrite: false, blending: THREE.AdditiveBlending,
+      toneMapped: false, fog: false, polygonOffset: true, polygonOffsetFactor: -4, polygonOffsetUnits: -4,
+    }));
+    const pool = new THREE.Mesh(new THREE.PlaneGeometry(width, depth), this.poolMaterials.get(key));
+    pool.name = 'Light pool'; pool.renderOrder = 2;
+    return pool;
+  }
+
+  /**
+   * Warehouse atmosphere: a grid of hanging industrial lamps, each with a lit
+   * bulb, a faint dusty light cone down to the floor and a warm floor pool.
+   */
+  buildLamps(scan, rand) {
+    const b = scan.bounds;
+    if (!b || !scan.floor.length) return;
+    const ys = scan.floor.map(f => f.point.y).sort((x, y) => x - y);
+    const floorY = ys[Math.floor(ys.length / 2)];
+    const spots = [];
+    const step = 22;
+    for (let x = b.minX + step / 2; x < b.maxX; x += step) for (let z = b.minZ + step / 2; z < b.maxZ; z += step) {
+      const near = scan.floor.some(f => (f.point.x - x) ** 2 + (f.point.z - z) ** 2 < 25 && Math.abs(f.point.y - floorY) < .5);
+      if (near) spots.push(new THREE.Vector3(x + (rand() - .5) * 3, floorY, z + (rand() - .5) * 3));
+    }
+    if (!spots.length) return;
+    const hang = 11, n = spots.length;
+    const coneTexture = (() => {
+      const c = document.createElement('canvas'); c.width = 8; c.height = 128;
+      const ctx = c.getContext('2d'), g = ctx.createLinearGradient(0, 0, 0, 128);
+      g.addColorStop(0, 'rgba(255,255,255,0)'); g.addColorStop(.25, 'rgba(255,255,255,.08)'); g.addColorStop(.9, 'rgba(255,255,255,.95)'); g.addColorStop(1, 'rgba(255,255,255,1)');
+      ctx.fillStyle = g; ctx.fillRect(0, 0, 8, 128);
+      const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t;
+    })();
+    const parts = [
+      [new THREE.ConeGeometry(.75, .6, 18, 1, true).translate(0, hang + .3, 0), mat('#2b2d33', { metalness: .6, roughness: .45, side: THREE.DoubleSide }), 'Lamp shades'],
+      [new THREE.CylinderGeometry(.02, .02, 6, 5).translate(0, hang + 3.6, 0), mat('#1d1e22', { metalness: .7 }), 'Lamp rods'],
+      [new THREE.SphereGeometry(.22, 12, 8).translate(0, hang + .05, 0), new THREE.MeshBasicMaterial({ color: '#fff1cf', toneMapped: false }), 'Lamp bulbs'],
+      [new THREE.CylinderGeometry(.65, 5.2, hang, 24, 1, true).translate(0, hang / 2, 0), new THREE.MeshBasicMaterial({
+        map: coneTexture, color: '#ffdca8', transparent: true, opacity: .07, depthWrite: false, side: THREE.DoubleSide,
+        blending: THREE.AdditiveBlending, toneMapped: false, fog: false }), 'Lamp light cones'],
+    ];
+    const m = new THREE.Matrix4(), q = new THREE.Quaternion(), one = new THREE.Vector3(1, 1, 1);
+    for (const [geometry, material, name] of parts) {
+      const mesh = new THREE.InstancedMesh(geometry, material, n);
+      mesh.name = name; mesh.castShadow = name === 'Lamp shades'; mesh.frustumCulled = false;
+      spots.forEach((p, i) => mesh.setMatrixAt(i, m.compose(p, q, one)));
+      this.root.add(mesh);
+    }
+    for (const p of spots) {
+      const pool = this.lightPool('#ffd9a0', 10, 10, .3);
+      pool.position.copy(p).setY(p.y + .03); pool.rotation.x = -Math.PI / 2;
+      this.root.add(pool);
+    }
   }
 
   buildFlag(spot, rand) {
@@ -205,6 +283,13 @@ export class MapDressing {
       wire.frustumCulled = false;
       this.root.add(bulbMesh, glowMesh, wire);
       const across = ends[1].clone().sub(ends[0]).setY(0).normalize();
+      // Warm pools on the ground under the string.
+      for (let k = 1; k <= 3; k++) {
+        const t = k / 4, pool = this.lightPool(colors.length === 1 ? '#ffcf7a' : neonColors[k % neonColors.length], 3.2, 3.2, .26);
+        pool.position.lerpVectors(a.point, b.point, t).setY(a.point.y + (b.point.y - a.point.y) * t + .03);
+        pool.rotation.x = -Math.PI / 2;
+        this.root.add(pool);
+      }
       this.strings.push({ a: ends[0], b: ends[1], bulbs, bulbMesh, glowMesh, wire, sag: .6 + span * .05, phase: rand() * 10, side: new THREE.Vector3(-across.z, 0, across.x) });
     }
   }
@@ -267,14 +352,15 @@ export class MapDressing {
       else sign.mesh.material.opacity = 1;
     }
     // String lights sway; glows face the camera.
-    const m = new THREE.Matrix4(), q = camera.quaternion, s1 = new THREE.Vector3(1, 1, 1), p = new THREE.Vector3(), identity = new THREE.Quaternion();
+    const m = new THREE.Matrix4(), q = camera.quaternion, s1 = new THREE.Vector3(1, 1, 1), p = new THREE.Vector3(), identity = new THREE.Quaternion(), glowScale = new THREE.Vector3();
     for (const str of this.strings) {
       const sway = Math.sin(this.time * 1.1 + str.phase) * .12;
       const point = t => p.lerpVectors(str.a, str.b, t).addScaledVector(UP, -Math.sin(t * Math.PI) * str.sag).addScaledVector(str.side, Math.sin(t * Math.PI) * sway);
       for (let i = 0; i < str.bulbs; i++) {
         point((i + .5) / str.bulbs);
         str.bulbMesh.setMatrixAt(i, m.compose(p, identity, s1));
-        str.glowMesh.setMatrixAt(i, m.compose(p, q, s1));
+        const g = glowScaleForDistance(p.distanceTo(camera.position));
+        str.glowMesh.setMatrixAt(i, m.compose(p, q, glowScale.setScalar(g)));
       }
       str.bulbMesh.instanceMatrix.needsUpdate = true; str.glowMesh.instanceMatrix.needsUpdate = true;
       const wire = str.wire.geometry.attributes.position;

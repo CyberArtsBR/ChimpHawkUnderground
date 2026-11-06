@@ -6,14 +6,16 @@ const finite = v => v && Number.isFinite(v.x) && Number.isFinite(v.y) && Number.
 const clamp = THREE.MathUtils.clamp;
 /** Enhancement pass (2026-11): bigger, clearer dust and sparks. One place to tune them. */
 export const FX_TUNING = Object.freeze({
-  dustPool: 160, sparkPool: 260,
+  dustPool: 160, sparkPool: 460,
   landingCount: [6, 18],       // puffs at soft … hard landings (times the surface's dust amount)
   landingSize: [0.3, 0.3],     // base + severity
   landingLife: [0.5, 0.4],     // base + random
   landingOpacity: [0.16, 0.14],
   bailDustCount: 26, bailDustSize: 0.45, bailDustLife: 1.0, bailDustOpacity: 0.2,
-  sparkRate: 2.2,              // multiplier on the original spark rate
-  sparkSize: [0.09, 0.06], sparkLife: [0.22, 0.28], sparkBack: [1.5, 2.5], sparkUp: [0.5, 1.9], sparkGravity: 12,
+  sparkRate: 3.1,              // multiplier on the original spark rate
+  sparkSize: [0.11, 0.08], sparkLife: [0.26, 0.36], sparkBack: [1.5, 2.8], sparkUp: [0.6, 2.2], sparkGravity: 12,
+  emberChance: .28, emberSize: [0.05, 0.04], emberLife: [0.8, 0.6], emberGravity: 4.5,
+  grindLight: 2.8, grindLightFlicker: 1.8, grindLightDistance: 4.5,
 });
 
 export const SURFACE_PARTICLES = Object.freeze({
@@ -91,6 +93,10 @@ export class SkateEffects {
     this.grindBudget=0;this.traceBudget=0;this.landingLatch=false;this.scale=1;this.performance=false;
     this.lastBailImpact=null;
     this.bailLiquid=new BailLiquid(this.root);
+    // A real flickering light at the grind contact (always present, dark when idle).
+    this.grindLight=new THREE.PointLight('#ffab4a',0,FX_TUNING.grindLightDistance,2);
+    this.grindLight.name='Grind spark light';
+    this.root.add(this.grindLight);
     this.puddles=this.bailLiquid.puddles;
   }
 
@@ -121,6 +127,7 @@ export class SkateEffects {
     this.bailLiquid.reset();
     this.lastBailImpact=skater?.rider?.ragdoll?.groundImpact||null;
     this.clearPool(this.dust);this.clearPool(this.glints);
+    if(this.grindLight)this.grindLight.intensity=0;
     this.grindBudget=0;this.traceBudget=0;this.airDuration=0;this.landingLatch=false;
     this.initialized=finite(skater?.position);
     if(this.initialized)this.remember(skater);
@@ -194,9 +201,15 @@ export class SkateEffects {
     const side=(Math.random()-.5)*1.4;
     if(profile.sparks) {
       const t=FX_TUNING,back=t.sparkBack[0]+Math.random()*t.sparkBack[1];
+      // White-hot to orange streaks.
+      const heat=Math.random();
       this.emit(this.glints,this.origin.x,this.origin.y+.025,this.origin.z,
         -this.forward.x*back+this.forward.z*side,t.sparkUp[0]+Math.random()*t.sparkUp[1],-this.forward.z*back-this.forward.x*side,
-        t.sparkSize[0]+Math.random()*t.sparkSize[1],t.sparkLife[0]+Math.random()*t.sparkLife[1],.9,1,.66+Math.random()*.24,.26,1,t.sparkGravity);
+        t.sparkSize[0]+Math.random()*t.sparkSize[1],t.sparkLife[0]+Math.random()*t.sparkLife[1],.95,1,.72+heat*.28,.3+heat*.45,1,t.sparkGravity);
+      // Slow orange embers drifting down.
+      if(Math.random()<t.emberChance)this.emit(this.glints,this.origin.x,this.origin.y+.03,this.origin.z,
+        -this.forward.x*.5+this.forward.z*side*.6,.4+Math.random()*.8,-this.forward.z*.5-this.forward.x*side*.6,
+        t.emberSize[0]+Math.random()*t.emberSize[1],t.emberLife[0]+Math.random()*t.emberLife[1],.85,1,.45,.12,0,t.emberGravity);
     } else {
       this.emit(this.dust,this.origin.x,this.origin.y+.02,this.origin.z,
         -this.forward.x*.35+this.forward.z*side,.08,-this.forward.z*.35-this.forward.x*side,
@@ -251,6 +264,10 @@ export class SkateEffects {
     const impact=Math.max(0,-this.previousVelocity.dot(this.normal));
     if(landed&&this.airDuration>.08&&impact>1.1&&!skater.grind&&!skater.wallRide)this.landing(skater,impact);
     if(grounded||skater.grind||skater.wallRide)this.airDuration=0;else this.airDuration+=dt;
+    const sparking=!this.performance&&skater.grind&&speed>2&&SURFACE_PARTICLES[surfaceTagFor(skater)].sparks;
+    const target=sparking?FX_TUNING.grindLight+Math.random()*FX_TUNING.grindLightFlicker:0;
+    this.grindLight.intensity+=(target-this.grindLight.intensity)*Math.min(1,dt*(sparking?30:10));
+    if(this.grindLight.intensity>.01)this.grindLight.position.set(this.origin.x,this.origin.y+.25,this.origin.z);
     if(!this.performance&&skater.grind&&speed>2) {
       const tag=surfaceTagFor(skater),profile=SURFACE_PARTICLES[tag];
       this.grindBudget+=dt*(7+Math.min(speed,20)*.6)*this.scale*profile.grind*FX_TUNING.sparkRate;
