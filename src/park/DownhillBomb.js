@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { createSurfaceMaterials, surfaceTexturesReady } from './SurfaceMaterials.js';
+import { gameAssetUrl } from '../game/AssetPaths.js';
 
 /**
  * DOWNHILL BOMB (2026-11, phase 1): a procedurally generated sunset city hill.
@@ -14,12 +15,12 @@ import { createSurfaceMaterials, surfaceTexturesReady } from './SurfaceMaterials
 export const DOWNHILL = Object.freeze({
   length: 1700,          // metres of road in one stretch
   step: 1.5,             // centre-line sample spacing
-  halfWidth: 5.5,        // road half width (11 m road, three lanes)
+  halfWidth: 7,          // road half width (14 m road, three wide lanes)
   sidewalk: 5,           // sidewalk width beyond the curb
   startFlat: 40,
-  gradeStart: .04,       // 4% at the top …
-  gradeEnd: .14,         // … 14% near the bottom
-  maxBank: 7 * Math.PI / 180,
+  gradeStart: .07,       // 7% at the top …
+  gradeEnd: .22,         // … 22% near the bottom
+  maxBank: 10 * Math.PI / 180,
 });
 
 function seeded(seed) {
@@ -151,15 +152,15 @@ export function createDownhillBomb({ seed = (Date.now() & 0xffffff) } = {}) {
   const kappaRaw = new Float32Array(count);
   let s = C.startFlat + 50, sign = rand() < .5 ? 1 : -1;
   while (s < C.length - 80) {
-    s += 50 + rand() * 70; // straight
-    const radius = 75 + rand() * 85, angle = (25 + rand() * 45) * Math.PI / 180, len = radius * angle;
+    s += 25 + rand() * 40; // straight
+    const radius = 48 + rand() * 55, angle = (35 + rand() * 50) * Math.PI / 180, len = radius * angle;
     if (rand() < .72) sign = -sign;
     const i0 = Math.floor(s / C.step), i1 = Math.min(count - 1, Math.floor((s + len) / C.step));
     for (let i = i0; i <= i1; i++) kappaRaw[i] = sign / radius;
     s += len;
   }
   // Smooth over ~30 m so bends ease in like real roads.
-  const kappa = new Float32Array(count), win = Math.round(15 / C.step);
+  const kappa = new Float32Array(count), win = Math.round(10 / C.step);
   for (let i = 0; i < count; i++) {
     let sum = 0, n = 0;
     for (let k = -win; k <= win; k++) { const j = i + k; if (j >= 0 && j < count) { sum += kappaRaw[j]; n++; } }
@@ -172,11 +173,11 @@ export function createDownhillBomb({ seed = (Date.now() & 0xffffff) } = {}) {
   for (let i = 0; i < count; i++) {
     const si = i * C.step; sArr[i] = si;
     const intro = clamp((si - C.startFlat) / 45, 0, 1), outro = clamp((C.length - 30 - si) / 25, 0, 1);
-    const g = smooth(intro) * outro * (C.gradeStart + (C.gradeEnd - C.gradeStart) * (si / C.length) + .015 * Math.sin(si / 41) * (si > 120 ? 1 : 0));
+    const g = smooth(intro) * outro * (C.gradeStart + (C.gradeEnd - C.gradeStart) * (si / C.length) + .02 * Math.sin(si / 41) * (si > 120 ? 1 : 0));
     grade[i] = g; theta[i] = th;
     const dir = new THREE.Vector3(-Math.sin(th), 0, -Math.cos(th));
     const right = new THREE.Vector3(Math.cos(th), 0, -Math.sin(th));
-    const bank = -clamp(kappa[i] * 85, -1, 1) * C.maxBank;
+    const bank = -clamp(kappa[i] * 50, -1, 1) * C.maxBank;
     const tangent = dir.clone().setY(-g).normalize();
     const lateral = right.clone().multiplyScalar(Math.cos(bank)).setY(Math.sin(bank)).normalize();
     const normal = new THREE.Vector3().crossVectors(lateral, tangent).normalize();
@@ -298,7 +299,10 @@ export function createDownhillBomb({ seed = (Date.now() & 0xffffff) } = {}) {
       wall.userData.surface = 'solid'; wall.userData.cameraTransparent = true; wall.name = 'Containment';
       collision.add(wall);
       // Ground beyond the barrier for the city to stand on (visual only).
-      addMesh(ribbon(i0, i1, () => side < 0 ? [[-out - 48, -4], [-out - .6, .15]] : [[out + .6, .15], [out + 48, -4]],
+      // On the inside of a tight bend the ground strip is narrower, so it never folds over itself.
+      const groundWidth = i => (kappa[i] > 0 ? 1 : -1) === side && Math.abs(kappa[i]) > 1e-4
+        ? clamp(1 / Math.abs(kappa[i]) - out - 6, 4, 44) : 44;
+      addMesh(ribbon(i0, i1, i => side < 0 ? [[-out - groundWidth(i), -4], [-out - .6, .15]] : [[out + .6, .15], [out + groundWidth(i), -4]],
         (u, h, si) => [u / 6, si / 6]), mats.terrain, { name: 'Terrain', collide: false, cast: false });
     }
   }
@@ -383,7 +387,7 @@ export function createDownhillBomb({ seed = (Date.now() & 0xffffff) } = {}) {
       park.add(post);
     }
   };
-  const lanes = [-3.6, 0, 3.6];
+  const lanes = [-4.6, 0, 4.6];
   const bananaLine = (f0s, u, h, n = 5, gap = 2.6) => {
     for (let k = 0; k < n; k++) { const f = frameAt(f0s + k * gap); bananas.push(local(f, u, h, 0).toArray()); }
   };
@@ -456,9 +460,11 @@ export function createDownhillBomb({ seed = (Date.now() & 0xffffff) } = {}) {
       used = 24;
     }
     // A loose banana line now and then in a free lane.
-    if (rand() < .45) bananaLine(fs + used + 4, free[Math.floor(rand() * free.length)], .8, 5, 2.4);
+    // Banana lines in the open road between features keep bullet time coming.
+    bananaLine(fs + used + 6, free[Math.floor(rand() * free.length)], .8, 5, 2.4);
+    if (rand() < .7) bananaLine(fs + used + 24, lanes[Math.floor(rand() * 3)], .8, 5, 2.4);
     featureCount++;
-    fs += used + 14 + rand() * 26 * (1.1 - difficulty * .5);
+    fs += used + 34 + rand() * 40 * (1.1 - difficulty * .4);
   }
 
   // 7) City around the hill.
@@ -546,23 +552,58 @@ function buildCity({ park, rand, count, P, L, D, theta, sArr, W, sidewalk, point
     }
     target.roofs.push([new THREE.Vector3(a.x, base + top, a.z), new THREE.Vector3(b.x, base + top, b.z), new THREE.Vector3(c.x, base + top, c.z), new THREE.Vector3(d.x, base + top, d.z)]);
   };
+  const shops = [], awnings = [[], [], [], []], roofProps = { tank: [], ac: [], antenna: [] }, billboards = [];
+  const awningColors = ['#d9473b', '#2fa69a', '#f0b429', '#8e5bd1'];
   for (const side of [-1, 1]) {
-    let si = 8;
+    let si = 8, nextBoard = 60 + rand() * 60;
     while (si < sArr[count - 1] - 10) {
       const i = Math.min(count - 1, Math.round(si / 1.5));
       const width = 12 + rand() * 14, depth = 12 + rand() * 10;
-      const tall = rand() < .14;
-      const height = tall ? 45 + rand() * 35 : 9 + rand() * 26;
+      const tall = rand() < .16;
+      const height = tall ? 45 + rand() * 40 : 10 + rand() * 26;
       const setback = 2 + rand() * 6;
       const right = new THREE.Vector3(Math.cos(theta[i]), 0, -Math.sin(theta[i]));
       const fwd = new THREE.Vector3(-Math.sin(theta[i]), 0, -Math.cos(theta[i]));
       const centre = P[i].clone().addScaledVector(right, side * (corridor + setback + depth / 2));
-      const hw = width / 2, hd = depth / 2;
-      const corner = (fx, rx) => centre.clone().addScaledVector(fwd, fx).addScaledVector(right, rx);
-      const corners = side > 0
-        ? [corner(-hw, -hd), corner(-hw, hd), corner(hw, hd), corner(hw, -hd)]
-        : [corner(-hw, hd), corner(-hw, -hd), corner(hw, -hd), corner(hw, hd)];
-      if (clearOfRoad(corners, i)) pushBuilding(styles[Math.floor(rand() * styles.length)], corners, P[i].y - 6, height + 6);
+      const footprint = (hw, hd) => {
+        const corner = (fx, rx) => centre.clone().addScaledVector(fwd, fx).addScaledVector(right, rx);
+        return side > 0
+          ? [corner(-hw, -hd), corner(-hw, hd), corner(hw, hd), corner(hw, -hd)]
+          : [corner(-hw, hd), corner(-hw, -hd), corner(hw, -hd), corner(hw, hd)];
+      };
+      const corners = footprint(width / 2, depth / 2);
+      const base = P[i].y - 6;
+      if (clearOfRoad(corners, i)) {
+        const style = () => styles[Math.floor(rand() * styles.length)];
+        const roofY = base + height + 6;
+        let roofCorners = corners;
+        if (height > 24 && rand() < .55) {
+          // Podium with an inset tower on top.
+          const podium = 8 + rand() * 6;
+          pushBuilding(style(), corners, base, podium + 6);
+          roofCorners = footprint(width / 2 - 2 - rand() * 2, depth / 2 - 2 - rand() * 2);
+          pushBuilding(style(), roofCorners, base + podium + 6, height - podium);
+        } else pushBuilding(style(), corners, base, height + 6);
+        // Shopfront on the road-facing wall (corners 3 to 0), with an awning.
+        const toRoad = right.clone().multiplyScalar(-side);
+        const a = corners[3].clone().addScaledVector(toRoad, .25), b = corners[0].clone().addScaledVector(toRoad, .25);
+        const ground = P[i].y - 1.2, shopTop = P[i].y + 4;
+        shops.push([a.clone().setY(ground), b.clone().setY(ground), b.clone().setY(shopTop), a.clone().setY(shopTop), a.distanceTo(b) / 24]);
+        const out = toRoad.clone().multiplyScalar(1.5);
+        awnings[Math.floor(rand() * 4)].push([a.clone().setY(shopTop + .5), b.clone().setY(shopTop + .5), b.clone().add(out).setY(shopTop - .1), a.clone().add(out).setY(shopTop - .1)]);
+        // Rooftop clutter.
+        const rc = roofCorners[0].clone().add(roofCorners[2]).multiplyScalar(.5);
+        if (rand() < .4) roofProps.tank.push({ p: rc.clone().addScaledVector(fwd, (rand() - .5) * width * .4).setY(roofY), s: .8 + rand() * .5 });
+        for (let k = 0, n = Math.floor(rand() * 4); k < n; k++) roofProps.ac.push({ p: rc.clone().addScaledVector(fwd, (rand() - .5) * width * .6).addScaledVector(right, (rand() - .5) * depth * .5).setY(roofY), s: .8 + rand() * .6 });
+        if (tall || rand() < .2) roofProps.antenna.push({ p: rc.clone().setY(roofY), s: .7 + rand() * .8 });
+      }
+      // Billboards on tall poles just behind the barrier, angled up the hill.
+      if (si > nextBoard) {
+        nextBoard = si + 110 + rand() * 90;
+        const spot = P[i].clone().addScaledVector(right, side * (corridor - 1.5));
+        const facing = right.clone().multiplyScalar(-side * .55).addScaledVector(fwd, -.85).normalize();
+        billboards.push({ p: spot, facing, groundY: P[i].y });
+      }
       si += width + 2 + rand() * 6;
     }
   }
@@ -586,6 +627,49 @@ function buildCity({ park, rand, count, P, L, D, theta, sArr, W, sidewalk, point
     const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(roofPos, 3)); g.computeVertexNormals();
     const roofs = new THREE.Mesh(g, roofMaterial); roofs.name = 'City roofs'; roofs.material.side = THREE.DoubleSide; park.add(roofs);
   }
+
+  // Shopfronts and awnings.
+  const quadsMesh = (quads, material, name, uvScale = false) => {
+    if (!quads.length) return;
+    const pos = [], uv = [];
+    for (const q of quads) {
+      const [v0, v1, v2, v3] = q, u = uvScale ? q[4] : 1;
+      for (const [v, tu, tv] of [[v0, 0, 0], [v1, u, 0], [v2, u, 1], [v0, 0, 0], [v2, u, 1], [v3, 0, 1]]) { pos.push(v.x, v.y, v.z); uv.push(tu, tv); }
+    }
+    const g = new THREE.BufferGeometry();
+    g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+    g.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2));
+    g.computeVertexNormals();
+    const mesh = new THREE.Mesh(g, material); mesh.name = name; mesh.receiveShadow = true; mesh.castShadow = true;
+    park.add(mesh);
+  };
+  const shopTex = shopfrontTexture(rand);
+  quadsMesh(shops, new THREE.MeshStandardMaterial({ name: 'Downhill shopfront', map: shopTex.map, emissiveMap: shopTex.emissive, emissive: '#ffe2b0', emissiveIntensity: 1.2, roughnessMap: shopTex.surface, metalnessMap: shopTex.surface, side: THREE.DoubleSide }), 'Shopfronts', true);
+  const stripes = awningTexture();
+  awningColors.forEach((color, k) => quadsMesh(awnings[k], new THREE.MeshStandardMaterial({ name: 'Downhill awning', map: stripes, color, roughness: .8, side: THREE.DoubleSide }), 'Awnings'));
+
+  // Rooftop clutter (instanced).
+  const roofInstances = (list, geometry, material, name) => {
+    if (!list.length) return;
+    const mesh = new THREE.InstancedMesh(geometry, material, list.length);
+    mesh.name = name; mesh.castShadow = true;
+    const m = new THREE.Matrix4(), q = new THREE.Quaternion();
+    list.forEach((item, k) => mesh.setMatrixAt(k, m.compose(item.p, q.setFromAxisAngle(THREE.Object3D.DEFAULT_UP, (k * 2.39) % 6.28), new THREE.Vector3(item.s, item.s, item.s))));
+    park.add(mesh);
+  };
+  const metalGrey = new THREE.MeshStandardMaterial({ name: 'Downhill rooftop metal', color: '#8b8f97', metalness: .6, roughness: .45 });
+  const tankGeo = mergeSimple([
+    new THREE.CylinderGeometry(1.4, 1.4, 2.4, 14).translate(0, 3.2, 0), new THREE.ConeGeometry(1.5, .8, 14).translate(0, 4.8, 0),
+    ...[[-1, -1], [1, -1], [1, 1], [-1, 1]].map(([x, z]) => new THREE.CylinderGeometry(.08, .08, 2, 6).translate(x * .9, 1, z * .9)),
+  ]);
+  roofInstances(roofProps.tank, tankGeo, new THREE.MeshStandardMaterial({ name: 'Downhill water tank', color: '#8a6a4f', roughness: .85 }), 'Water tanks');
+  roofInstances(roofProps.ac, new THREE.BoxGeometry(1.6, 1.1, 1.2).translate(0, .55, 0), metalGrey, 'AC units');
+  roofInstances(roofProps.antenna, new THREE.CylinderGeometry(.06, .12, 9, 6).translate(0, 4.5, 0), metalGrey, 'Antennas');
+  roofInstances(roofProps.antenna, new THREE.SphereGeometry(.28, 10, 8).translate(0, 9.1, 0),
+    new THREE.MeshStandardMaterial({ name: 'Downhill antenna light', color: '#ff2a2a', emissive: '#ff2a2a', emissiveIntensity: 4 }), 'Antenna lights');
+
+  // Crew billboards.
+  buildBillboards(park, billboards, rand);
 
   // Street lamps (instanced), alternating sides every 26 m.
   const lampPositions = [];
@@ -656,6 +740,82 @@ function buildCity({ park, rand, count, P, L, D, theta, sArr, W, sidewalk, point
     hill.rotation.y = rand() * 3;
     park.add(hill);
   }
+}
+
+function shopfrontTexture(rand) {
+  const W = 1024, H = 256, bay = W / 4, signs = ['CAFE', 'SKATE', 'TACOS', 'VINYL', 'ARCADE', 'BANANA BAR', 'SURF', 'PIZZA'];
+  const kinds = Array.from({ length: 4 }, () => ({ sign: signs[Math.floor(rand() * signs.length)], glow: ['#ff3d8b', '#4fe3ff', '#ffd23f', '#8dff4f'][Math.floor(rand() * 4)] }));
+  const make = layer => canvasTexture(W, H, ctx => {
+    ctx.fillStyle = layer === 'surface' ? 'rgb(0,220,0)' : layer === 'emissive' ? '#000' : '#2a2630'; ctx.fillRect(0, 0, W, H);
+    kinds.forEach((k, n) => {
+      const x = n * bay;
+      if (layer === 'map') {
+        ctx.fillStyle = '#1b1a20'; ctx.fillRect(x, 0, bay, 60);
+        ctx.fillStyle = '#3a3640'; ctx.fillRect(x + 4, 60, bay - 8, 8);
+        const g = ctx.createLinearGradient(x, 70, x, H); g.addColorStop(0, '#5a6a80'); g.addColorStop(1, '#1d2230');
+        ctx.fillStyle = g; ctx.fillRect(x + 14, 74, bay - 28, H - 84);
+        ctx.fillStyle = '#e8e2d4'; ctx.fillRect(x + bay / 2 - 3, 74, 6, H - 84);
+        ctx.font = '400 44px Bangers, Impact, sans-serif'; ctx.textAlign = 'center'; ctx.fillStyle = k.glow;
+        ctx.fillText(k.sign, x + bay / 2, 46, bay - 30);
+      } else if (layer === 'emissive') {
+        ctx.font = '400 44px Bangers, Impact, sans-serif'; ctx.textAlign = 'center'; ctx.shadowColor = k.glow; ctx.shadowBlur = 16; ctx.fillStyle = k.glow;
+        ctx.fillText(k.sign, x + bay / 2, 46, bay - 30); ctx.shadowBlur = 0;
+        const g = ctx.createLinearGradient(x, 74, x, H); g.addColorStop(0, 'rgba(255,214,160,.85)'); g.addColorStop(1, 'rgba(120,70,30,.3)');
+        ctx.fillStyle = g; ctx.fillRect(x + 18, 78, bay - 36, H - 92);
+      } else { ctx.fillStyle = 'rgb(0,25,160)'; ctx.fillRect(x + 14, 74, bay - 28, H - 84); }
+    });
+  }, { color: layer !== 'surface' });
+  return { map: make('map'), emissive: make('emissive'), surface: make('surface') };
+}
+
+function awningTexture() {
+  return canvasTexture(128, 64, (ctx, w, h) => {
+    for (let i = 0; i < 8; i++) { ctx.fillStyle = i % 2 ? '#ffffff' : '#bdbdbd'; ctx.fillRect(i * w / 8, 0, w / 8, h); }
+    ctx.fillStyle = 'rgba(0,0,0,.25)'; ctx.fillRect(0, h - 8, w, 8);
+  });
+}
+
+/** Big pole billboards advertising the crew (art drawn in once it loads). */
+function buildBillboards(park, list, rand) {
+  if (!list.length) return;
+  const ads = [
+    { line: 'GO BANANAS', sub: 'CHIMP HAWK UNDERGROUND', color: '#ffd23f', art: 'tuxr' },
+    { line: 'THE HOLLOW', sub: 'SKATE OR DIE', color: '#4fe3ff', art: 'hollow' },
+    { line: 'TUXR ENERGY', sub: 'THE MASTERMIND DRINK', color: '#c879ff', art: 'tuxr' },
+    { line: 'HERETIC DECKS', sub: 'BUILT TO BREAK RULES', color: '#ff5a4f', art: 'heretic' },
+    { line: 'ANCHOR WAX', sub: 'WIZARD-GRADE GRINDS', color: '#8dff4f', art: 'anchor' },
+    { line: 'YOUNGBLOOD', sub: 'ADOLESCENT CREW', color: '#ff9a3d', art: 'adolescent' },
+  ];
+  const poleMat = new THREE.MeshStandardMaterial({ name: 'Downhill billboard frame', color: '#25272e', metalness: .7, roughness: .4 });
+  list.forEach((board, n) => {
+    const ad = ads[(n + Math.floor(rand() * ads.length)) % ads.length];
+    const c = document.createElement('canvas'); c.width = 1024; c.height = 512;
+    const ctx = c.getContext('2d');
+    const paint = art => {
+      const g = ctx.createLinearGradient(0, 0, 1024, 512); g.addColorStop(0, '#1a1030'); g.addColorStop(1, '#3a1d4f');
+      ctx.fillStyle = g; ctx.fillRect(0, 0, 1024, 512);
+      ctx.fillStyle = ad.color; ctx.globalAlpha = .18; ctx.beginPath(); ctx.arc(250, 256, 230, 0, Math.PI * 2); ctx.fill(); ctx.globalAlpha = 1;
+      if (art) { const h = 470, w = h * art.width / art.height; ctx.drawImage(art, 250 - w / 2, 20, w, h); }
+      ctx.textAlign = 'left'; ctx.font = '400 128px Bangers, Impact, sans-serif'; ctx.fillStyle = '#fffaf0';
+      ctx.shadowColor = ad.color; ctx.shadowBlur = 24; ctx.fillText(ad.line, 480, 230, 520); ctx.shadowBlur = 0;
+      ctx.font = '700 46px "Barlow Condensed", Impact, sans-serif'; ctx.fillStyle = ad.color; ctx.fillText(ad.sub, 486, 300, 510);
+      ctx.strokeStyle = ad.color; ctx.lineWidth = 12; ctx.strokeRect(6, 6, 1012, 500);
+    };
+    paint(null);
+    const texture = new THREE.CanvasTexture(c); texture.colorSpace = THREE.SRGBColorSpace;
+    const art = new Image(); art.decoding = 'async';
+    art.onload = () => { paint(art); texture.needsUpdate = true; };
+    art.src = gameAssetUrl(`/assets/rider/art/${ad.art}.webp`);
+    const group = new THREE.Group(); group.name = 'Billboard';
+    const panel = new THREE.Mesh(new THREE.PlaneGeometry(13, 6.5), new THREE.MeshStandardMaterial({ name: 'Downhill billboard', map: texture, emissiveMap: texture, emissive: '#ffffff', emissiveIntensity: .55, roughness: .6 }));
+    panel.position.y = 13; group.add(panel);
+    const back = new THREE.Mesh(new THREE.BoxGeometry(13.6, 7.1, .4), poleMat); back.position.set(0, 13, -.25); group.add(back);
+    for (const x of [-4, 4]) { const pole = new THREE.Mesh(new THREE.CylinderGeometry(.22, .3, 13, 8), poleMat); pole.position.set(x, 6.5, -.4); group.add(pole); }
+    group.traverse(o => { if (o.isMesh) o.castShadow = true; });
+    group.position.copy(board.p).setY(board.groundY - 1);
+    group.lookAt(group.position.clone().add(board.facing));
+    park.add(group);
+  });
 }
 
 function mergeSimple(geometries) {
