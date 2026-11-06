@@ -1014,3 +1014,60 @@
   #game-shell.loadout-screen .selected-rider .rider-art-burst,
   #game-shell.loadout-screen .selected-rider .rider-art-dust { display: none; }
 }
+
+/* ── Board customization: grip / wheels / graphic chips (deck panel) ───── */
+#game-shell.loadout-screen .board-style { display: grid; gap: 8px; margin: 10px 0 6px; }
+#game-shell.loadout-screen .board-style-row { display: grid; grid-template-columns: 64px 1fr; align-items: center; gap: 8px; }
+#game-shell.loadout-screen .board-style-label {
+  font: 800 11px/1 'Barlow Condensed', sans-serif; letter-spacing: .2em; color: #ffd96a;
+}
+#game-shell.loadout-screen .board-style-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+#game-shell.loadout-screen .board-style-chip {
+  display: inline-flex; align-items: center; gap: 6px; min-height: 30px; padding: 4px 10px 4px 5px !important;
+  border-radius: 10px !important; cursor: pointer;
+  background: var(--skin-grip, none), linear-gradient(160deg, rgba(48, 36, 70, .92), rgba(20, 16, 34, .95)) !important;
+  background-size: 120px 120px, 100% 100% !important;
+  border: 1px solid rgba(255, 255, 255, .14) !important;
+  box-shadow: 0 3px 0 rgba(8, 5, 14, .85) !important;
+  color: #f3eefc; transition: transform .14s ease, border-color .14s ease, box-shadow .14s ease;
+}
+#game-shell.loadout-screen .board-style-chip b { font: 400 13px/1 'Bangers', Impact, sans-serif; letter-spacing: .05em; font-weight: 400; }
+#game-shell.loadout-screen .board-style-chip i {
+  width: 18px; height: 18px; border-radius: 50%; flex: none;
+  background: var(--chip, #777); box-shadow: inset 0 -2px 0 rgba(0, 0, 0, .3), 0 0 0 2px rgba(255, 255, 255, .2);
+}
+#game-shell.loadout-screen .board-style-chip i.stock,
+#game-shell.loadout-screen .board-style-chip i.none { background: repeating-linear-gradient(135deg, #3a3446 0 4px, #5a5268 4px 8px); }
+#game-shell.loadout-screen .board-style-chip i.camo { background: radial-gradient(circle at 30% 35%, #2c3b21 0 25%, transparent 26%), radial-gradient(circle at 70% 65%, #6d6440 0 22%, transparent 23%), var(--chip); }
+#game-shell.loadout-screen .board-style-chip i.crown {
+  border-radius: 4px; background: #141020;
+  clip-path: polygon(10% 85%, 0 20%, 30% 50%, 50% 5%, 70% 50%, 100% 20%, 90% 85%);
+  box-shadow: none; background-color: #ffd23f;
+}
+#game-shell.loadout-screen .board-style-chip img { width: 22px; height: 26px; object-fit: contain; filter: drop-shadow(0 2px 0 rgba(0, 0, 0, .45)); }
+#game-shell.loadout-screen .board-style-chip:is(:hover, .selected) { transform: translateY(-2px); border-color: rgba(255, 214, 80, .6) !important; }
+#game-shell.loadout-screen .board-style-chip.is-chosen {
+  border-color: #ffd23f !important;
+  box-shadow: 0 3px 0 rgba(8, 5, 14, .85), 0 0 14px rgba(255, 210, 63, .45) !important;
+}
+#game-shell.loadout-screen .board-style-chip.is-chosen b { color: #ffe066; }
+
+/* ── Results: local top 10 for the map ──────────────────────────────────── */
+#game-shell .run-leaderboard { margin-bottom: 14px; }
+#game-shell .run-leaderboard h3 { margin: 0 0 6px; }
+#game-shell .run-leaderboard .lb-placed { margin: 0 0 8px; font: 400 18px/1 'Bangers', Impact, sans-serif; letter-spacing: .06em; color: #ffe066; text-shadow: 0 2px 0 #7a4a06; }
+#game-shell .run-leaderboard ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 3px; }
+#game-shell .run-leaderboard li {
+  display: grid; grid-template-columns: 28px 86px 1fr 1fr 56px; align-items: center; gap: 8px;
+  padding: 5px 8px; border-radius: 8px; background: rgba(255, 255, 255, .05);
+  font: 600 13px/1.1 'Barlow Condensed', sans-serif; color: #e6e0f2;
+}
+#game-shell .run-leaderboard li strong { font: 400 17px/1 'Bangers', Impact, sans-serif; letter-spacing: .04em; color: #fff7d6; }
+#game-shell .run-leaderboard .lb-rank { font: 400 16px/1 'Bangers', Impact, sans-serif; color: #9fe8ff; text-align: center; }
+#game-shell .run-leaderboard .lb-date { color: #a79fbb; text-align: right; }
+#game-shell .run-leaderboard li.is-current { background: linear-gradient(90deg, rgba(255, 210, 63, .28), rgba(255, 210, 63, .06)); box-shadow: inset 0 0 0 1px rgba(255, 210, 63, .55); }
+/* Deck cards keep their size; the panel scrolls to the style rows. */
+#game-shell.loadout-screen .deck-panel .loadout-boards { flex: none; }
+#game-shell.loadout-screen .deck-panel { overflow-y: auto; }
+#game-shell.loadout-screen .board-style-row { grid-template-columns: 1fr; gap: 5px; }
+#game-shell.loadout-screen .board-style-chip { min-height: 28px; padding: 3px 8px 3px 4px !important; }

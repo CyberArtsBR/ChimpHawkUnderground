@@ -21,6 +21,7 @@ import { SessionFlow } from './SessionFlow.js';
 import { renderPlayerSettings, PlayerSettingsPanel } from './PlayerSettingsPanel.js';
 import { readPlayerPreferences, applyPlayerPreferences } from './PlayerPreferences.js';
 import { CAMERA_MODES, CAMERA_LABELS, DEFAULT_CAMERA_MODE } from './CameraModes.js';
+import { GRIPS, WHEELS, GRAPHICS, readBoardStyle, saveBoardStyle } from '../skateboard/BoardStyles.js';
 import { GLOW_CONTROLS, stepGlowValue } from '../graphics/GlowTuning.js';
 
 const safe = value => String(value).replace(/[&<>"']/g, ch =>
@@ -274,7 +275,7 @@ export class GameShell {
           <div class="selected-rider-copy"><span>${this.heroConfirmed?'YOUR RIDER':'MEET THE CREW'}</span><strong>${safe(this.heroes[this.heroIndex].name)}</strong><small>${safe(this.heroSubtitle(this.heroes[this.heroIndex]))}</small></div>
         </div>${this.button('↑ IMPORT YOUR RIDER .GLB','upload')}</section>
         <section class="loadout-section deck-panel" aria-label="Choose your skateboard"><div class="loadout-heading"><span class="section-number">02</span><h3>${graffitiLettering('DECK','gold')}</h3><span class="panel-kicker">GRADIENT GLOW</span></div>
-        <div class="loadout-boards">${colors}</div><div class="selection-note"><span>${this.boardConfirmed?'DECK LOCKED IN':'CHOOSE YOUR FINISH'}</span><strong>${safe(BOARD_CHOICES[this.boardIndex].label)}</strong></div></section>
+        <div class="loadout-boards">${colors}</div>${this.boardStyleRows()}<div class="selection-note"><span>${this.boardConfirmed?'DECK LOCKED IN':'CHOOSE YOUR FINISH'}</span><strong>${safe(BOARD_CHOICES[this.boardIndex].label)}</strong></div></section>
         <section class="loadout-section spot-panel" aria-label="Choose your location"><div class="loadout-heading"><span class="section-number">03</span><h3>${graffitiLettering('SPOT','gold')}</h3><span class="panel-kicker">THREE PARKS. YOUR LINE.</span></div>
         <div class="loadout-locations">${spots}</div><div class="selection-note"><span>SESSION LOCATION</span><strong>MAP ${LOCATIONS[this.locationIndex].number} / ${safe(LOCATIONS[this.locationIndex].name)}</strong></div></section></div>
         <footer>${this.button('← BACK','back')}<div class="loadout-recap"><span class="loadout-checks"><span class="${this.heroConfirmed?'complete':''}">${this.heroConfirmed?'✓':'01'} RIDER</span><span class="${this.boardConfirmed?'complete':''}">${this.boardConfirmed?'✓':'02'} DECK</span><span class="complete">✓ SPOT</span></span><span><span data-recap-rider>${safe(this.heroes[this.heroIndex].name)}</span> <i>/</i> <span data-recap-deck>${safe(BOARD_CHOICES[this.boardIndex].label)}</span> <i>/</i> <span data-recap-spot>MAP ${LOCATIONS[this.locationIndex].number}</span></span></div>${this.button(this.loadoutStartLabel(),'confirmLoadout',this.selectBusy||!this.heroConfirmed||!this.boardConfirmed)}</footer>
@@ -451,7 +452,7 @@ export class GameShell {
     return `<article class="run-results" aria-label="Session results">
       <header class="run-results-header"><div><span class="session-eyebrow">CHIMP HAWK / SESSION COMPLETE</span><h2>${graffitiLettering('YOUR RUN','gold')}</h2><p>${safe(run.mapName||LOCATIONS[this.locationIndex]?.name||'')} <span>·</span> ${Math.round(number(run.durationSeconds??90))} SEC SESSION</p></div><div class="run-loadout"><strong>${safe(run.riderName||this.heroes[this.heroIndex]?.name||'')}</strong><span>${safe(run.deckName||BOARD_CHOICES[this.boardIndex]?.label||'')}</span>${this.button('▶ Watch the Highlights','watchHighlights',!canReplay)}</div></header>
       <div class="run-results-grid"><section class="run-score-panel"><span class="session-eyebrow">FINAL SCORE</span><p class="run-total-score result-score"><strong data-final-score>${points(finalScore)}</strong><span>FINAL POINTS${run.scoreBreakdown?' · RUN WEIGHTS APPLIED':''}</span></p>${this.renderPersonalBest(run)}<div class="run-best-combo"><span class="session-eyebrow">BEST COMBO</span><strong>${points(best.points)} <small>PTS</small></strong><p>${number(best.points)>0?safe(best.label||'Landed combo'):'No combo banked this run'}</p>${number(best.trickCount)>0?`<span>${points(best.trickCount)} ${number(best.trickCount)===1?'trick':'tricks'} linked</span>`:''}</div>${this.renderScoreBreakdown(run)}<h3>THE RUN IN NUMBERS</h3><dl class="run-stats">${stats}</dl></section>
-      <div class="run-detail-column"><section class="run-achievements"><h3>SESSION ACHIEVEMENTS</h3><ol>${achievementRows}</ol></section><section class="run-top-tricks"><h3>HIGHEST SCORING TRICK MOMENTS</h3><ol>${topRows}</ol></section><section class="run-highlights"><span class="session-eyebrow">THE HIGHLIGHT REEL</span><p>${canReplay?`${highlightCount} best scored moment${highlightCount===1?'':'s'} · cinematic cameras & slow motion`:'Land a scored trick to capture your highlights.'}</p><small>${canReplay?'2.5 seconds before and after each moment, where the session allows.':'Highlights are recorded during this session only.'}</small></section></div></div>
+      <div class="run-detail-column">${this.renderLeaderboard(run)}<section class="run-achievements"><h3>SESSION ACHIEVEMENTS</h3><ol>${achievementRows}</ol></section><section class="run-top-tricks"><h3>HIGHEST SCORING TRICK MOMENTS</h3><ol>${topRows}</ol></section><section class="run-highlights"><span class="session-eyebrow">THE HIGHLIGHT REEL</span><p>${canReplay?`${highlightCount} best scored moment${highlightCount===1?'':'s'} · cinematic cameras & slow motion`:'Land a scored trick to capture your highlights.'}</p><small>${canReplay?'2.5 seconds before and after each moment, where the session allows.':'Highlights are recorded during this session only.'}</small></section></div></div>
       <footer class="run-results-actions">${this.button('RUN IT AGAIN · 90 SEC','restart')}${this.button('CHANGE RIDER / SPOT','start')}${this.button('PRACTICE','practice')}${this.button('MAIN MENU','title')}</footer></article>`;
   }
   renderScoreBreakdown(run){
@@ -527,6 +528,31 @@ export class GameShell {
   stagePortrait(hero){
     if(hero.art)return `<span class="rider-portrait rider-art-stage" data-hero-key="${safe(this.heroKey(hero))}" data-preview-state="ready"><span class="rider-art-burst" aria-hidden="true"></span><img class="rider-art" src="${safe(hero.art)}" alt="" draggable="false"><span class="rider-art-dust" aria-hidden="true"></span></span>`;
     return `<span class="rider-portrait" data-hero-key="${safe(this.heroKey(hero))}" data-portrait-url="${safe(hero.url)}" data-preview-state="loading"><span class="preview-status">Loading preview…</span></span>`;
+  }
+  /** Grip tape, wheel colour and bottom graphic choices under the deck colours. */
+  boardStyleRows(){
+    const style=this.boardStyle||=readBoardStyle();
+    const row=(action,label,list,chip)=>`<div class="board-style-row" data-style-row="${action}"><span class="board-style-label">${label}</span><div class="board-style-chips">${
+      list.map((item,i)=>`<button data-menu data-action="${action}" data-index="${i}" class="board-style-chip ${style[action]===i?'is-chosen':''}" aria-pressed="${style[action]===i}" title="${safe(item.label)}">${chip(item)}</button>`).join('')}</div></div>`;
+    const swatch=item=>item.color?`<i style="--chip:${item.color}"${item.camo?' class="camo"':''}></i>`:'<i class="stock"></i>';
+    return `<div class="board-style">${row('grip','GRIP',GRIPS,item=>`${swatch(item)}<b>${safe(item.label)}</b>`)}${
+      row('wheels','WHEELS',WHEELS,item=>`${swatch(item)}<b>${safe(item.label)}</b>`)}${
+      row('graphic','GRAPHIC',GRAPHICS,item=>item.art?`<img src="${safe(gameAssetUrl(item.art))}" alt="" draggable="false"><b>${safe(item.label)}</b>`:`<i class="${item.id}"></i><b>${safe(item.label)}</b>`)}</div>`;
+  }
+  updateBoardStyleRows(){
+    const style=this.boardStyle||readBoardStyle();
+    for(const button of this.content?.querySelectorAll?.('.board-style-chip')||[]){
+      const chosen=style[button.dataset.action]===Number(button.dataset.index);
+      button.classList.toggle('is-chosen',chosen);button.setAttribute('aria-pressed',String(chosen));
+    }
+  }
+  /** Top 10 for this map, with this run highlighted. */
+  renderLeaderboard(run){
+    const board=run?.leaderboard;
+    if(!board?.entries?.length)return '';
+    const date=value=>{try{return new Date(value).toLocaleDateString(undefined,{day:'numeric',month:'short'});}catch{return '';}};
+    const rows=board.entries.map((e,i)=>`<li class="${e.current?'is-current':''}"><span class="lb-rank">${i+1}</span><strong>${Math.round(e.score).toLocaleString('en-US')}</strong><span class="lb-rider">${safe(e.rider)}</span><span class="lb-deck">${safe(e.deck)}</span><span class="lb-date">${safe(date(e.date))}</span></li>`).join('');
+    return `<section class="run-leaderboard"><h3>TOP 10 · ${safe(run.mapName||'')}</h3>${board.rank?`<p class="lb-placed">YOU PLACED #${board.rank}</p>`:''}<ol>${rows}</ol></section>`;
   }
   loadPortrait(el){
     const url=el.dataset.portraitUrl;
@@ -683,6 +709,9 @@ export class GameShell {
       case 'start':this.begin(false);break;case 'practice':this.begin(true);break;
       case 'hero':this.heroIndex=index;this.heroConfirmed=true;this.updateLoadoutSelection(action,index);break;
       case 'board':this.boardIndex=index;this.boardConfirmed=true;this.updateLoadoutSelection(action,index);break;
+      case 'grip':case 'wheels':case 'graphic':
+        this.boardStyle={...(this.boardStyle||readBoardStyle()),[action]:index};saveBoardStyle(this.boardStyle);
+        this.actions.boardStyle?.(this.boardStyle);this.updateBoardStyleRows();break;
       case 'location':if(LOCATIONS[index]?.available){this.locationIndex=index;this.updateLoadoutSelection(action,index);}break;
       case 'upload':this.avatarInput.click();break;
       case 'confirmLoadout':void this.confirmLoadout();break;

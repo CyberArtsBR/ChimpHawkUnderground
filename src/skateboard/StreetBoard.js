@@ -1,4 +1,5 @@
 import { FlatlandMotion, flatlandDeckPose } from '../character/FlatlandMotion.js';
+import { GRIPS, WHEELS, graphicTexture, normalizeBoardStyle, readBoardStyle, saveBoardStyle } from './BoardStyles.js';
 import { FlipWind } from './FlipWind.js';
 import { installHalfPipeFinish } from './HalfPipeFinish.js';
 import * as THREE from 'three';
@@ -27,6 +28,37 @@ export class StreetBoard {
     this._lastFlipProgress = 0;
     this.contactRig = { ...PRODUCTION_BOARD_CONTACT_RIG };
     this.deckGlowMaterials = new Set();
+    this.style = readBoardStyle();
+    this.graphicTexture = null;
+  }
+
+  /** Grip tape, wheel colour and bottom graphic (see BoardStyles.js). */
+  setStyle(style = {}, { persist = true } = {}) {
+    this.style = normalizeBoardStyle({ ...this.style, ...style });
+    if (persist) saveBoardStyle(this.style);
+    if (!this.model) return;
+    const grip = GRIPS[this.style.grip], wheel = WHEELS[this.style.wheels];
+    if (this.graphicIndex !== this.style.graphic) {
+      this.graphicTexture?.dispose();
+      this.graphicTexture = graphicTexture(this.style.graphic);
+      this.graphicIndex = this.style.graphic;
+    }
+    for (const material of this.deckGlowMaterials) {
+      const u = material.userData.halfPipeFinish;
+      if (!u) continue;
+      u.hpGripMix.value = grip.color ? 1 : 0;
+      if (grip.color) u.hpGripColor.value.set(grip.color);
+      u.hpGripCamo.value = grip.camo ? 1 : 0;
+      u.hpGraphic.value = this.graphicTexture;
+      u.hpGraphicOn.value = this.graphicTexture ? 1 : 0;
+    }
+    this.model.traverse(mesh => {
+      if (!mesh.isMesh || !/pPipe(?:9|13)/i.test(mesh.name)) return;
+      for (const material of Array.isArray(mesh.material) ? mesh.material : [mesh.material]) {
+        material.userData.stockColor ||= material.color.clone();
+        material.color.copy(wheel.color ? new THREE.Color(wheel.color) : material.userData.stockColor);
+      }
+    });
   }
 
   deriveContactRig() {
@@ -139,6 +171,7 @@ export class StreetBoard {
       if (saved !== null && Number.isFinite(Number(saved))) finish = Number(saved);
     } catch {}
     this.setFinish(finish, { persist });
+    this.setStyle(this.style, { persist: false });
     return this;
   }
 
@@ -201,6 +234,8 @@ export class StreetBoard {
       }
     });
     if (persist) try { localStorage.setItem('streetskate.boardFinish', String(this.finishIndex)); } catch {}
+    // New deck materials pick up the current grip and graphic.
+    if (this.style) this.setStyle(this.style, { persist: false });
   }
 
   pointWorld(x, y, z, target = new THREE.Vector3()) {
