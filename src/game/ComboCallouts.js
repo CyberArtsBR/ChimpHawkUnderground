@@ -5,10 +5,9 @@
  * SkateAudio keep playing alongside.
  */
 export const CALLOUT_TIERS = Object.freeze([
-  Object.freeze({ min: 25000, label: 'CHIMPTASTIC!', tone: 'legend', level: 4 }),
-  Object.freeze({ min: 12000, label: 'INSANE!', tone: 'fire', level: 3 }),
-  Object.freeze({ min: 6000, label: 'SICK!', tone: 'gold', level: 2 }),
-  Object.freeze({ min: 3000, label: 'NICE!', tone: 'cyan', level: 1 }),
+  Object.freeze({ min: 7000, label: 'CHIMPTASTIC!', tone: 'legend', level: 4 }),
+  Object.freeze({ min: 5000, label: 'INSANE!', tone: 'fire', level: 3 }),
+  Object.freeze({ min: 3000, label: 'SICK!', tone: 'gold', level: 2 }),
 ]);
 
 /** The tier a landed combo earns, or null below the first milestone. */

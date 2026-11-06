@@ -144,7 +144,7 @@
   .hud-total.score-bump, .hud-total .score-gain, .skate-hud.speed-hot .speed::after, #balance-hud.danger .balance-marker { animation: none !important; }
 }
 
-/* ── Combo callouts: NICE / SICK / INSANE / CHIMPTASTIC ─────────────── */
+/* ── Combo callouts: SICK / INSANE / CHIMPTASTIC ─────────────── */
 #combo-callout {
   --c1: #7edcff; --c2: #2a8fd0; --c3: #0e3d66; --flash: rgba(126, 220, 255, .22);
   position: fixed;
