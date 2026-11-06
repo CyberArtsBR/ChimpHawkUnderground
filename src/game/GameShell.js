@@ -21,7 +21,7 @@ import { SessionFlow } from './SessionFlow.js';
 import { renderPlayerSettings, PlayerSettingsPanel } from './PlayerSettingsPanel.js';
 import { readPlayerPreferences, applyPlayerPreferences } from './PlayerPreferences.js';
 import { CAMERA_MODES, CAMERA_LABELS, DEFAULT_CAMERA_MODE } from './CameraModes.js';
-import { GRIPS, WHEELS, GRAPHICS, readBoardStyle, saveBoardStyle } from '../skateboard/BoardStyles.js';
+import { WHEELS, GRAPHICS, readBoardStyle, saveBoardStyle } from '../skateboard/BoardStyles.js';
 import { GLOW_CONTROLS, stepGlowValue } from '../graphics/GlowTuning.js';
 
 const safe = value => String(value).replace(/[&<>"']/g, ch =>
@@ -506,6 +506,14 @@ export class GameShell {
       heroConfirmed:this.heroConfirmed,boardConfirmed:this.boardConfirmed};
     this.pendingMode=practice?'practice':'timed';
     this.selectError='';
+    // Every visit to the loadout rolls random wheels and a random crew deck art
+    // (never "none"); the player can still change both before starting.
+    if(this.phase!=='select'){
+      const roll=(min,max)=>min+Math.floor(Math.random()*(max-min+1));
+      this.boardStyle={...(this.boardStyle||readBoardStyle()),wheels:roll(1,WHEELS.length-1),graphic:roll(1,GRAPHICS.length-1)};
+      saveBoardStyle(this.boardStyle);
+      this.actions?.boardStyle?.(this.boardStyle);
+    }
     // Quick start: the first loadout of a visit pre-selects The Hollow, the
     // Grey deck and Skate Paradise; later visits keep the player's last picks.
     if(!this.loadoutDefaultsApplied){
@@ -529,15 +537,14 @@ export class GameShell {
     if(hero.art)return `<span class="rider-portrait rider-art-stage" data-hero-key="${safe(this.heroKey(hero))}" data-preview-state="ready"><span class="rider-art-burst" aria-hidden="true"></span><img class="rider-art" src="${safe(hero.art)}" alt="" draggable="false"><span class="rider-art-dust" aria-hidden="true"></span></span>`;
     return `<span class="rider-portrait" data-hero-key="${safe(this.heroKey(hero))}" data-portrait-url="${safe(hero.url)}" data-preview-state="loading"><span class="preview-status">Loading preview…</span></span>`;
   }
-  /** Grip tape, wheel colour and bottom graphic choices under the deck colours. */
+  /** Wheel colour and deck-art choices under the deck colours. */
   boardStyleRows(){
     const style=this.boardStyle||=readBoardStyle();
     const row=(action,label,list,chip)=>`<div class="board-style-row" data-style-row="${action}"><span class="board-style-label">${label}</span><div class="board-style-chips">${
       list.map((item,i)=>`<button data-menu data-action="${action}" data-index="${i}" class="board-style-chip ${style[action]===i?'is-chosen':''}" aria-pressed="${style[action]===i}" title="${safe(item.label)}">${chip(item)}</button>`).join('')}</div></div>`;
     const swatch=item=>item.color?`<i style="--chip:${item.color}"${item.camo?' class="camo"':''}></i>`:'<i class="stock"></i>';
-    return `<div class="board-style">${row('grip','GRIP',GRIPS,item=>`${swatch(item)}<b>${safe(item.label)}</b>`)}${
-      row('wheels','WHEELS',WHEELS,item=>`${swatch(item)}<b>${safe(item.label)}</b>`)}${
-      row('graphic','GRAPHIC',GRAPHICS,item=>item.art?`<img src="${safe(gameAssetUrl(item.art))}" alt="" draggable="false"><b>${safe(item.label)}</b>`:`<i class="${item.id}"></i><b>${safe(item.label)}</b>`)}</div>`;
+    return `<div class="board-style">${row('wheels','WHEELS',WHEELS,item=>`${swatch(item)}<b>${safe(item.label)}</b>`)}${
+      row('graphic','DECK ART',GRAPHICS,item=>item.art?`<img src="${safe(gameAssetUrl(item.art))}" alt="" draggable="false"><b>${safe(item.label)}</b>`:`<i class="${item.id}"></i><b>${safe(item.label)}</b>`)}</div>`;
   }
   updateBoardStyleRows(){
     const style=this.boardStyle||readBoardStyle();
@@ -709,7 +716,7 @@ export class GameShell {
       case 'start':this.begin(false);break;case 'practice':this.begin(true);break;
       case 'hero':this.heroIndex=index;this.heroConfirmed=true;this.updateLoadoutSelection(action,index);break;
       case 'board':this.boardIndex=index;this.boardConfirmed=true;this.updateLoadoutSelection(action,index);break;
-      case 'grip':case 'wheels':case 'graphic':
+      case 'wheels':case 'graphic':
         this.boardStyle={...(this.boardStyle||readBoardStyle()),[action]:index};saveBoardStyle(this.boardStyle);
         this.actions.boardStyle?.(this.boardStyle);this.updateBoardStyleRows();break;
       case 'location':if(LOCATIONS[index]?.available){this.locationIndex=index;this.updateLoadoutSelection(action,index);}break;

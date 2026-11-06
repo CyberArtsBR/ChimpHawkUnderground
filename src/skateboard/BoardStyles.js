@@ -2,18 +2,10 @@ import * as THREE from 'three';
 import { gameAssetUrl } from '../game/AssetPaths.js';
 
 /**
- * Board customization (2026-11): grip tape, wheel colour and the deck's
- * bottom graphic. Defaults keep the original look (deck paint on top, stock
- * wheels, no graphic). Saved per browser.
+ * Board customization (2026-11): wheel colour and a crew character printed on
+ * the top of the deck. Defaults keep the original look (stock wheels, no art).
+ * Saved per browser.
  */
-export const GRIPS = Object.freeze([
-  { id: 'deck', label: 'DECK PAINT', color: null },
-  { id: 'black', label: 'BLACK', color: '#1c1c21' },
-  { id: 'pink', label: 'PINK', color: '#ff3d8b' },
-  { id: 'cyan', label: 'CYAN', color: '#2fc8ff' },
-  { id: 'banana', label: 'BANANA', color: '#ffd23f' },
-  { id: 'camo', label: 'CAMO', color: '#4d6b3a', camo: true },
-]);
 export const WHEELS = Object.freeze([
   { id: 'stock', label: 'STOCK', color: null },
   { id: 'white', label: 'WHITE', color: '#f2efe6' },
@@ -25,19 +17,18 @@ export const WHEELS = Object.freeze([
 ]);
 export const GRAPHICS = Object.freeze([
   { id: 'none', label: 'NONE' },
-  { id: 'crown', label: 'CROWN' },
   { id: 'hollow', label: 'HOLLOW', art: '/assets/rider/art/hollow.webp' },
   { id: 'heretic', label: 'HERETIC', art: '/assets/rider/art/heretic.webp' },
   { id: 'adolescent', label: 'ADOLESCENT', art: '/assets/rider/art/adolescent.webp' },
   { id: 'anchor', label: 'ANCHOR', art: '/assets/rider/art/anchor.webp' },
   { id: 'tuxr', label: 'TUXR', art: '/assets/rider/art/tuxr.webp' },
 ]);
-export const BOARD_STYLE_KEY = 'streetskate.boardStyle';
-export const DEFAULT_BOARD_STYLE = Object.freeze({ grip: 0, wheels: 0, graphic: 0 });
+export const BOARD_STYLE_KEY = 'streetskate.boardStyle.v2';
+export const DEFAULT_BOARD_STYLE = Object.freeze({ wheels: 0, graphic: 0 });
 
 const index = (value, list) => Number.isInteger(value) && value >= 0 && value < list.length ? value : 0;
 export function normalizeBoardStyle(style = {}) {
-  return { grip: index(style.grip, GRIPS), wheels: index(style.wheels, WHEELS), graphic: index(style.graphic, GRAPHICS) };
+  return { wheels: index(style.wheels, WHEELS), graphic: index(style.graphic, GRAPHICS) };
 }
 export function readBoardStyle(storage = globalThis.localStorage) {
   try { return normalizeBoardStyle(JSON.parse(storage?.getItem(BOARD_STYLE_KEY) || '{}')); } catch { return { ...DEFAULT_BOARD_STYLE }; }
@@ -57,44 +48,44 @@ function loadArt(path) {
 }
 
 /**
- * Bottom-graphic texture: canvas X runs along the deck (tail → nose), Y across
- * it. Transparent where the deck paint should show through.
+ * Deck-art texture: canvas X runs along the deck (tail → nose), Y across it.
+ * Transparent everywhere except the character, so the deck paint shows around it.
  */
 export function graphicTexture(graphicIndex) {
   if (typeof document === 'undefined') return null;
   const graphic = GRAPHICS[index(graphicIndex, GRAPHICS)];
-  if (graphic.id === 'none') return null;
+  if (!graphic.art) return null;
   const canvas = document.createElement('canvas'); canvas.width = 1024; canvas.height = 256;
   const ctx = canvas.getContext('2d');
   const texture = new THREE.CanvasTexture(canvas);
   texture.colorSpace = THREE.SRGBColorSpace; texture.anisotropy = 8;
-  const banner = () => {
-    ctx.save(); ctx.translate(512, 128);
-    ctx.font = '400 54px Bangers, Impact, sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    ctx.lineWidth = 8; ctx.strokeStyle = 'rgba(16,10,24,.85)';
-    for (const [x, text] of [[-330, 'CHIMP'], [330, 'HAWK']]) { ctx.strokeText(text, x, 0); ctx.fillStyle = '#fffaf0'; ctx.fillText(text, x, 0); }
+  loadArt(graphic.art).then(image => {
+    if (!image) return;
+    // The character stands along the deck, head toward the nose, filling the
+    // deck's width (canvas height) with a crisp white sticker outline.
+    // Trim the art's empty transparent margins so the character itself fills the deck.
+    const probe = document.createElement('canvas'); probe.width = image.width; probe.height = image.height;
+    const pctx = probe.getContext('2d', { willReadFrequently: true }); pctx.drawImage(image, 0, 0);
+    const pixels = pctx.getImageData(0, 0, probe.width, probe.height).data;
+    let minX = probe.width, minY = probe.height, maxX = 0, maxY = 0;
+    for (let y = 0; y < probe.height; y += 2) for (let x = 0; x < probe.width; x += 2) {
+      if (pixels[(y * probe.width + x) * 4 + 3] > 24) { if (x < minX) minX = x; if (x > maxX) maxX = x; if (y < minY) minY = y; if (y > maxY) maxY = y; }
+    }
+    const crop = maxX > minX && maxY > minY ? { x: minX, y: minY, w: maxX - minX + 2, h: maxY - minY + 2 } : { x: 0, y: 0, w: image.width, h: image.height };
+    const w = 228, h = Math.min(940, w * crop.h / crop.w), border = 7;
+    const sticker = document.createElement('canvas');
+    sticker.width = Math.ceil(w + border * 2); sticker.height = Math.ceil(h + border * 2);
+    const sctx = sticker.getContext('2d');
+    const silhouette = document.createElement('canvas'); silhouette.width = sticker.width; silhouette.height = sticker.height;
+    const silctx = silhouette.getContext('2d');
+    silctx.drawImage(image, crop.x, crop.y, crop.w, crop.h, border, border, w, h);
+    silctx.globalCompositeOperation = 'source-in'; silctx.fillStyle = '#ffffff'; silctx.fillRect(0, 0, silhouette.width, silhouette.height);
+    for (let k = 0; k < 16; k++) { const a = k / 16 * Math.PI * 2; sctx.drawImage(silhouette, Math.cos(a) * border, Math.sin(a) * border); }
+    sctx.drawImage(image, crop.x, crop.y, crop.w, crop.h, border, border, w, h);
+    ctx.save(); ctx.translate(512, 128); ctx.rotate(Math.PI / 2);
+    ctx.drawImage(sticker, -sticker.width / 2, -sticker.height / 2);
     ctx.restore();
-  };
-  if (graphic.id === 'crown') {
-    ctx.save(); ctx.translate(512, 128); ctx.rotate(-Math.PI / 2);
-    ctx.fillStyle = '#141020'; ctx.strokeStyle = '#fffaf0'; ctx.lineWidth = 10; ctx.lineJoin = 'round';
-    ctx.beginPath(); ctx.moveTo(-90, 70); ctx.lineTo(-105, -55); ctx.lineTo(-45, 0); ctx.lineTo(0, -85); ctx.lineTo(45, 0); ctx.lineTo(105, -55); ctx.lineTo(90, 70); ctx.closePath();
-    ctx.fill(); ctx.stroke(); ctx.restore();
-    banner();
     texture.needsUpdate = true;
-  } else {
-    banner();
-    texture.needsUpdate = true;
-    loadArt(graphic.art).then(image => {
-      if (!image) return;
-      // Character stands along the deck (head toward the nose).
-      ctx.save(); ctx.translate(512, 128); ctx.rotate(-Math.PI / 2);
-      const h = 360, w = h * image.width / image.height;
-      ctx.shadowColor = 'rgba(0,0,0,.45)'; ctx.shadowBlur = 12;
-      ctx.drawImage(image, -w / 2, -h / 2, w, h);
-      ctx.restore();
-      texture.needsUpdate = true;
-    });
-  }
+  });
   return texture;
 }

@@ -1,5 +1,5 @@
 import { FlatlandMotion, flatlandDeckPose } from '../character/FlatlandMotion.js';
-import { GRIPS, WHEELS, graphicTexture, normalizeBoardStyle, readBoardStyle, saveBoardStyle } from './BoardStyles.js';
+import { WHEELS, graphicTexture, normalizeBoardStyle, readBoardStyle, saveBoardStyle } from './BoardStyles.js';
 import { FlipWind } from './FlipWind.js';
 import { installHalfPipeFinish } from './HalfPipeFinish.js';
 import * as THREE from 'three';
@@ -32,12 +32,12 @@ export class StreetBoard {
     this.graphicTexture = null;
   }
 
-  /** Grip tape, wheel colour and bottom graphic (see BoardStyles.js). */
+  /** Wheel colour and deck-top character art (see BoardStyles.js). */
   setStyle(style = {}, { persist = true } = {}) {
     this.style = normalizeBoardStyle({ ...this.style, ...style });
     if (persist) saveBoardStyle(this.style);
     if (!this.model) return;
-    const grip = GRIPS[this.style.grip], wheel = WHEELS[this.style.wheels];
+    const wheel = WHEELS[this.style.wheels];
     if (this.graphicIndex !== this.style.graphic) {
       this.graphicTexture?.dispose();
       this.graphicTexture = graphicTexture(this.style.graphic);
@@ -46,9 +46,6 @@ export class StreetBoard {
     for (const material of this.deckGlowMaterials) {
       const u = material.userData.halfPipeFinish;
       if (!u) continue;
-      u.hpGripMix.value = grip.color ? 1 : 0;
-      if (grip.color) u.hpGripColor.value.set(grip.color);
-      u.hpGripCamo.value = grip.camo ? 1 : 0;
       u.hpGraphic.value = this.graphicTexture;
       u.hpGraphicOn.value = this.graphicTexture ? 1 : 0;
     }
@@ -234,7 +231,7 @@ export class StreetBoard {
       }
     });
     if (persist) try { localStorage.setItem('streetskate.boardFinish', String(this.finishIndex)); } catch {}
-    // New deck materials pick up the current grip and graphic.
+    // New deck materials pick up the current deck art.
     if (this.style) this.setStyle(this.style, { persist: false });
   }
 
