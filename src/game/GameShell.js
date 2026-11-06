@@ -266,7 +266,7 @@ export class GameShell {
         <div class="loadout-panels">
         <section class="loadout-section rider-panel" aria-label="Choose your rider"><div class="loadout-heading"><span class="section-number">01</span><h3>${graffitiLettering('RIDER','gold')}</h3><span class="panel-kicker">THE CREW</span></div>
         <div class="selected-rider" style="--rider-accent:${this.heroes[this.heroIndex].accent}"><span class="rider-stage-number" aria-hidden="true">${String(this.heroIndex+1).padStart(2,'0')}</span>
-          <span class="rider-portrait" data-portrait-url="${safe(this.heroes[this.heroIndex].url)}" data-preview-state="loading"><span class="preview-status">Loading preview…</span></span>
+          ${this.stagePortrait(this.heroes[this.heroIndex])}
           <div class="selected-rider-copy"><span>${this.heroConfirmed?'YOUR RIDER':'MEET THE CREW'}</span><strong>${safe(this.heroes[this.heroIndex].name)}</strong><small>${safe(this.heroSubtitle(this.heroes[this.heroIndex]))}</small></div>
         </div>${this.button('↑ IMPORT YOUR RIDER .GLB','upload')}</section>
         <section class="loadout-section deck-panel" aria-label="Choose your skateboard"><div class="loadout-heading"><span class="section-number">02</span><h3>${graffitiLettering('DECK','gold')}</h3><span class="panel-kicker">GRADIENT GLOW</span></div>
@@ -520,6 +520,12 @@ export class GameShell {
     this.focusHint={action:'confirmLoadout',index:0};
     this.setScreen('select');
   }
+  heroKey(hero){return hero.art||hero.url||hero.id||'';}
+  /** Rider stage: the crew's own art with an entrance animation, or the 3D preview for imported riders. */
+  stagePortrait(hero){
+    if(hero.art)return `<span class="rider-portrait rider-art-stage" data-hero-key="${safe(this.heroKey(hero))}" data-preview-state="ready"><span class="rider-art-burst" aria-hidden="true"></span><img class="rider-art" src="${safe(hero.art)}" alt="" draggable="false"><span class="rider-art-dust" aria-hidden="true"></span></span>`;
+    return `<span class="rider-portrait" data-hero-key="${safe(this.heroKey(hero))}" data-portrait-url="${safe(hero.url)}" data-preview-state="loading"><span class="preview-status">Loading preview…</span></span>`;
+  }
   loadPortrait(el){
     const url=el.dataset.portraitUrl;
     if(!url)return;
@@ -557,11 +563,14 @@ export class GameShell {
     rider.querySelector('.selected-rider-copy span').textContent=this.heroConfirmed?'YOUR RIDER':'MEET THE CREW';
     rider.querySelector('.selected-rider-copy strong').textContent=hero.name;
     rider.querySelector('.selected-rider-copy small').textContent=this.heroSubtitle(hero);
-    const portrait=rider.querySelector('[data-portrait-url]');
-    if(portrait.dataset.portraitUrl!==hero.url){
-      portrait.dataset.portraitUrl=hero.url;portrait.dataset.previewState='loading';
-      const status=document.createElement('span');status.className='preview-status';status.textContent='Loading preview…';
-      portrait.replaceChildren(status);this.loadPortrait(portrait);
+    const portrait=rider.querySelector('.rider-portrait');
+    // Picking a rider (even the same one again) replays the stage entrance.
+    if(action==='hero'||portrait?.dataset.heroKey!==this.heroKey(hero)){
+      const holder=document.createElement('span');
+      holder.innerHTML=this.stagePortrait(hero);
+      const next=holder.firstElementChild;
+      if(portrait)portrait.replaceWith(next);else rider.querySelector('.rider-stage-number').after(next);
+      if(next.dataset.portraitUrl)this.loadPortrait(next);
     }
     root.querySelector('.deck-panel .selection-note span').textContent=this.boardConfirmed?'DECK LOCKED IN':'CHOOSE YOUR FINISH';
     root.querySelector('.deck-panel .selection-note strong').textContent=board.label;

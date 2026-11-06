@@ -3,11 +3,11 @@ import { SKATEBOARD_FINISHES } from '../skateboard/BoardFinishes.js';
 import { PARK_DEFINITIONS } from '../park/ParkRegistry.js';
 
 export const DEFAULT_CHARACTERS = Object.freeze([
-  Object.freeze({ id:'hollow', name:'The Hollow', subtitle:'THE HOLLOW', url:gameAssetUrl('/assets/rider/thehollowf.glb'), accent:'#fff151' }),
-  Object.freeze({ id:'heretic', name:'Heretic', subtitle:'THE EXECUTOR', url:gameAssetUrl('/assets/rider/The_Heretic.glb'), accent:'#f66e62' }),
-  Object.freeze({ id:'adolescent', name:'Adolescent', subtitle:'THE YOUNGBLOOD', url:gameAssetUrl('/assets/rider/The_AdolescentUR.glb'), accent:'#7edcff' }),
-  Object.freeze({ id:'anchor', name:'Anchor', subtitle:'THE WIZARD', url:gameAssetUrl('/assets/rider/The_Anchor.glb'), accent:'#c8f17f' }),
-  Object.freeze({ id:'tuxr', name:'Tuxr', subtitle:'THE MASTERMIND', url:gameAssetUrl('/assets/rider/TuxR.glb'), accent:'#cc94ff' }),
+  Object.freeze({ id:'hollow', name:'The Hollow', subtitle:'THE HOLLOW', url:gameAssetUrl('/assets/rider/thehollowf.glb'), accent:'#fff151', art:gameAssetUrl('/assets/rider/art/hollow.webp') }),
+  Object.freeze({ id:'heretic', name:'Heretic', subtitle:'THE EXECUTOR', url:gameAssetUrl('/assets/rider/The_Heretic.glb'), accent:'#f66e62', art:gameAssetUrl('/assets/rider/art/heretic.webp') }),
+  Object.freeze({ id:'adolescent', name:'Adolescent', subtitle:'THE YOUNGBLOOD', url:gameAssetUrl('/assets/rider/The_AdolescentUR.glb'), accent:'#7edcff', art:gameAssetUrl('/assets/rider/art/adolescent.webp') }),
+  Object.freeze({ id:'anchor', name:'Anchor', subtitle:'THE WIZARD', url:gameAssetUrl('/assets/rider/The_Anchor.glb'), accent:'#c8f17f', art:gameAssetUrl('/assets/rider/art/anchor.webp') }),
+  Object.freeze({ id:'tuxr', name:'Tuxr', subtitle:'THE MASTERMIND', url:gameAssetUrl('/assets/rider/TuxR.glb'), accent:'#cc94ff', art:gameAssetUrl('/assets/rider/art/tuxr.webp') }),
 ]);
 const LABELS = ['GREY', 'WHITE / BLACK', 'PURPLE', 'LIME GREEN', 'YELLOW', 'BLUE', 'ORANGE', 'RED'];
 export const BOARD_CHOICES = Object.freeze(LABELS.map((label, finishIndex) =>
