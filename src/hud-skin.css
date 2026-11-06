@@ -1,0 +1,293 @@
+/* CHIMP HAWK HUD SKIN (2026-11 enhancement pass)
+   Visual layer over the existing in-game instruments: same elements, same
+   positions. Grip-texture 3D panels, a speed gauge, a score bump with a
+   floating "+points", and a skateboard-deck balance meter. */
+
+/* ── Panels: score (top-left), speed (bottom-left), clock (top-right) ── */
+.hud-total,
+.skate-hud,
+#run-timer {
+  background: var(--skin-grip), linear-gradient(160deg, rgba(40, 28, 60, .88), rgba(14, 12, 28, .9)) !important;
+  background-size: 120px 120px, 100% 100% !important;
+  background-blend-mode: soft-light, normal;
+  border: 1px solid rgba(255, 140, 200, .32) !important;
+  border-radius: 18px !important;
+  box-shadow:
+    0 5px 0 rgba(8, 5, 14, .85),
+    0 12px 26px rgba(0, 0, 0, .45),
+    inset 0 1px 0 rgba(255, 255, 255, .12) !important;
+}
+.hud-total > small,
+.skate-hud .speed small {
+  font-family: 'Barlow Condensed', 'Arial Narrow', sans-serif !important;
+  font-weight: 800 !important;
+  letter-spacing: .24em !important;
+  color: #ffd96a !important;
+}
+
+/* Score: bump and a floating "+points" when a combo banks. */
+.hud-total { position: fixed; overflow: visible; }
+.hud-total.score-bump { animation: score-bump .45s cubic-bezier(.2, 1.7, .4, 1); }
+@keyframes score-bump {
+  0% { transform: scale(1); }
+  35% { transform: scale(1.14) rotate(-1.5deg); box-shadow: 0 5px 0 rgba(8, 5, 14, .85), 0 0 34px rgba(255, 200, 70, .7), inset 0 1px 0 rgba(255, 255, 255, .2); }
+  100% { transform: scale(1) rotate(0); }
+}
+.hud-total .score-gain {
+  position: absolute;
+  left: 100%;
+  top: 50%;
+  margin-left: 12px;
+  font: 400 clamp(22px, 2.2vw, 34px)/1 'Bangers', Impact, sans-serif;
+  letter-spacing: .05em;
+  color: #fff3a0;
+  white-space: nowrap;
+  pointer-events: none;
+  text-shadow: 0 2px 0 #b8560b, 0 3px 0 #6e2f05, 0 6px 12px rgba(0, 0, 0, .6), 0 0 16px rgba(255, 200, 70, .6);
+  animation: score-gain 1.4s cubic-bezier(.2, .9, .3, 1) forwards;
+}
+@keyframes score-gain {
+  0% { opacity: 0; transform: translate(-8px, -30%) scale(.6); }
+  15% { opacity: 1; transform: translate(0, -50%) scale(1.15); }
+  30% { transform: translate(0, -55%) scale(1); }
+  100% { opacity: 0; transform: translate(14px, -170%) scale(1); }
+}
+
+/* Speed: segmented gauge under the number that fills with speed. */
+.skate-hud { --speed: 0; overflow: visible; }
+.skate-hud .speed { position: relative; padding-bottom: 12px; }
+.skate-hud .speed::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  min-width: 120px;
+  height: 6px;
+  border-radius: 3px;
+  background:
+    linear-gradient(90deg, #7edcff 0%, #ffd34f 60%, #ff3d8b 100%) 0 0 / calc(var(--speed) * 100%) 100% no-repeat,
+    rgba(255, 255, 255, .12);
+  -webkit-mask: repeating-linear-gradient(90deg, #000 0 9px, transparent 9px 12px);
+  mask: repeating-linear-gradient(90deg, #000 0 9px, transparent 9px 12px);
+  filter: drop-shadow(0 0 4px rgba(126, 220, 255, .5));
+  transition: background-size .12s linear;
+}
+.skate-hud.speed-hot {
+  border-color: rgba(255, 90, 160, .75) !important;
+  box-shadow:
+    0 5px 0 rgba(8, 5, 14, .85),
+    0 12px 26px rgba(0, 0, 0, .45),
+    0 0 26px rgba(255, 61, 139, .45),
+    inset 0 1px 0 rgba(255, 255, 255, .16) !important;
+}
+.skate-hud.speed-hot .speed::after { filter: drop-shadow(0 0 7px rgba(255, 61, 139, .85)); animation: speed-flicker .18s steps(2) infinite; }
+@keyframes speed-flicker { 50% { opacity: .82; } }
+.skate-hud .charge { border-radius: 99px !important; height: 5px !important; background: rgba(255, 255, 255, .12) !important; }
+.skate-hud .charge i { background: linear-gradient(90deg, #ffd34f, #ff7a3d) !important; box-shadow: 0 0 8px rgba(255, 180, 60, .7); border-radius: 99px; }
+.skate-hud .ride-state > span { font-family: 'Barlow Condensed', sans-serif !important; font-weight: 800 !important; letter-spacing: .14em !important; }
+.skate-hud .ride-state > span.air { color: #ffd96a !important; text-shadow: 0 0 10px rgba(255, 210, 90, .55); }
+
+/* Clock: last ten seconds go hot pink. */
+#run-timer.time-critical {
+  background: var(--skin-grip), linear-gradient(160deg, #e0216f, #8d0f43) !important;
+  background-size: 120px 120px, 100% 100% !important;
+  border-color: #ffd8ec !important;
+  box-shadow: 0 5px 0 #4d0626, 0 0 28px rgba(255, 61, 139, .65), inset 0 1px 0 rgba(255, 255, 255, .3) !important;
+}
+
+/* ── Balance meter as a skateboard deck ─────────────────────────────── */
+#balance-hud .balance-label {
+  font: 400 15px/1 'Bangers', Impact, sans-serif !important;
+  letter-spacing: .14em !important;
+  color: #fff3c8;
+  text-align: center;
+  text-shadow: 0 2px 0 rgba(0, 0, 0, .7), 0 0 10px rgba(0, 0, 0, .5) !important;
+}
+#balance-hud .balance-track {
+  height: 14px !important;
+  border: 2px solid rgba(255, 255, 255, .7) !important;
+  border-radius: 99px !important;
+  background:
+    var(--skin-grip),
+    linear-gradient(90deg, #ff2e6c 0%, #ff8a3d 14%, #2a2236 26%, #2a2236 74%, #ff8a3d 86%, #ff2e6c 100%) !important;
+  background-size: 120px 120px, 100% 100% !important;
+  background-blend-mode: soft-light, normal;
+  box-shadow: 0 4px 0 rgba(8, 5, 14, .9), 0 8px 16px rgba(0, 0, 0, .5), inset 0 1px 0 rgba(255, 255, 255, .25) !important;
+}
+#balance-hud[data-axis="vertical"] .balance-track {
+  width: 14px !important;
+  background:
+    var(--skin-grip),
+    linear-gradient(0deg, #ff2e6c 0%, #ff8a3d 14%, #2a2236 26%, #2a2236 74%, #ff8a3d 86%, #ff2e6c 100%) !important;
+  background-size: 120px 120px, 100% 100% !important;
+}
+#balance-hud .balance-center { background: rgba(126, 220, 255, .9) !important; box-shadow: 0 0 8px rgba(126, 220, 255, .8); }
+#balance-hud .balance-marker {
+  width: 18px !important;
+  height: 24px !important;
+  border-radius: 7px !important;
+  background: linear-gradient(180deg, #fff6b0, #ffc53d) !important;
+  border: 2px solid #3a2203;
+  box-shadow: 0 0 14px rgba(255, 210, 80, .85), 0 3px 0 #6b3f05 !important;
+}
+#balance-hud[data-axis="vertical"] .balance-marker { width: 24px !important; height: 18px !important; }
+#balance-hud.danger .balance-marker {
+  background: linear-gradient(180deg, #ff9ac4, #ff2e6c) !important;
+  box-shadow: 0 0 20px rgba(255, 46, 108, 1), 0 3px 0 #5d0a26 !important;
+  animation: balance-danger .22s ease-in-out infinite alternate;
+}
+#balance-hud.danger .balance-track { border-color: #ffb3cc !important; }
+@keyframes balance-danger { to { filter: brightness(1.35); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .hud-total.score-bump, .hud-total .score-gain, .skate-hud.speed-hot .speed::after, #balance-hud.danger .balance-marker { animation: none !important; }
+}
+
+/* ── Combo callouts: SICK / INSANE / CHIMPTASTIC ─────────────────────
+   90s graffiti burner: the game's own spray letters, bouncing tilt per
+   letter, a paint cloud behind, sparkles, and a colour flash. */
+#combo-callout {
+  --c1: #fff08a; --c2: #f6a92c; --c3: #ff5fae; --flash: rgba(255, 200, 70, .26);
+  --lh: clamp(66px, 9vw, 132px);
+  --ph: clamp(38px, 4.4vw, 62px);
+  position: fixed;
+  inset: 0;
+  z-index: 46;
+  pointer-events: none;
+  display: none;
+}
+#combo-callout[data-tone='fire'] { --c1: #ffd36e; --c2: #ff5a2c; --c3: #b02cff; --flash: rgba(255, 90, 40, .3); }
+#combo-callout[data-tone='legend'] { --c1: #7edcff; --c2: #ff3d8b; --c3: #8dff4f; --flash: rgba(255, 61, 139, .36); --lh: clamp(70px, 10vw, 150px); }
+body[data-screen='playing'] #combo-callout.show { display: block; }
+
+#combo-callout .callout-flash {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at 50% 36%, var(--flash), transparent 65%);
+  opacity: 0;
+}
+#combo-callout.show .callout-flash { animation: callout-flash .7s ease-out both; }
+@keyframes callout-flash { 0% { opacity: 0; } 18% { opacity: 1; } 100% { opacity: 0; } }
+
+#combo-callout .callout-word {
+  position: absolute;
+  left: 50%;
+  top: 34%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transform: translate(-50%, -50%) rotate(-4deg);
+  white-space: nowrap;
+  isolation: isolate;
+}
+
+/* Spray-paint cloud behind the piece. */
+#combo-callout .callout-spray {
+  position: absolute;
+  inset: -18% -12%;
+  z-index: -1;
+  background:
+    radial-gradient(closest-side at 22% 45%, var(--c2), transparent 75%),
+    radial-gradient(closest-side at 55% 38%, var(--c3), transparent 75%),
+    radial-gradient(closest-side at 82% 58%, var(--c1), transparent 75%),
+    radial-gradient(closest-side at 48% 78%, rgba(20, 12, 40, .85), transparent 80%);
+  filter: blur(16px);
+  opacity: .5;
+  border-radius: 50%;
+}
+#combo-callout[data-tone='legend'] .callout-spray { opacity: .62; }
+
+/* Letters: the graffiti glyph images, each one tilted and bobbing. */
+#combo-callout .callout-title,
+#combo-callout .callout-points { display: flex; align-items: center; }
+#combo-callout .callout-title img { width: calc(var(--lh) * .79); height: var(--lh); margin-right: calc(var(--lh) * -.12); }
+#combo-callout .callout-points { margin-top: calc(var(--lh) * -.02); }
+#combo-callout .callout-points img { width: calc(var(--ph) * .79); height: var(--ph); margin-right: calc(var(--ph) * -.1); }
+#combo-callout .callout-title img,
+#combo-callout .callout-points img {
+  display: block;
+  object-fit: contain;
+  rotate: -6deg;
+  translate: 0 -4%;
+  filter: drop-shadow(0 4px 0 rgba(10, 6, 20, .85)) drop-shadow(0 10px 14px rgba(0, 0, 0, .5));
+}
+#combo-callout .callout-title img:nth-child(even),
+#combo-callout .callout-points img:nth-child(even) { rotate: 5deg; translate: 0 5%; }
+#combo-callout .callout-title img:nth-child(3n) { rotate: -2deg; translate: 0 -9%; }
+#combo-callout .callout-punct {
+  font: 400 calc(var(--lh) * .82)/1 'Bangers', Impact, sans-serif;
+  color: var(--c1);
+  -webkit-text-stroke: 2px #140a24;
+  text-shadow: 0 4px 0 #140a24, 0 0 18px var(--flash);
+  rotate: 8deg;
+  padding: 0 .06em;
+}
+#combo-callout .callout-points .callout-punct { font-size: calc(var(--ph) * .8); color: #fff7e6; }
+#combo-callout.show .callout-title > *,
+#combo-callout.show .callout-points > * { animation: callout-letter .42s cubic-bezier(.2, 1.6, .4, 1) backwards; animation-delay: calc(var(--i, 0) * 35ms + 60ms); }
+#combo-callout.show .callout-points > * { animation-delay: calc(var(--i, 0) * 30ms + 300ms); }
+@keyframes callout-letter { 0% { scale: 0; opacity: 0; } 60% { scale: 1.25; opacity: 1; } 100% { scale: 1; } }
+#combo-callout.show[data-level='4'] .callout-title img { animation: callout-letter .42s cubic-bezier(.2, 1.6, .4, 1) backwards, callout-bob .5s ease-in-out .5s infinite alternate; animation-delay: calc(var(--i, 0) * 35ms + 60ms), calc(var(--i, 0) * 60ms + 500ms); }
+@keyframes callout-bob { to { translate: 0 -12%; } }
+
+/* Plain-type fallback if the letter images are not ready yet. */
+#combo-callout .is-text b {
+  font: 400 calc(var(--lh) * .9)/1 'Bangers', Impact, 'Arial Black', sans-serif;
+  letter-spacing: .05em;
+  color: var(--c1);
+  -webkit-text-stroke: 2px #140a24;
+  text-shadow: 0 3px 0 var(--c2), 0 6px 0 #140a24, 0 14px 24px rgba(0, 0, 0, .65);
+}
+#combo-callout .callout-points.is-text b { font-size: var(--ph); color: #fff7e6; }
+
+/* Sparkles around the piece. */
+#combo-callout .callout-star {
+  position: absolute;
+  font: normal 400 calc(var(--lh) * .34)/1 sans-serif;
+  color: #fffbe0;
+  text-shadow: 0 0 12px var(--c1), 0 0 22px var(--c2);
+  scale: 0;
+}
+#combo-callout .s1 { left: -6%; top: 2%; }
+#combo-callout .s2 { right: -5%; top: -8%; font-size: calc(var(--lh) * .24); }
+#combo-callout .s3 { right: 4%; bottom: -4%; font-size: calc(var(--lh) * .2); }
+#combo-callout .s4 { left: 8%; bottom: -10%; font-size: calc(var(--lh) * .16); }
+#combo-callout.show .callout-star { animation: callout-star .9s ease-out both; }
+#combo-callout.show .s2 { animation-delay: .12s; }
+#combo-callout.show .s3 { animation-delay: .24s; }
+#combo-callout.show .s4 { animation-delay: .34s; }
+#combo-callout.show[data-level='4'] .callout-star { animation-iteration-count: 2; }
+@keyframes callout-star { 0% { scale: 0; rotate: 0deg; } 40% { scale: 1.2; } 100% { scale: 0; rotate: 160deg; } }
+
+/* The whole piece slams in, holds, and flies off. */
+#combo-callout.show .callout-word { animation: callout-slam 2s cubic-bezier(.2, .9, .3, 1) both; }
+#combo-callout.show[data-level='3'] .callout-word,
+#combo-callout.show[data-level='4'] .callout-word { animation: callout-slam 2s cubic-bezier(.2, .9, .3, 1) both, callout-shake .32s steps(6) .42s; }
+@keyframes callout-slam {
+  0% { opacity: 0; transform: translate(-50%, -50%) scale(2.4) rotate(-10deg); filter: blur(6px); }
+  20% { opacity: 1; transform: translate(-50%, -50%) scale(.94) rotate(-4deg); filter: blur(0); }
+  30% { transform: translate(-50%, -50%) scale(1.04) rotate(-4deg); }
+  38%, 80% { transform: translate(-50%, -50%) scale(1) rotate(-4deg); opacity: 1; }
+  100% { opacity: 0; transform: translate(-50%, -120%) scale(.85) rotate(-4deg); }
+}
+@keyframes callout-shake {
+  0%, 100% { margin-left: 0; margin-top: 0; }
+  20% { margin-left: -9px; margin-top: 4px; }
+  40% { margin-left: 8px; margin-top: -5px; }
+  60% { margin-left: -6px; margin-top: 3px; }
+  80% { margin-left: 4px; margin-top: -2px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #combo-callout.show .callout-flash,
+  #combo-callout.show .callout-star,
+  #combo-callout.show .callout-title > *,
+  #combo-callout.show .callout-points > * { animation: none !important; }
+  #combo-callout.show .callout-word { animation: callout-fade 1.9s ease both !important; }
+}
+@keyframes callout-fade { 0%, 100% { opacity: 0; } 15%, 80% { opacity: 1; } }
+
+/* Score "+points" float in graffiti digits. */
+.hud-total .score-gain.graffiti-gain { --letter-height: clamp(26px, 2.6vw, 38px); font-size: var(--letter-height); text-shadow: none; }
+.hud-total .score-gain.graffiti-gain .graffiti-word img { margin-right: calc(var(--letter-height) * -.1); }

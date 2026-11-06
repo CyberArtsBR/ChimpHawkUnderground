@@ -622,3 +622,308 @@
   #game-shell.loadout-screen .selected-rider .rider-portrait::before,
   #game-shell.loadout-screen .rider-stage-number { animation: none !important; }
 }
+
+/* ── Main actions stay gold when highlighted (fix: pink hover used to win) ── */
+#game-shell .menu-card button[data-action="resume"]:not(.audio-volume-control button):is(:hover, .selected),
+#game-shell .loadout-shell footer button[data-action="confirmLoadout"]:not(:disabled):is(:hover, .selected),
+#game-shell .run-results-actions button[data-action="restart"]:is(:hover, .selected),
+#game-shell .timeup-burst button[data-action="skipTimeup"]:is(:hover, .selected) {
+  color: #2a1600 !important;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, .5) !important;
+  background: var(--skin-grip), var(--skin-gold) !important;
+  background-size: 120px 120px, 100% 100% !important;
+  border-color: #fffbe0 !important;
+  transform: translateY(-2px) !important;
+}
+
+/* ── Pause and other menu screens: panels slide in, buttons follow ───── */
+#game-shell.menu-screen .menu-card { animation: panel-in .38s cubic-bezier(.2, .9, .3, 1.15) both; }
+#game-shell.menu-screen .shell-content > :not(.menu-card) { animation: panel-in-left .42s cubic-bezier(.2, .9, .3, 1.1) both; }
+@keyframes panel-in {
+  from { opacity: 0; transform: translateY(16px) scale(.97); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes panel-in-left {
+  from { opacity: 0; transform: translateX(-26px) rotate(-1.5deg); }
+  to { opacity: 1; transform: none; }
+}
+#game-shell.menu-screen .menu-card > button,
+#game-shell .run-results-actions > button {
+  animation: deck-in .32s cubic-bezier(.2, .9, .3, 1.3) both;
+}
+#game-shell.menu-screen .menu-card > button:nth-of-type(1), #game-shell .run-results-actions > button:nth-of-type(1) { animation-delay: .06s; }
+#game-shell.menu-screen .menu-card > button:nth-of-type(2), #game-shell .run-results-actions > button:nth-of-type(2) { animation-delay: .1s; }
+#game-shell.menu-screen .menu-card > button:nth-of-type(3), #game-shell .run-results-actions > button:nth-of-type(3) { animation-delay: .14s; }
+#game-shell.menu-screen .menu-card > button:nth-of-type(4), #game-shell .run-results-actions > button:nth-of-type(4) { animation-delay: .18s; }
+#game-shell.menu-screen .menu-card > button:nth-of-type(5) { animation-delay: .22s; }
+#game-shell.menu-screen .menu-card > button:nth-of-type(n+6) { animation-delay: .26s; }
+@keyframes deck-in {
+  from { opacity: 0; transform: translateX(22px) scale(.96); }
+  to { opacity: 1; }
+}
+
+/* ── Results ───────────────────────────────────────────────────────────── */
+#game-shell .run-results { animation: panel-in .45s cubic-bezier(.2, .9, .3, 1.1) both; }
+#game-shell .run-score-panel { animation: panel-in-left .5s cubic-bezier(.2, .9, .3, 1.1) .08s both; }
+#game-shell .run-detail-column { animation: panel-in .5s cubic-bezier(.2, .9, .3, 1.1) .16s both; }
+
+/* Final score: big gold lettering that pops when the count-up lands. */
+#game-shell .run-total-score strong[data-final-score] {
+  display: inline-block;
+  font-family: 'Bangers', Impact, sans-serif !important;
+  font-weight: 400 !important;
+  letter-spacing: .03em !important;
+  color: #fff3c4 !important;
+  font-variant-numeric: tabular-nums;
+  text-shadow:
+    0 2px 0 #f2b33a, 0 4px 0 #c98118, 0 6px 0 #8f520a, 0 8px 0 #5c3205,
+    0 14px 22px rgba(0, 0, 0, .65), 0 0 30px rgba(255, 196, 64, .35) !important;
+}
+#game-shell .run-total-score strong.score-landed { animation: score-land .5s cubic-bezier(.2, 1.7, .4, 1); }
+@keyframes score-land {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.12) rotate(-1.5deg); filter: brightness(1.25); }
+  100% { transform: scale(1); }
+}
+
+/* New park best: gold glow pulse with a shine sweep. */
+#game-shell .run-personal-best { position: relative; overflow: hidden; border-radius: 12px; }
+#game-shell .run-personal-best strong {
+  font-family: 'Bangers', Impact, sans-serif !important;
+  font-weight: 400 !important;
+  letter-spacing: .08em !important;
+  color: #c9ff6b;
+  text-shadow: 0 2px 0 rgba(0, 0, 0, .6), 0 0 16px rgba(190, 255, 90, .6);
+  animation: best-glow 1.6s ease-in-out infinite;
+}
+@keyframes best-glow { 50% { text-shadow: 0 2px 0 rgba(0, 0, 0, .6), 0 0 26px rgba(190, 255, 90, .95); } }
+
+/* Best combo: a medal-style card with a slow gold shine. */
+#game-shell .run-best-combo {
+  position: relative;
+  overflow: hidden;
+  border-radius: 14px !important;
+  background: var(--skin-grip), linear-gradient(150deg, rgba(70, 46, 16, .55), rgba(28, 18, 36, .85)) !important;
+  background-size: 120px 120px, 100% 100% !important;
+  border: 1px solid rgba(255, 200, 80, .45) !important;
+  box-shadow: 0 5px 0 rgba(8, 5, 14, .8), inset 0 1px 0 rgba(255, 240, 180, .18), 0 0 24px rgba(255, 190, 60, .15) !important;
+}
+#game-shell .run-best-combo::after {
+  content: '';
+  position: absolute;
+  inset: -50% -80%;
+  pointer-events: none;
+  background: linear-gradient(105deg, transparent 42%, rgba(255, 230, 150, .22) 50%, transparent 58%);
+  animation: medal-shine 3.4s ease-in-out 1s infinite;
+}
+@keyframes medal-shine {
+  0% { transform: translateX(-60%); }
+  45%, 100% { transform: translateX(60%); }
+}
+
+/* Achievement rows and top tricks slide in one by one. */
+#game-shell .run-achievements li,
+#game-shell .run-top-tricks li,
+#game-shell .run-stats > * {
+  animation: row-in .4s cubic-bezier(.2, .9, .3, 1.1) both;
+}
+#game-shell .run-achievements li:nth-child(1), #game-shell .run-top-tricks li:nth-child(1) { animation-delay: .3s; }
+#game-shell .run-achievements li:nth-child(2), #game-shell .run-top-tricks li:nth-child(2) { animation-delay: .38s; }
+#game-shell .run-achievements li:nth-child(3), #game-shell .run-top-tricks li:nth-child(3) { animation-delay: .46s; }
+#game-shell .run-achievements li:nth-child(n+4), #game-shell .run-top-tricks li:nth-child(n+4) { animation-delay: .54s; }
+#game-shell .run-stats > *:nth-child(odd) { animation-delay: .4s; }
+#game-shell .run-stats > *:nth-child(even) { animation-delay: .5s; }
+@keyframes row-in {
+  from { opacity: 0; transform: translateX(18px); }
+  to { opacity: 1; transform: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #game-shell.menu-screen .menu-card, #game-shell.menu-screen .shell-content > *, #game-shell .menu-card > button,
+  #game-shell .run-results, #game-shell .run-score-panel, #game-shell .run-detail-column, #game-shell .run-results-actions > button,
+  #game-shell .run-total-score strong, #game-shell .run-personal-best strong, #game-shell .run-best-combo::after,
+  #game-shell .run-achievements li, #game-shell .run-top-tricks li, #game-shell .run-stats > * { animation: none !important; }
+}
+
+/* ── "Dropping in" loading screen ─────────────────────────────────────── */
+#game-shell .drop-in-loading {
+  position: absolute;
+  inset: 0;
+  z-index: 40;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  animation: drop-in-fade .25s ease-out both;
+}
+#game-shell .drop-in-loading.leaving { animation: drop-in-out .26s ease-in forwards; }
+@keyframes drop-in-fade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes drop-in-out { to { opacity: 0; transform: scale(1.03); } }
+
+/* Map art backdrop with a slow push-in. */
+#game-shell .drop-in-art {
+  position: absolute;
+  inset: -4%;
+  background: url('/media/title-screen.webp') center / cover no-repeat;
+  filter: blur(3px) brightness(.45) saturate(1.2);
+  animation: drop-in-push 9s ease-out both;
+}
+#game-shell .drop-in-loading[data-location='skate-paradise'] .drop-in-art { background-image: url('/assets/menu/skate-paradise.webp'); }
+#game-shell .drop-in-loading[data-location='orbit'] .drop-in-art { background-image: url('/assets/menu/orbit-current.webp'); }
+#game-shell .drop-in-loading[data-location='grand-warehouse'] .drop-in-art { background-image: url('/assets/menu/grand-warehouse-current.webp'); }
+#game-shell .drop-in-loading::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at center, transparent 30%, rgba(6, 4, 14, .85) 100%);
+  pointer-events: none;
+}
+@keyframes drop-in-push { from { transform: scale(1.08); } to { transform: scale(1); } }
+
+#game-shell .drop-in-card {
+  position: relative;
+  z-index: 1;
+  width: min(620px, 90vw);
+  padding: 28px 34px 24px;
+  text-align: center;
+  border-radius: 22px;
+  background: var(--skin-grip), linear-gradient(160deg, rgba(36, 24, 54, .92), rgba(12, 10, 26, .94));
+  background-size: 120px 120px, 100% 100%;
+  background-blend-mode: soft-light, normal;
+  border: 1px solid rgba(255, 140, 200, .4);
+  box-shadow: 0 30px 80px rgba(0, 0, 0, .7), 0 0 50px rgba(230, 36, 128, .2), inset 0 1px 0 rgba(255, 255, 255, .12);
+  animation: panel-in .4s cubic-bezier(.2, .9, .3, 1.15) both;
+}
+#game-shell .drop-in-card > small {
+  font: 800 12px/1 'Barlow Condensed', sans-serif;
+  letter-spacing: .3em;
+  color: #ffd96a;
+}
+#game-shell .drop-in-card h2 {
+  margin: 8px 0 4px;
+  font: 400 clamp(46px, 6vw, 78px)/1 'Bangers', Impact, sans-serif;
+  letter-spacing: .06em;
+  color: #fff7e6;
+  text-shadow: 0 1px 0 #ff7ab8, 0 2px 0 #e8508f, 0 3px 0 #c33a74, 0 4px 0 #9d2a5c, 0 5px 0 #6f1c42, 0 10px 16px rgba(0, 0, 0, .7);
+}
+#game-shell .drop-in-who { margin: 0 0 18px; font: 400 22px/1.2 'Bangers', Impact, sans-serif; letter-spacing: .08em; color: #7edcff; }
+#game-shell .drop-in-who span { margin: 0 .5em; color: #ffd96a; }
+
+/* A board grinding back and forth along a rail, throwing sparks. */
+#game-shell .drop-in-rail {
+  position: relative;
+  border: 0 !important;
+  background: none !important;
+  height: 46px;
+  margin: 0 6% 14px;
+  border-bottom: 4px solid #c9ced8 !important;
+  border-radius: 2px;
+  box-shadow: 0 6px 0 -2px #6c7180;
+}
+#game-shell .drop-in-deck {
+  position: absolute;
+  bottom: 2px;
+  left: 0;
+  width: 96px;
+  height: 14px;
+  border-radius: 40% 40% 30% 30% / 80% 80% 60% 60%;
+  background: linear-gradient(90deg, #ff5fae, #ffd34f);
+  border: 2px solid #f3ead8;
+  box-shadow: 0 3px 0 #2a2130, 0 6px 10px rgba(0, 0, 0, .6);
+  animation: drop-in-grind 2.4s ease-in-out infinite alternate;
+}
+#game-shell .drop-in-deck::before,
+#game-shell .drop-in-deck::after {
+  content: '';
+  position: absolute;
+  bottom: -9px;
+  width: 9px; height: 9px;
+  border-radius: 50%;
+  background: #f4f1e8;
+  box-shadow: 0 0 0 2px #2a2130;
+}
+#game-shell .drop-in-deck::before { left: 18%; }
+#game-shell .drop-in-deck::after { right: 18%; }
+#game-shell .drop-in-sparks {
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 4px; height: 4px;
+  border-radius: 50%;
+  background: #fff1a8;
+  box-shadow:
+    -10px -8px 0 0 #ffb347, -18px -3px 0 -1px #fff1a8, -26px -12px 0 -1px #ffb347,
+    -14px -16px 0 -1px #ffd36e, -32px -6px 0 -1px #ff9a3d, -6px -14px 0 -1px #fff;
+  filter: drop-shadow(0 0 4px #ffb347);
+  animation: drop-in-grind-sparks 2.4s ease-in-out infinite alternate, drop-in-flicker .12s steps(2) infinite;
+}
+@keyframes drop-in-grind { from { left: 0; transform: rotate(-2deg); } to { left: calc(100% - 96px); transform: rotate(2deg); } }
+@keyframes drop-in-grind-sparks { from { left: 14px; } to { left: calc(100% - 82px); } }
+@keyframes drop-in-flicker { 50% { opacity: .55; } }
+
+/* Progress bar filled by loading stage, with a moving sheen. */
+#game-shell .drop-in-bar {
+  position: relative;
+  height: 10px;
+  overflow: hidden;
+  border-radius: 99px;
+  background: rgba(255, 255, 255, .1);
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, .5);
+}
+#game-shell .drop-in-bar i {
+  position: absolute;
+  inset: 0;
+  transform-origin: left center;
+  transform: scaleX(.08);
+  background: linear-gradient(90deg, #7edcff, #ffd34f 60%, #ff5fae);
+  box-shadow: 0 0 14px rgba(255, 196, 64, .6);
+  transition: transform .6s cubic-bezier(.2, .8, .2, 1);
+}
+#game-shell .drop-in-bar::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, .45), transparent);
+  width: 30%;
+  animation: drop-in-sheen 1.3s linear infinite;
+}
+@keyframes drop-in-sheen { from { transform: translateX(-100%); } to { transform: translateX(400%); } }
+#game-shell .drop-in-status {
+  margin: 10px 0 14px;
+  font: 800 13px/1.3 'Barlow Condensed', sans-serif;
+  letter-spacing: .22em;
+  color: #cfc4e2;
+  text-transform: uppercase;
+}
+
+/* Tips rotate every few seconds. */
+#game-shell .drop-in-tips { position: relative; min-height: 2.8em; }
+#game-shell .drop-in-tips p {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  font: 600 15px/1.4 'DM Sans', sans-serif;
+  color: #f1eaff;
+  opacity: 0;
+  animation: drop-in-tip 24s linear infinite;
+  animation-delay: calc(var(--i) * 4s);
+}
+#game-shell .drop-in-tips b {
+  margin-right: .5em;
+  padding: 2px 7px;
+  border-radius: 6px;
+  font: 400 13px/1 'Bangers', Impact, sans-serif;
+  letter-spacing: .1em;
+  color: #2a1600;
+  background: linear-gradient(180deg, #fff08a, #f6a92c);
+}
+@keyframes drop-in-tip {
+  0% { opacity: 0; transform: translateY(6px); }
+  2%, 15% { opacity: 1; transform: none; }
+  17%, 100% { opacity: 0; transform: translateY(-6px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #game-shell .drop-in-art, #game-shell .drop-in-deck, #game-shell .drop-in-sparks, #game-shell .drop-in-bar::after { animation: none !important; }
+  #game-shell .drop-in-tips p { animation: none !important; opacity: 0; }
+  #game-shell .drop-in-tips p:first-child { opacity: 1; }
+}

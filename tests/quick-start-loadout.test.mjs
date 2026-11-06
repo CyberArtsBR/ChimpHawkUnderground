@@ -42,3 +42,14 @@ test('a deck the player saved earlier wins over the Grey default', () => {
   shell.begin(false);
   assert.equal(shell.boardIndex, 3);
 });
+
+test('the dropping-in screen is told to close as soon as loading succeeds', async () => {
+  const calls = [];
+  const shell = shellAt('select', {
+    heroIndex: 0, boardIndex: 0, locationIndex: 0, heroConfirmed: true, boardConfirmed: true, loadoutGeneration: 0,
+    actions: { loadout: async () => {} }, render() {}, start() { calls.push('start'); },
+    updateLoadingOverlay() { calls.push(this.selectBusy ? 'overlay-busy' : 'overlay-closed'); },
+  });
+  await shell.confirmLoadout();
+  assert.deepEqual(calls.slice(-2), ['overlay-closed', 'start']);
+});
