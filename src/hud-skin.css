@@ -291,3 +291,39 @@ body[data-screen='playing'] #combo-callout.show { display: block; }
 /* Score "+points" float in graffiti digits. */
 .hud-total .score-gain.graffiti-gain { --letter-height: clamp(26px, 2.6vw, 38px); font-size: var(--letter-height); text-shadow: none; }
 .hud-total .score-gain.graffiti-gain .graffiti-word img { margin-right: calc(var(--letter-height) * -.1); }
+
+/* ── Downhill Bomb: banana counter, bullet time, tunnel fade ───────────── */
+#banana-hud {
+  position: fixed; left: 22px; top: 92px; z-index: 30;
+  display: flex; align-items: center; gap: 8px; padding: 6px 12px 6px 8px;
+  background: var(--skin-grip), linear-gradient(160deg, rgba(40, 28, 60, .88), rgba(14, 12, 28, .9));
+  background-size: 120px 120px, 100% 100%; background-blend-mode: soft-light, normal;
+  border: 1px solid rgba(255, 214, 80, .45); border-radius: 16px;
+  box-shadow: 0 4px 0 rgba(8, 5, 14, .85), 0 10px 22px rgba(0, 0, 0, .45);
+  pointer-events: none;
+}
+#banana-hud[hidden], body:not([data-screen='playing']) #banana-hud { display: none; }
+#banana-hud svg { width: 34px; height: 34px; filter: drop-shadow(0 2px 0 rgba(0, 0, 0, .5)); }
+#banana-hud .banana-count { font: 400 26px/1 'Bangers', Impact, sans-serif; letter-spacing: .05em; color: #ffe066; text-shadow: 0 2px 0 #7a4a06, 0 0 12px rgba(255, 210, 60, .5); }
+#banana-hud .banana-count i { font-style: normal; font-size: 16px; color: #fff3c4; opacity: .8; margin-left: 2px; }
+#banana-hud .banana-meter { width: 70px; height: 8px; border-radius: 6px; background: rgba(255, 255, 255, .12); overflow: hidden; }
+#banana-hud .banana-meter span { display: block; height: 100%; width: 0; background: linear-gradient(90deg, #ffd23f, #ff8a3d); transition: width .25s ease; }
+#banana-hud.bump { animation: banana-bump .35s cubic-bezier(.2, 1.7, .4, 1); }
+@keyframes banana-bump { 40% { transform: scale(1.18) rotate(-3deg); } }
+#banana-hud.is-bullet { border-color: #ffe066; box-shadow: 0 4px 0 rgba(8, 5, 14, .85), 0 0 26px rgba(255, 214, 80, .75); }
+#banana-hud.is-bullet .banana-meter span { transition: none; background: linear-gradient(90deg, #fff4b0, #ffd23f); }
+
+/* Bullet time: golden vignette and a cooler, punchier image. */
+body.banana-time canvas { filter: saturate(.72) contrast(1.12) brightness(1.04); transition: filter .3s ease; }
+body.banana-time::after {
+  content: ''; position: fixed; inset: 0; z-index: 25; pointer-events: none;
+  background: radial-gradient(ellipse at center, transparent 48%, rgba(255, 196, 40, .18) 75%, rgba(120, 70, 0, .45) 100%);
+  animation: banana-pulse 1s ease-in-out infinite alternate;
+}
+@keyframes banana-pulse { to { opacity: .7; } }
+body.downhill-fade::before {
+  content: ''; position: fixed; inset: 0; z-index: 60; pointer-events: none; background: #050308;
+  animation: downhill-fade .45s ease-in both;
+}
+@keyframes downhill-fade { from { opacity: 0; } to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { body.banana-time::after { animation: none; } }

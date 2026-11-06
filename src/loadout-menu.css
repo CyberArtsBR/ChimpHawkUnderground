@@ -183,3 +183,4 @@
     width:34px;
   }
 }
+#game-shell.loadout-screen [data-location='downhill-bomb'] .location-art{background:linear-gradient(0deg,#25252666,#15151900),url('/assets/menu/run-sunset.webp') center 70%/cover}

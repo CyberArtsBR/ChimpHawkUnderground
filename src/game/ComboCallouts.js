@@ -75,7 +75,19 @@ export class ComboCallouts {
   show(points) {
     const tier = calloutTier(points);
     if (!tier || !this.root) return tier;
-    const pointsText = `+${Math.round(points).toLocaleString('en-US')}`;
+    this.present(tier, `+${Math.round(points).toLocaleString('en-US')}`);
+    return tier;
+  }
+
+  /** A custom callout (e.g. BANANA TIME!) in the same graffiti style. */
+  showLabel(label, subText = '', { letters = 'gold', digits = 'cyan-purple', tone = 'gold', level = 3 } = {}) {
+    if (!this.root) return null;
+    const tier = { label, letters, digits, tone, level };
+    this.present(tier, subText);
+    return tier;
+  }
+
+  present(tier, pointsText) {
     const title = this.root.querySelector('.callout-title');
     const amount = this.root.querySelector('.callout-points');
     const titleArt = prepareCalloutLettering(tier.label, tier.letters) === 'ready';
@@ -93,7 +105,6 @@ export class ComboCallouts {
     clearTimeout(this.timer);
     this.timer = setTimeout(() => this.root?.classList.remove('show'), 2100);
     this.stinger(tier.level);
-    return tier;
   }
 
   playable() {

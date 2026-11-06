@@ -38,6 +38,7 @@ import { ComboCallouts } from './game/ComboCallouts.js';
 import { SkyLife } from './graphics/SkyLife.js';
 import { MapDressing } from './graphics/MapDressing.js';
 import { MapAmbience } from './graphics/MapAmbience.js';
+import { DownhillRun } from './game/DownhillRun.js';
 import { GRAPHICS_PRESET_ORDER, loadGraphicsPreset, storeGraphicsPreset, normalizedGraphicsPreset, qualityFogDistance } from './graphics/GraphicsSettings.js';
 import { normalizeGlowOverrides, readGlowPresets, saveGlowPresets, initializeGlowDefaults, useCurrentGlowDefaults } from './graphics/GlowTuning.js';
 import './style.css';
@@ -177,6 +178,7 @@ const comboCallouts = new ComboCallouts({ audio: skateAudio });
 const skyLife = new SkyLife(scene);
 const mapDressing = new MapDressing(scene);
 const mapAmbience = new MapAmbience(scene);
+const downhillRun = new DownhillRun({ scene, audio: skateAudio, callouts: comboCallouts });
 window.addEventListener('pointerdown', () => skateAudio.unlock(), { passive: true });
 window.addEventListener('keydown', () => skateAudio.unlock(), { passive: true });
 const legacyPark = new URLSearchParams(location.search).get('park') === 'legacy';
@@ -301,6 +303,13 @@ const gameShell = new GameShell({
   testMap: ({file,hero,board,onProgress}) => selectLocation('test-map', {file,hero,finish:board.finishIndex,onProgress}),
 });
 skateAudio.onMusicDuck=({durationMs,amount,releaseMs})=>gameShell.music.duck(durationMs,amount,releaseMs);
+downhillRun.music = gameShell.music;
+// Reaching the tunnel at the bottom of the downhill: back to the top.
+downhillRun.onRestart = () => {
+  if (!skater || !currentWorld?.manifest) return;
+  skater.resetRider(new THREE.Vector3(...currentWorld.manifest.spawn), Number(currentWorld.manifest.spawnHeading) || 0);
+  followCamera?.snap(skater);
+};
 
 // Observe the existing score banks without changing scoring or simulation rules.
 function observeRunScoring(controller) {
@@ -734,7 +743,7 @@ function refreshLocationUi() {
   spotNav.hidden = !manifest.spots?.length;
   const locationTitle = { legacy: 'LEGACY PARK', rooftop: 'IRON DISTRICT', 'skate-paradise':'MAP 1 / SKATE PARADISE',
     'orbit': 'MAP 2 / ORBIT',
-    'grand-warehouse': 'MAP 3 / GRAND WAREHOUSE' }[currentWorld.id] || manifest.name;
+    'grand-warehouse': 'MAP 3 / GRAND WAREHOUSE', 'downhill-bomb': 'MAP 4 / DOWNHILL BOMB' }[currentWorld.id] || manifest.name;
   document.title = `Chimp Hawk Underground — ${locationTitle}`;
   document.querySelector('.edition').textContent = locationTitle;
   skateAudio.setLocation?.(currentWorld.id);
@@ -767,6 +776,7 @@ function commitWorld(world, runtime) {
     skyLife.setWorld(world);
     mapDressing.setWorld(world);
     mapAmbience.setWorld(world);
+    downhillRun.setWorld(world);
     ({ park, collision, manifest } = world);
     scene.add(park);
     graphicsPipeline.setWorld(park);
@@ -870,6 +880,7 @@ async function loadGame() {
     skyLife.setWorld(initialWorld);
     mapDressing.setWorld(initialWorld);
     mapAmbience.setWorld(initialWorld);
+    downhillRun.setWorld(initialWorld);
     ({ park, collision, manifest } = initialWorld);
     scene.add(park, sun.target);
     graphicsPipeline.setWorld(park);
@@ -897,7 +908,7 @@ async function loadGame() {
     setPaused(true);
     gameShell.setReady();
     window.streetSkate = {
-      ready: true, scene, renderer, camera, manifest, park, collision, skater, mapDressing, mapAmbience,
+      ready: true, scene, renderer, camera, manifest, park, collision, skater, mapDressing, mapAmbience, downhillRun,
       currentLocation: currentWorld.id, selectLocation,
       graphicsStatus: () => graphicsPipeline.getStatus(),
       performanceMetrics:()=>({...frameMetrics.value}),
@@ -1010,7 +1021,8 @@ loadGame();
 
 renderer.setAnimationLoop(() => {
   const realDelta = clock.getDelta();
-  const dt = Math.min(realDelta, 0.1);
+  // Banana bullet time slows the simulation; the session clock keeps real time.
+  const dt = Math.min(realDelta, 0.1) * downhillRun.timeScale;
   const elapsed = clock.elapsedTime;
   if (document.hidden) return;
   const wasPlaying = gameShell.active;
@@ -1098,6 +1110,7 @@ renderer.setAnimationLoop(() => {
       worldLife.update(dt,skater,camera);
       followCamera.update(skater, dt, state, skater._smoothedVisualPosition);
       mapAmbience.update(dt, skater, camera);
+      downhillRun.update(realDelta, skater, camera);
       if (state.reset) followCamera.snap(skater);
     }
     updateHud();
