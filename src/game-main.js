@@ -311,6 +311,11 @@ downhillRun.music = gameShell.music;
 // Endless downhill: at the tunnel, build the next (harder) stretch and carry
 // the run through it: score (with the combo banked), speed, stance, bananas.
 downhillRun.onAdvance = () => advanceDownhillStretch();
+// Checkpoints on the downhill add time to the session clock (timed runs only).
+downhillRun.onCheckpoint = seconds => {
+  const flow = gameShell.sessionFlow;
+  if (flow && !gameShell.practice && flow.phase === 'playing') flow.remaining += seconds;
+};
 // Fallback if a new stretch cannot be built: back to the top of this one.
 downhillRun.onRestart = () => {
   if (!skater || !currentWorld?.manifest) return;
@@ -1151,7 +1156,7 @@ renderer.setAnimationLoop(() => {
       worldLife.update(dt,skater,camera);
       followCamera.update(skater, dt, state, skater._smoothedVisualPosition);
       mapAmbience.update(dt, skater, camera);
-      downhillRun.update(realDelta, skater, camera);
+      downhillRun.update(realDelta, skater, camera, state);
       if (state.reset) followCamera.snap(skater);
     }
     updateHud();

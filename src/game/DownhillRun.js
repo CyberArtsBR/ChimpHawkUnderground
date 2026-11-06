@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { prepareCalloutLettering } from './ComboCallouts.js';
+import { DownhillTraffic } from './DownhillTraffic.js';
 
 /**
  * Downhill Bomb run layer (2026-11, phase 1). Active only on the downhill map.
@@ -16,7 +17,16 @@ export const DOWNHILL_RUN = Object.freeze({
   bulletSeconds: 5,
   bulletScale: .35,
   easeSeconds: .35,
+  // Downhill riding rules (this map only).
+  maxTurn: 35 * Math.PI / 180,  // travel direction stays within ±35° of the road
+  steerAssist: 1.15,            // extra yaw rate (rad/s) at speed for sharper carving
+  speedFloorStart: 15,          // m/s (54 km/h) …
+  speedFloorGrowth: .1,         // … plus 0.1 m/s every second of riding …
+  speedFloorMax: 38,            // … up to 137 km/h
+  checkpointSeconds: 10,
 });
+const UP = new THREE.Vector3(0, 1, 0);
+const wrapAngle = a => Math.atan2(Math.sin(a), Math.cos(a));
 
 function bananaGeometry() {
   // A curved, tapered tube with brown tips (vertex colours).
@@ -91,6 +101,10 @@ export class DownhillRun {
     this.swapping = false;
     this.stretch = 1;
     this.distanceBase = 0;
+    this.runTime = 0;
+    this.onCheckpoint = null;
+    this.traffic = new DownhillTraffic(this.root, audio);
+    this.traffic.onHit = () => { this.lastSkater?.bail?.('HIT A CAR!'); };
     this.geometry = typeof document === 'undefined' ? null : bananaGeometry();
     this.glow = typeof document === 'undefined' ? null : glowTexture();
     this.matrix = new THREE.Matrix4(); this.quat = new THREE.Quaternion(); this.scaleV = new THREE.Vector3(); this.pos = new THREE.Vector3();
@@ -112,6 +126,7 @@ export class DownhillRun {
   }
 
   setWorld(world) {
+    this.traffic?.setData(null);
     // Clear the previous map's bananas and cones.
     for (const child of [...this.root.children]) {
       child.removeFromParent();
@@ -122,7 +137,7 @@ export class DownhillRun {
     // A new stretch in the same run keeps bananas and bullet time; a new map starts fresh.
     const continuing = this.active && Boolean(data) && (data.stretch || 1) > 1;
     this.active = Boolean(data);
-    if (!continuing) { this.endBulletTime(true); this.count = 0; this.distanceBase = 0; }
+    if (!continuing) { this.endBulletTime(true); this.count = 0; this.distanceBase = 0; this.runTime = 0; }
     this.stretch = data?.stretch || 1;
     this.progress = 0;
     if (this.hud) this.hud.querySelector('.stretch-label b').textContent = String(this.stretch);
@@ -149,6 +164,16 @@ export class DownhillRun {
       this.root.add(cone);
       this.cones.push({ group: cone, hit: false, tip: 0, axis: new THREE.Vector3(1, 0, 0), velocity: new THREE.Vector3(), home: cone.position.clone(), homeQuat: cone.quaternion.clone() });
     }
+    this.headings = data.headings || [];
+    this.step = data.step || 1.5;
+    this.frames = {
+      centre: this.centre,
+      laterals: (data.laterals || []).map(v => new THREE.Vector3(...v)),
+      normals: (data.normals || []).map(v => new THREE.Vector3(...v)),
+    };
+    this.traffic.setData(data, this.frames);
+    this.checkpoints = (data.checkpoints || []).slice();
+    this.nextCheckpoint = 0;
   }
 
   updateHud(bump = false) {
@@ -240,8 +265,45 @@ export class DownhillRun {
   }
 
   /** realDelta: wall-clock seconds; the simulation slow-down is handled by timeScale. */
-  update(realDelta, skater, camera) {
+  /** Rotate the rider (heading, velocity, travel direction) by delta radians. */
+  turn(skater, delta) {
+    if (!delta) return;
+    skater.heading += delta;
+    if (Number.isFinite(skater.airHeading)) skater.airHeading += delta;
+    skater.velocity?.applyAxisAngle(UP, delta);
+    skater.travelDirection?.applyAxisAngle(UP, delta);
+    if (skater.grounded) skater.groundDirection?.(); else skater.forward?.applyAxisAngle(UP, delta);
+  }
+
+  setSpeed(skater, magnitude) {
+    const sign = Math.sign(Number(skater.speed) || 0) || 1;
+    skater.speed = sign * magnitude;
+    const v = skater.velocity, len = v.length();
+    if (len > .5) v.multiplyScalar(magnitude / len); else v.copy(skater.forward).multiplyScalar(magnitude * sign);
+  }
+
+  /** Downhill rules: sharper carving, never more than ±35° off the road, rising speed. */
+  ride(dt, skater, input) {
+    if (!skater || dt <= 0 || skater.bailTime > 0 || skater.grind || skater.wallRide || skater.transitionAir) return;
+    if (!skater.grounded) return; // spins and grabs in the air stay untouched
+    const roadYaw = this.headings[Math.min(this.headings.length - 1, this.progress)] ?? skater.heading;
+    const speed = Math.abs(Number(skater.speed) || 0);
+    const steer = Number(input?.steer) || 0;
+    if (steer) this.turn(skater, -steer * DOWNHILL_RUN.steerAssist * Math.min(1, Math.max(0, (speed - 5) / 15)) * dt);
+    const v = skater.velocity;
+    if (Math.hypot(v.x, v.z) > 1.5) {
+      const diff = wrapAngle(Math.atan2(-v.x, -v.z) - roadYaw);
+      if (Math.abs(diff) > DOWNHILL_RUN.maxTurn) this.turn(skater, -(diff - Math.sign(diff) * DOWNHILL_RUN.maxTurn));
+    }
+    const hard = Math.min(1, (this.stretch - 1) / 5);
+    const floor = Math.min(DOWNHILL_RUN.speedFloorMax, DOWNHILL_RUN.speedFloorStart + this.runTime * DOWNHILL_RUN.speedFloorGrowth) * (1 + hard * .1);
+    if (speed < floor) this.setSpeed(skater, Math.min(floor, speed + 8 * dt));
+    skater.syncCanonicalState?.();
+  }
+
+  update(realDelta, skater, camera, input = null) {
     if (!this.active) return;
+    this.lastSkater = skater;
     const dt = Math.min(.1, Math.max(0, Number(realDelta) || 0));
     this.time += dt;
     // Bullet time: count down in real time, ease in and out.
@@ -298,6 +360,21 @@ export class DownhillRun {
         if (cone.tip > .5) cone.velocity.multiplyScalar(.9);
         cone.group.rotateOnWorldAxis(cone.axis, dt * 7 * Math.max(0, 1 - cone.tip / 1.2));
         if (cone.tip > 1.2) cone.velocity.y = Math.max(0, cone.velocity.y);
+      }
+    }
+    // Riding rules, traffic and checkpoints run on simulation time (slower in bullet time).
+    if (rider && this.centre.length && !this.swapping) {
+      const simDt = dt * this.scale;
+      this.runTime += simDt;
+      this.track(rider);
+      const progressS = this.progress * this.step;
+      this.ride(simDt, skater, input);
+      this.traffic.update(simDt, skater, progressS, Math.min(1, (this.stretch - 1) / 5));
+      while (this.nextCheckpoint < this.checkpoints.length && progressS >= this.checkpoints[this.nextCheckpoint]) {
+        this.nextCheckpoint++;
+        this.onCheckpoint?.(DOWNHILL_RUN.checkpointSeconds);
+        this.blip(12);
+        this.callouts?.showLabel?.('CHECKPOINT', `+${DOWNHILL_RUN.checkpointSeconds} SEC`, { letters: 'green', digits: 'gold', tone: 'gold', level: 2 });
       }
     }
     // Reaching the tunnel: freeze behind a fade and build the next stretch.

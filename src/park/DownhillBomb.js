@@ -156,6 +156,8 @@ export function createDownhillBomb({ seed = nextStretch.seed ?? (Date.now() & 0x
   const collision = new THREE.Group(); collision.name = 'Downhill Bomb collision';
   const rails = [];
   const bananas = [];
+  const occupied = [];   // road lanes taken by features (for traffic and parked cars)
+  const parked = [];
   const cones = [];
 
   // 1) Curvature plan: straights and left/right bends, eased in and out.
@@ -420,6 +422,7 @@ export function createDownhillBomb({ seed = nextStretch.seed ?? (Date.now() & 0x
     const free = lanes.filter(l => l !== lane);
     const roll = rand();
     let used = 12;
+    let occLane = lane;
     if (!curvy && roll < .26) {
       // Kicker, with a banana arc over the landing.
       const h = .65 + difficulty * .45;
@@ -448,6 +451,7 @@ export function createDownhillBomb({ seed = nextStretch.seed ?? (Date.now() & 0x
       used = 16 + len;
     } else if (roll < .7) {
       // Sidewalk ledge with a grind edge facing the road.
+      occLane = null;
       const side = rand() < .5 ? -1 : 1, u = side * (W + 1.3), len = 8 + rand() * 4;
       box(f, u, .15 + .22, len / 2, .55, .45, len, mats.ledge, { name: 'Ledge', solid: false });
       const a = local(f, u - side * .27, .15 + .45 + .02, 0), b = local(f, u - side * .27, .15 + .45 + .02, len);
@@ -457,6 +461,7 @@ export function createDownhillBomb({ seed = nextStretch.seed ?? (Date.now() & 0x
       used = 14 + len;
     } else if (roll < .82) {
       // Handrail along the sidewalk.
+      occLane = null;
       const side = rand() < .5 ? -1 : 1, u = side * (W + 2.4), len = 9 + rand() * 5, hr = .6;
       railBar(`Handrail ${featureCount}`, local(f, u, .15 + hr, 0), local(f, u, .15 + hr, len), hr);
       bananaLine(fs + 1, u, .15 + hr + .7, 4, len / 4);
@@ -481,15 +486,30 @@ export function createDownhillBomb({ seed = nextStretch.seed ?? (Date.now() & 0x
     // Banana lines in the open road between features keep bullet time coming.
     bananaLine(fs + used + 6, free[Math.floor(rand() * free.length)], .8, 5, 2.4);
     if (rand() < .7) bananaLine(fs + used + 24, lanes[Math.floor(rand() * 3)], .8, 5, 2.4);
+    if (occLane !== null) occupied.push({ s0: fs - 6, s1: fs + used + 4, u: occLane });
     featureCount++;
     fs += (used + 34 + rand() * 40 * (1.1 - Math.min(1, difficulty) * .4)) * (1 - hard * .3);
   }
+
+  // Parked cars by the curb on the straights, clear of features (hazards).
+  const laneTaken = (s0, s1, u) => occupied.some(o => Math.abs(o.u - u) < 1 && o.s1 > s0 && o.s0 < s1);
+  for (let ps = 160; ps < C.length - 80; ps += 35 + rand() * 55 * (1 - hard * .4)) {
+    const side = rand() < .5 ? -1 : 1, n = 1 + Math.floor(rand() * 3), len = n * 6;
+    const f0 = frameAt(ps);
+    if (Math.abs(kappa[f0.i]) > 1 / 160 || laneTaken(ps - 4, ps + len + 4, side * 4.6)) continue;
+    for (let k = 0; k < n; k++) parked.push({ s: ps + k * 6 + rand() * .8, u: side * (W - 1.35) });
+    occupied.push({ s0: ps - 4, s1: ps + len + 4, u: side * 4.6 });
+    ps += len;
+  }
+  // Checkpoint arches every 400 m add time to the clock.
+  const checkpoints = [];
+  for (let cs = 320; cs < C.length - 120; cs += 400) checkpoints.push(cs);
 
   // 7) City around the hill.
   buildCity({ park, rand, count, P, L, D, theta, sArr, W, sidewalk: C.sidewalk, point, kappa, taper, bankSide });
 
   // 8) Start platform gate and the tunnel at the bottom.
-  buildGateAndTunnel({ park, collision, mats, point, frameAt, local, count, sArr, W, C, addMesh, stretch });
+  buildGateAndTunnel({ park, collision, mats, point, frameAt, local, count, sArr, W, C, addMesh, stretch, checkpoints });
 
   // Playable regions: generous boxes per 60 m of road.
   const playableRegions = [];
@@ -515,7 +535,8 @@ export function createDownhillBomb({ seed = nextStretch.seed ?? (Date.now() & 0x
     downhill: {
       seed, stretch, length: C.length, step: C.step, halfWidth: W,
       centre: P.map(p => p.toArray()), headings: Array.from(theta),
-      bananas, cones,
+      bananas, cones, parked, occupied, checkpoints,
+      laterals: L.map(v => v.toArray()), normals: N.map(v => v.toArray()),
     },
   };
 }
@@ -856,7 +877,7 @@ function mergeSimple(geometries) {
 }
 
 // ── Start gate at the top, tunnel mouth at the bottom ───────────────────
-function buildGateAndTunnel({ park, collision, mats, point, frameAt, local, count, sArr, W, C, addMesh, stretch = 1 }) {
+function buildGateAndTunnel({ park, collision, mats, point, frameAt, local, count, sArr, W, C, addMesh, stretch = 1, checkpoints = [] }) {
   const neon = (text, color) => {
     const c = document.createElement('canvas'); c.width = 1024; c.height = 192;
     const ctx = c.getContext('2d');
@@ -880,6 +901,7 @@ function buildGateAndTunnel({ park, collision, mats, point, frameAt, local, coun
   };
   gate(26, stretch > 1 ? `STRETCH ${stretch}` : 'DOWNHILL BOMB', stretch > 1 ? '#ffd23f' : '#ff3d8b');
   gate(sArr[count - 1] - 40, 'NEXT STRETCH →', '#4fe3ff');
+  for (const cs of checkpoints) gate(cs, 'CHECKPOINT +10s', '#8dff4f');
   // Tunnel mouth: dark arch over the last metres; a wall deep inside stops the rider.
   const f = frameAt(sArr[count - 1] - 30);
   const tunnel = new THREE.Mesh(new THREE.BoxGeometry(2 * (W + C.sidewalk + 1.5), 9, 22), new THREE.MeshStandardMaterial({ name: 'Downhill tunnel', color: '#18181e', roughness: .9, side: THREE.BackSide }));
