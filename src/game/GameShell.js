@@ -265,13 +265,9 @@ export class GameShell {
       const spots=LOCATIONS.map((spot,i)=>`<button data-menu data-action="location" data-index="${i}"
         data-location="${safe(spot.id)}" class="loadout-location ${i===this.locationIndex?'is-chosen':''}" ${spot.available?'':'disabled'} aria-pressed="${i===this.locationIndex}">
         <span class="location-art" aria-hidden="true"><span class="map-number">MAP ${String(spot.number).padStart(2,'0')}</span><span class="location-stamp">${spot.id==='skate-paradise'?'SUNSET / SKATEPARK':spot.id==='rooftop'?'STEEL / FREIGHT':spot.id === 'grand-warehouse' ? 'ARTIST BUILD' : 'AFTER HOURS'}</span></span><strong>${safe(spot.name)}</strong><small>${safe(spot.subtitle)}</small></button>`).join('');
-      const tab=['rider','board','spot'].includes(this.loadoutTab)?this.loadoutTab:'rider';
-      const done=[this.heroConfirmed,this.boardConfirmed,true];
-      const tabs=`<nav class="loadout-tabs" role="tablist" aria-label="Loadout steps">${['RIDER','BOARD','SPOT'].map((label,i)=>{const id=['rider','board','spot'][i];
-        return `<button data-menu data-action="loadoutTab" data-index="${i}" role="tab" aria-selected="${id===tab}" class="${id===tab?'is-active':''}"><span class="tab-number">${done[i]?'✓':'0'+(i+1)}</span>${label}</button>`;}).join('')}</nav>`;
-      body=`<div class="loadout-shell" data-tab="${tab}"><header><small>CHIMP HAWK / THE SESSION LAB <span class="session-mode">${this.pendingMode==='practice'?'FREE SKATE':'90 SECOND RUN'}</span></small><h2>${graffitiLettering('BUILD YOUR LINE')}</h2>
+      body=`<div class="loadout-shell"><header><small>CHIMP HAWK / THE SESSION LAB <span class="session-mode">${this.pendingMode==='practice'?'FREE SKATE':'90 SECOND RUN'}</span></small><h2>${graffitiLettering('BUILD YOUR LINE')}</h2>
         <p>PICK YOUR RIDER. PAINT YOUR DECK. OWN YOUR SPOT.</p><p class="session-rule">${this.pendingMode==='practice'?'Unlimited practice. Save a marker, retry your line, and work through drills at your own pace.':'90 seconds. Your last attempt gets up to 6 extra seconds to land. Bail or time limit loses pending points.'}</p><div class="music-menu-slot"></div></header>
-        ${tabs}<div class="loadout-roster loadout-roster-band" role="group" aria-label="Choose your rider">${cards}</div>
+        <div class="loadout-roster loadout-roster-band" role="group" aria-label="Choose your rider">${cards}</div>
         <div class="loadout-panels">
         <section class="loadout-section rider-panel" aria-label="Choose your rider"><div class="loadout-heading"><span class="section-number">01</span><h3>${graffitiLettering('RIDER','gold')}</h3><span class="panel-kicker">THE CREW</span></div>
         <div class="selected-rider" style="--rider-accent:${this.heroes[this.heroIndex].accent}"><span class="rider-stage-number" aria-hidden="true">${String(this.heroIndex+1).padStart(2,'0')}</span>
@@ -504,7 +500,6 @@ export class GameShell {
     if(caption)caption.textContent=text;
   }
   begin(practice=false){
-    this.loadoutTab='rider';
     // The loadout does not need the park: pick a rider while it finishes loading.
     if(this.loadError)return;
     if(this.phase!=='select')this.pendingSelection={returnScreen:this.phase,selection:this.selection,
@@ -720,7 +715,6 @@ export class GameShell {
       // Same game-selection destination used by CyberArtsBR/Skate's launcher.
       case 'launcher':window.location.assign('https://chimp-jump.onrender.com/');break;
       case 'start':this.begin(false);break;case 'practice':this.begin(true);break;
-      case 'loadoutTab':this.loadoutTab=['rider','board','spot'][index]||'rider';this.render();break;
       case 'hero':this.heroIndex=index;this.heroConfirmed=true;this.updateLoadoutSelection(action,index);break;
       case 'board':this.boardIndex=index;this.boardConfirmed=true;this.updateLoadoutSelection(action,index);break;
       case 'wheels':case 'graphic':
