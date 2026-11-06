@@ -135,7 +135,7 @@ export class GameShell {
   // Hide a subtitle that only repeats the rider's name (e.g. "The Hollow / THE HOLLOW").
   heroSubtitle(hero){return String(hero.subtitle||'').toLowerCase()===String(hero.name||'').toLowerCase()?'':hero.subtitle||'';}
   // The start button says what is still missing instead of sitting greyed out.
-  loadoutStartLabel(){return this.selectBusy?'LOADING RIDER…':!this.heroConfirmed?'PICK A RIDER':!this.boardConfirmed?'PICK A DECK':'LET’S SKATE →';}
+  loadoutStartLabel(){return this.selectBusy?'LOADING RIDER…':!this.ready?'LOADING MAP…':!this.heroConfirmed?'PICK A RIDER':!this.boardConfirmed?'PICK A DECK':'LET’S SKATE →';}
   setScreen(phase){
     if(this.phase==='creator'&&phase!=='creator'&&this.mapUploadBusy){
       this.mapUploadGeneration++;this.mapUploadBusy=false;this.mapUploadStatus='';this.actions.cancelLoadout?.();
@@ -219,7 +219,7 @@ export class GameShell {
   }
   boardLabel(){return BOARD_CHOICES[this.boardIndex]?.label||'';}
   locationName(){return this.testMapName||LOCATIONS[this.locationIndex]?.name||'';}
-  loadoutStatus(){return this.selectError||(!this.heroConfirmed||!this.boardConfirmed?'Choose a rider and a deck with A / Enter / Click to unlock START SESSION.':'Rider and deck selected · Ready to start session.');}
+  loadoutStatus(){return this.selectError||(!this.ready?'Loading the map… pick your rider, deck and spot meanwhile.':!this.heroConfirmed||!this.boardConfirmed?'Choose a rider and a deck with A / Enter / Click to unlock START SESSION.':'Rider and deck selected · Ready to start session.');}
   renderMenuFrame(title, body){
     const hero=this.heroes[this.heroIndex];
     const spot=LOCATIONS[this.locationIndex];
@@ -254,7 +254,7 @@ export class GameShell {
     if(this.active)return;
     let title='',body='';
     if(this.phase==='title') {
-      body=`<button class="art-hit art-start" data-menu data-action="start" aria-label="Start Game — 90 seconds" ${this.ready?'':'disabled'}><span>START GAME</span></button><button class="art-hit art-back" data-menu data-action="launcher" aria-label="Back to Game Selection"><span>BACK TO GAME SELECTION</span></button><div class="title-tools">${this.button('PRACTICE','practice',!this.ready)}${this.button('TUTORIAL','tutorial')}${this.button('OPTIONS','options')}</div><p class="title-status" role="status">${this.ready?'':this.loadError?'Unable to load the park. Reload to retry.':'Loading Skate Paradise…'}</p>`;
+      body=`<button class="art-hit art-start" data-menu data-action="start" aria-label="Start Game — 90 seconds" ${this.loadError?'disabled':''}><span>START GAME</span></button><button class="art-hit art-back" data-menu data-action="launcher" aria-label="Back to Game Selection"><span>BACK TO GAME SELECTION</span></button><div class="title-tools">${this.button('PRACTICE','practice',Boolean(this.loadError))}${this.button('TUTORIAL','tutorial')}${this.button('OPTIONS','options')}</div><p class="title-status" role="status">${this.loadError?'Unable to load the park. Reload to retry.':''}</p>`;
     } else if(this.phase==='select') {
       const cards=this.heroes.map((hero,i)=>`<button data-menu data-action="hero" data-index="${i}" class="loadout-character ${this.heroConfirmed&&i===this.heroIndex?'is-chosen':''}"
         style="--rider-accent:${hero.accent}" aria-pressed="${this.heroConfirmed&&i===this.heroIndex}">
@@ -282,7 +282,7 @@ export class GameShell {
         <div class="loadout-boards">${colors}</div>${this.boardStyleRows()}<div class="selection-note"><span>${this.boardConfirmed?'DECK LOCKED IN':'CHOOSE YOUR FINISH'}</span><strong>${safe(BOARD_CHOICES[this.boardIndex].label)}</strong></div></section>
         <section class="loadout-section spot-panel" aria-label="Choose your location"><div class="loadout-heading"><span class="section-number">03</span><h3>${graffitiLettering('SPOT','gold')}</h3><span class="panel-kicker">THREE PARKS. YOUR LINE.</span></div>
         <div class="loadout-locations">${spots}</div><div class="selection-note"><span>SESSION LOCATION</span><strong>MAP ${LOCATIONS[this.locationIndex].number} / ${safe(LOCATIONS[this.locationIndex].name)}</strong></div></section></div>
-        <footer>${this.button('← BACK','back')}<div class="loadout-recap"><span class="loadout-checks"><span class="${this.heroConfirmed?'complete':''}">${this.heroConfirmed?'✓':'01'} RIDER</span><span class="${this.boardConfirmed?'complete':''}">${this.boardConfirmed?'✓':'02'} DECK</span><span class="complete">✓ SPOT</span></span><span><span data-recap-rider>${safe(this.heroes[this.heroIndex].name)}</span> <i>/</i> <span data-recap-deck>${safe(BOARD_CHOICES[this.boardIndex].label)}</span> <i>/</i> <span data-recap-spot>MAP ${LOCATIONS[this.locationIndex].number}</span></span></div>${this.button(this.loadoutStartLabel(),'confirmLoadout',this.selectBusy||!this.heroConfirmed||!this.boardConfirmed)}</footer>
+        <footer>${this.button('← BACK','back')}<div class="loadout-recap"><span class="loadout-checks"><span class="${this.heroConfirmed?'complete':''}">${this.heroConfirmed?'✓':'01'} RIDER</span><span class="${this.boardConfirmed?'complete':''}">${this.boardConfirmed?'✓':'02'} DECK</span><span class="complete">✓ SPOT</span></span><span><span data-recap-rider>${safe(this.heroes[this.heroIndex].name)}</span> <i>/</i> <span data-recap-deck>${safe(BOARD_CHOICES[this.boardIndex].label)}</span> <i>/</i> <span data-recap-spot>MAP ${LOCATIONS[this.locationIndex].number}</span></span></div>${this.button(this.loadoutStartLabel(),'confirmLoadout',this.selectBusy||!this.ready||!this.heroConfirmed||!this.boardConfirmed)}</footer>
         <p class="loadout-status" aria-live="polite">${safe(this.loadoutStatus())}</p></div>`;
     } else if(this.phase==='pause') {
       title='PAUSED';body=this.button('▶ RESUME SESSION','resume')+this.button('RESTART SESSION','restart')+
@@ -505,7 +505,8 @@ export class GameShell {
   }
   begin(practice=false){
     this.loadoutTab='rider';
-    if(!this.ready)return;
+    // The loadout does not need the park: pick a rider while it finishes loading.
+    if(this.loadError)return;
     if(this.phase!=='select')this.pendingSelection={returnScreen:this.phase,selection:this.selection,
       heroIndex:this.heroIndex,boardIndex:this.boardIndex,locationIndex:this.locationIndex,finishIndex:this.finishIndex,
       heroConfirmed:this.heroConfirmed,boardConfirmed:this.boardConfirmed};
@@ -659,7 +660,7 @@ export class GameShell {
     }
   }
   async confirmLoadout(){
-    if(this.selectBusy||this.phase!=='select')return;
+    if(this.selectBusy||!this.ready||this.phase!=='select')return;
     const hero=this.heroes[this.heroIndex];
     const board=BOARD_CHOICES[this.boardIndex];
     const location=LOCATIONS[this.locationIndex];
