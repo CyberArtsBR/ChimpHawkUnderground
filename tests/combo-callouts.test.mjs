@@ -37,3 +37,18 @@ test('the stinger stays silent while audio is suspended or muted', () => {
   callouts.stinger(4);
   assert.equal(made, 0);
 });
+
+test('callout words use graffiti letter images, rainbow for CHIMPTASTIC', async () => {
+  const { calloutLettering } = await import('../src/game/ComboCallouts.js');
+  const sick = calloutLettering('SICK!', 'gold');
+  assert.equal((sick.match(/<img /g) || []).length, 4);
+  assert.match(sick, /graffiti\/gold\/S\.webp/);
+  assert.match(sick, /callout-punct[^>]*>!</);
+  const legend = calloutLettering('CHIMP', ['fire', 'gold', 'green']);
+  assert.match(legend, /fire\/C\.webp[\s\S]*gold\/H\.webp[\s\S]*green\/I\.webp[\s\S]*fire\/M\.webp/);
+});
+
+test('chimp calls stay silent without running audio', () => {
+  const callouts = new ComboCallouts({ parent: null, audio: { context: { state: 'suspended' }, master: {} } });
+  assert.doesNotThrow(() => callouts.chimpCalls(0));
+});

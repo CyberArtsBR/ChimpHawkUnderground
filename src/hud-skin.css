@@ -144,24 +144,27 @@
   .hud-total.score-bump, .hud-total .score-gain, .skate-hud.speed-hot .speed::after, #balance-hud.danger .balance-marker { animation: none !important; }
 }
 
-/* ── Combo callouts: SICK / INSANE / CHIMPTASTIC ─────────────── */
+/* ── Combo callouts: SICK / INSANE / CHIMPTASTIC ─────────────────────
+   90s graffiti burner: the game's own spray letters, bouncing tilt per
+   letter, a paint cloud behind, sparkles, and a colour flash. */
 #combo-callout {
-  --c1: #7edcff; --c2: #2a8fd0; --c3: #0e3d66; --flash: rgba(126, 220, 255, .22);
+  --c1: #fff08a; --c2: #f6a92c; --c3: #ff5fae; --flash: rgba(255, 200, 70, .26);
+  --lh: clamp(66px, 9vw, 132px);
+  --ph: clamp(38px, 4.4vw, 62px);
   position: fixed;
   inset: 0;
   z-index: 46;
   pointer-events: none;
   display: none;
 }
-#combo-callout[data-tone='gold'] { --c1: #fff08a; --c2: #f6a92c; --c3: #6b3a05; --flash: rgba(255, 200, 70, .26); }
-#combo-callout[data-tone='fire'] { --c1: #ffd36e; --c2: #ff5a2c; --c3: #6d1405; --flash: rgba(255, 90, 40, .3); }
-#combo-callout[data-tone='legend'] { --c1: #ffffff; --c2: #ff3d8b; --c3: #4a0b6b; --flash: rgba(255, 61, 139, .36); }
+#combo-callout[data-tone='fire'] { --c1: #ffd36e; --c2: #ff5a2c; --c3: #b02cff; --flash: rgba(255, 90, 40, .3); }
+#combo-callout[data-tone='legend'] { --c1: #7edcff; --c2: #ff3d8b; --c3: #8dff4f; --flash: rgba(255, 61, 139, .36); --lh: clamp(70px, 10vw, 150px); }
 body[data-screen='playing'] #combo-callout.show { display: block; }
 
 #combo-callout .callout-flash {
   position: absolute;
   inset: 0;
-  background: radial-gradient(ellipse at 50% 40%, var(--flash), transparent 65%);
+  background: radial-gradient(ellipse at 50% 36%, var(--flash), transparent 65%);
   opacity: 0;
 }
 #combo-callout.show .callout-flash { animation: callout-flash .7s ease-out both; }
@@ -174,35 +177,99 @@ body[data-screen='playing'] #combo-callout.show { display: block; }
   display: flex;
   flex-direction: column;
   align-items: center;
-  transform: translate(-50%, -50%);
+  transform: translate(-50%, -50%) rotate(-4deg);
   white-space: nowrap;
+  isolation: isolate;
 }
-#combo-callout .callout-word b {
-  font: 400 clamp(54px, 8vw, 128px)/1 'Bangers', Impact, 'Arial Black', sans-serif;
+
+/* Spray-paint cloud behind the piece. */
+#combo-callout .callout-spray {
+  position: absolute;
+  inset: -18% -12%;
+  z-index: -1;
+  background:
+    radial-gradient(closest-side at 22% 45%, var(--c2), transparent 75%),
+    radial-gradient(closest-side at 55% 38%, var(--c3), transparent 75%),
+    radial-gradient(closest-side at 82% 58%, var(--c1), transparent 75%),
+    radial-gradient(closest-side at 48% 78%, rgba(20, 12, 40, .85), transparent 80%);
+  filter: blur(16px);
+  opacity: .5;
+  border-radius: 50%;
+}
+#combo-callout[data-tone='legend'] .callout-spray { opacity: .62; }
+
+/* Letters: the graffiti glyph images, each one tilted and bobbing. */
+#combo-callout .callout-title,
+#combo-callout .callout-points { display: flex; align-items: center; }
+#combo-callout .callout-title img { width: calc(var(--lh) * .79); height: var(--lh); margin-right: calc(var(--lh) * -.12); }
+#combo-callout .callout-points { margin-top: calc(var(--lh) * -.02); }
+#combo-callout .callout-points img { width: calc(var(--ph) * .79); height: var(--ph); margin-right: calc(var(--ph) * -.1); }
+#combo-callout .callout-title img,
+#combo-callout .callout-points img {
+  display: block;
+  object-fit: contain;
+  rotate: -6deg;
+  translate: 0 -4%;
+  filter: drop-shadow(0 4px 0 rgba(10, 6, 20, .85)) drop-shadow(0 10px 14px rgba(0, 0, 0, .5));
+}
+#combo-callout .callout-title img:nth-child(even),
+#combo-callout .callout-points img:nth-child(even) { rotate: 5deg; translate: 0 5%; }
+#combo-callout .callout-title img:nth-child(3n) { rotate: -2deg; translate: 0 -9%; }
+#combo-callout .callout-punct {
+  font: 400 calc(var(--lh) * .82)/1 'Bangers', Impact, sans-serif;
+  color: var(--c1);
+  -webkit-text-stroke: 2px #140a24;
+  text-shadow: 0 4px 0 #140a24, 0 0 18px var(--flash);
+  rotate: 8deg;
+  padding: 0 .06em;
+}
+#combo-callout .callout-points .callout-punct { font-size: calc(var(--ph) * .8); color: #fff7e6; }
+#combo-callout.show .callout-title > *,
+#combo-callout.show .callout-points > * { animation: callout-letter .42s cubic-bezier(.2, 1.6, .4, 1) backwards; animation-delay: calc(var(--i, 0) * 35ms + 60ms); }
+#combo-callout.show .callout-points > * { animation-delay: calc(var(--i, 0) * 30ms + 300ms); }
+@keyframes callout-letter { 0% { scale: 0; opacity: 0; } 60% { scale: 1.25; opacity: 1; } 100% { scale: 1; } }
+#combo-callout.show[data-level='4'] .callout-title img { animation: callout-letter .42s cubic-bezier(.2, 1.6, .4, 1) backwards, callout-bob .5s ease-in-out .5s infinite alternate; animation-delay: calc(var(--i, 0) * 35ms + 60ms), calc(var(--i, 0) * 60ms + 500ms); }
+@keyframes callout-bob { to { translate: 0 -12%; } }
+
+/* Plain-type fallback if the letter images are not ready yet. */
+#combo-callout .is-text b {
+  font: 400 calc(var(--lh) * .9)/1 'Bangers', Impact, 'Arial Black', sans-serif;
   letter-spacing: .05em;
   color: var(--c1);
-  -webkit-text-stroke: 2px var(--c3);
-  text-shadow:
-    0 2px 0 var(--c2), 0 4px 0 var(--c2), 0 6px 0 var(--c3), 0 8px 0 var(--c3),
-    0 14px 24px rgba(0, 0, 0, .65), 0 0 40px var(--flash);
+  -webkit-text-stroke: 2px #140a24;
+  text-shadow: 0 3px 0 var(--c2), 0 6px 0 #140a24, 0 14px 24px rgba(0, 0, 0, .65);
 }
-#combo-callout[data-level='4'] .callout-word b { font-size: clamp(60px, 9.5vw, 150px); }
-#combo-callout .callout-word span {
-  margin-top: .1em;
-  font: 400 clamp(22px, 2.6vw, 40px)/1 'Bangers', Impact, sans-serif;
-  letter-spacing: .08em;
-  color: #fff7e6;
-  text-shadow: 0 2px 0 rgba(0, 0, 0, .7), 0 0 14px var(--flash);
+#combo-callout .callout-points.is-text b { font-size: var(--ph); color: #fff7e6; }
+
+/* Sparkles around the piece. */
+#combo-callout .callout-star {
+  position: absolute;
+  font: normal 400 calc(var(--lh) * .34)/1 sans-serif;
+  color: #fffbe0;
+  text-shadow: 0 0 12px var(--c1), 0 0 22px var(--c2);
+  scale: 0;
 }
-#combo-callout.show .callout-word { animation: callout-slam 1.85s cubic-bezier(.2, .9, .3, 1) both; }
+#combo-callout .s1 { left: -6%; top: 2%; }
+#combo-callout .s2 { right: -5%; top: -8%; font-size: calc(var(--lh) * .24); }
+#combo-callout .s3 { right: 4%; bottom: -4%; font-size: calc(var(--lh) * .2); }
+#combo-callout .s4 { left: 8%; bottom: -10%; font-size: calc(var(--lh) * .16); }
+#combo-callout.show .callout-star { animation: callout-star .9s ease-out both; }
+#combo-callout.show .s2 { animation-delay: .12s; }
+#combo-callout.show .s3 { animation-delay: .24s; }
+#combo-callout.show .s4 { animation-delay: .34s; }
+#combo-callout.show[data-level='4'] .callout-star { animation-iteration-count: 2; }
+@keyframes callout-star { 0% { scale: 0; rotate: 0deg; } 40% { scale: 1.2; } 100% { scale: 0; rotate: 160deg; } }
+
+/* The whole piece slams in, holds, and flies off. */
+#combo-callout.show .callout-word { animation: callout-slam 2s cubic-bezier(.2, .9, .3, 1) both; }
 #combo-callout.show[data-level='3'] .callout-word,
-#combo-callout.show[data-level='4'] .callout-word { animation: callout-slam 1.85s cubic-bezier(.2, .9, .3, 1) both, callout-shake .32s steps(6) .42s; }
+#combo-callout.show[data-level='4'] .callout-word { animation: callout-slam 2s cubic-bezier(.2, .9, .3, 1) both, callout-shake .32s steps(6) .42s; }
 @keyframes callout-slam {
-  0% { opacity: 0; transform: translate(-50%, -50%) scale(2.6) rotate(-8deg); filter: blur(6px); }
-  22% { opacity: 1; transform: translate(-50%, -50%) scale(.92) rotate(-3deg); filter: blur(0); }
-  32% { transform: translate(-50%, -50%) scale(1.05) rotate(-3deg); }
-  40%, 78% { transform: translate(-50%, -50%) scale(1) rotate(-3deg); opacity: 1; }
-  100% { opacity: 0; transform: translate(-50%, -120%) scale(.85) rotate(-3deg); }
+  0% { opacity: 0; transform: translate(-50%, -50%) scale(2.4) rotate(-10deg); filter: blur(6px); }
+  20% { opacity: 1; transform: translate(-50%, -50%) scale(.94) rotate(-4deg); filter: blur(0); }
+  30% { transform: translate(-50%, -50%) scale(1.04) rotate(-4deg); }
+  38%, 80% { transform: translate(-50%, -50%) scale(1) rotate(-4deg); opacity: 1; }
+  100% { opacity: 0; transform: translate(-50%, -120%) scale(.85) rotate(-4deg); }
 }
 @keyframes callout-shake {
   0%, 100% { margin-left: 0; margin-top: 0; }
@@ -211,23 +278,16 @@ body[data-screen='playing'] #combo-callout.show { display: block; }
   60% { margin-left: -6px; margin-top: 3px; }
   80% { margin-left: 4px; margin-top: -2px; }
 }
-/* CHIMPTASTIC gets a rainbow sheen sweeping through the letters. */
-#combo-callout[data-tone='legend'] .callout-word b {
-  background: linear-gradient(100deg, #fff 0%, #ffd34f 25%, #ff5fae 45%, #7edcff 65%, #fff 85%);
-  background-size: 250% 100%;
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-  -webkit-text-stroke: 2px #4a0b6b;
-  text-shadow: none;
-  filter: drop-shadow(0 3px 0 #ff3d8b) drop-shadow(0 4px 0 #4a0b6b) drop-shadow(0 12px 18px rgba(0, 0, 0, .6));
-  animation: callout-rainbow 1.2s linear infinite;
-}
-@keyframes callout-rainbow { to { background-position: -250% 0; } }
 
 @media (prefers-reduced-motion: reduce) {
-  #combo-callout.show .callout-flash { animation: none; opacity: 0; }
-  #combo-callout.show .callout-word { animation: callout-fade 1.8s ease both !important; }
-  #combo-callout[data-tone='legend'] .callout-word b { animation: none; }
+  #combo-callout.show .callout-flash,
+  #combo-callout.show .callout-star,
+  #combo-callout.show .callout-title > *,
+  #combo-callout.show .callout-points > * { animation: none !important; }
+  #combo-callout.show .callout-word { animation: callout-fade 1.9s ease both !important; }
 }
 @keyframes callout-fade { 0%, 100% { opacity: 0; } 15%, 80% { opacity: 1; } }
+
+/* Score "+points" float in graffiti digits. */
+.hud-total .score-gain.graffiti-gain { --letter-height: clamp(26px, 2.6vw, 38px); font-size: var(--letter-height); text-shadow: none; }
+.hud-total .score-gain.graffiti-gain .graffiti-word img { margin-right: calc(var(--letter-height) * -.1); }

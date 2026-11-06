@@ -584,8 +584,12 @@ function updateHudFlair(kmh) {
       void total.offsetWidth;
       total.classList.add('score-bump');
       const gain = document.createElement('span');
-      gain.className = 'score-gain';
-      gain.textContent = `+${(score - hudFlairScore).toLocaleString()}`;
+      const gainText = `+${(score - hudFlairScore).toLocaleString('en-US')}`;
+      gain.className = 'score-gain graffiti-gain';
+      gain.innerHTML = graffitiLettering(gainText, 'gold');
+      const gainArt = gain.firstElementChild;
+      gainArt.classList.remove('graffiti-loading');
+      gainArt.classList.add(prepareGraffitiHudGlyphs(gainText, 'gold') === 'ready' ? 'graffiti-ready' : 'graffiti-failed');
       total.appendChild(gain);
       gain.addEventListener('animationend', () => gain.remove(), { once: true });
       setTimeout(() => gain.remove(), 2500);
