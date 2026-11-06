@@ -5,7 +5,6 @@ export const PARK_DEFINITIONS = Object.freeze([
   Object.freeze({ id: 'rooftop', name: 'IRON DISTRICT', subtitle: 'Abandoned steelworks / freight yard', available: true, selectable: false }),
   Object.freeze({ id: 'orbit', number:2, name: 'ORBIT', subtitle: 'Neon lines / orbital skate terminal', available: true, selectable: true }),
   Object.freeze({ id: 'grand-warehouse', number:3, name: 'GRAND WAREHOUSE', subtitle: 'Your custom-built indoor wooden skatepark', available: true, selectable: true }),
-  Object.freeze({ id: 'downhill-bomb', number:4, name: 'DOWNHILL BOMB', subtitle: 'Endless sunset city hill / bananas / bullet time', available: true, selectable: true }),
   Object.freeze({ id: 'legacy', name: 'LEGACY PARK', subtitle: 'Expanded classic skatepark', available: true, selectable: false }),
 ]);
 

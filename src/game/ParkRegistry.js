@@ -45,18 +45,6 @@ export const PARK_REGISTRY = Object.freeze({
       keyColor: '#ffe4bc', keyIntensity: 2.6, keyPosition: [25, 35, 10],
       shadowExtent: 82, environmentIntensity: .38, roofCutawayHeight: 18.5 },
   },
-  'downhill-bomb': {
-    name: 'Downhill Bomb',
-    create: async () => (await import('../park/DownhillBomb.js')).createDownhillBomb(),
-    presentation: { center: [0, 120, -800], sky: true, exposure: 1.04,
-      fogColor: '#b98f9c', fogDensity: 0.0011,
-      ambientSky: '#c0c6e8', ambientGround: '#6a5458', ambientIntensity: .66,
-      keyColor: '#ffbc85', keyIntensity: 2.8, keyPosition: [-60, 40, -30],
-      fillColor: '#a5b4e9', fillIntensity: .45, fillPosition: [140, 40, -140],
-      shadowExtent: 90, backgroundIntensity: .95, environmentIntensity: .8,
-      fallback: { background: '#d7a99a', fogColor: '#d7a99a', keyColor: '#ffd9b0',
-        keyIntensity: 2.8, keyPosition: [-25, 65, 2], ambientIntensity: .9, environmentIntensity: .3 } },
-  },
   legacy: {
     name: 'Legacy park',
     create: async () => {

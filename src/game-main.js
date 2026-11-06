@@ -38,7 +38,6 @@ import { ComboCallouts } from './game/ComboCallouts.js';
 import { SkyLife } from './graphics/SkyLife.js';
 import { MapDressing } from './graphics/MapDressing.js';
 import { MapAmbience } from './graphics/MapAmbience.js';
-import { DownhillRun } from './game/DownhillRun.js';
 import { GRAPHICS_PRESET_ORDER, loadGraphicsPreset, storeGraphicsPreset, normalizedGraphicsPreset, qualityFogDistance } from './graphics/GraphicsSettings.js';
 import { normalizeGlowOverrides, readGlowPresets, saveGlowPresets, initializeGlowDefaults, useCurrentGlowDefaults } from './graphics/GlowTuning.js';
 import './style.css';
@@ -178,7 +177,6 @@ const comboCallouts = new ComboCallouts({ audio: skateAudio });
 const skyLife = new SkyLife(scene);
 const mapDressing = new MapDressing(scene);
 const mapAmbience = new MapAmbience(scene);
-const downhillRun = new DownhillRun({ scene, audio: skateAudio, callouts: comboCallouts });
 window.addEventListener('pointerdown', () => skateAudio.unlock(), { passive: true });
 window.addEventListener('keydown', () => skateAudio.unlock(), { passive: true });
 const legacyPark = new URLSearchParams(location.search).get('park') === 'legacy';
@@ -299,26 +297,10 @@ const gameShell = new GameShell({
   deck: index => skater?.board?.setFinish(index),
   effectsVolume: value => skateAudio.setEffectsVolume(value),
   cancelLoadout: () => { loadoutRequest++; skater?.cancelRiderSwap?.(); },
-  loadout: async ({hero,board,location}) => {
-    // Picking Downhill Bomb always starts again from the first stretch.
-    if (location?.id === 'downhill-bomb') (await import('./park/DownhillBomb.js')).setDownhillStretch(1);
-    return selectLocation(location?.id, {hero,finish:board.finishIndex});
-  },
+  loadout: ({hero,board,location}) => selectLocation(location?.id, {hero,finish:board.finishIndex}),
   testMap: ({file,hero,board,onProgress}) => selectLocation('test-map', {file,hero,finish:board.finishIndex,onProgress}),
 });
 skateAudio.onMusicDuck=({durationMs,amount,releaseMs})=>gameShell.music.duck(durationMs,amount,releaseMs);
-downhillRun.music = gameShell.music;
-// Endless downhill: at the tunnel, build the next (harder) stretch and carry
-// the run through it: score (with the combo banked), speed, stance, bananas.
-downhillRun.onAdvance = () => advanceDownhillStretch();
-// Checkpoints on the downhill are a score bonus (the downhill has no clock).
-downhillRun.onCheckpoint = bonus => { if (skater) skater.score += bonus; };
-// Fallback if a new stretch cannot be built: back to the top of this one.
-downhillRun.onRestart = () => {
-  if (!skater || !currentWorld?.manifest) return;
-  skater.resetRider(new THREE.Vector3(...currentWorld.manifest.spawn), Number(currentWorld.manifest.spawnHeading) || 0);
-  followCamera?.snap(skater);
-};
 
 // Observe the existing score banks without changing scoring or simulation rules.
 function observeRunScoring(controller) {
@@ -752,7 +734,7 @@ function refreshLocationUi() {
   spotNav.hidden = !manifest.spots?.length;
   const locationTitle = { legacy: 'LEGACY PARK', rooftop: 'IRON DISTRICT', 'skate-paradise':'MAP 1 / SKATE PARADISE',
     'orbit': 'MAP 2 / ORBIT',
-    'grand-warehouse': 'MAP 3 / GRAND WAREHOUSE', 'downhill-bomb': 'MAP 4 / DOWNHILL BOMB' }[currentWorld.id] || manifest.name;
+    'grand-warehouse': 'MAP 3 / GRAND WAREHOUSE' }[currentWorld.id] || manifest.name;
   document.title = `Chimp Hawk Underground — ${locationTitle}`;
   document.querySelector('.edition').textContent = locationTitle;
   skateAudio.setLocation?.(currentWorld.id);
@@ -785,8 +767,6 @@ function commitWorld(world, runtime) {
     skyLife.setWorld(world);
     mapDressing.setWorld(world);
     mapAmbience.setWorld(world);
-    downhillRun.setWorld(world);
-    gameShell.endless = Boolean(world.downhill);
     ({ park, collision, manifest } = world);
     scene.add(park);
     graphicsPipeline.setWorld(park);
@@ -808,40 +788,6 @@ function commitWorld(world, runtime) {
     throw error;
   }
   if (previousWorld && previousWorld !== world) disposeParkWorld(previousWorld, world);
-}
-
-async function advanceDownhillStretch() {
-  if (switchingWorld || !skater || currentWorld?.id !== 'downhill-bomb') return false;
-  switchingWorld = true;
-  let next = null;
-  try {
-    skater.settleCombo?.();
-    const carry = { score: skater.score, stance: skater.stance, speed: Math.abs(Number(skater.speed) || 0) };
-    const { setDownhillStretch } = await import('./park/DownhillBomb.js');
-    setDownhillStretch((currentWorld.downhill?.stretch || 1) + 1);
-    next = await createParkWorld('downhill-bomb');
-    prepareWorldVisuals(next);
-    await ensureWorldEnvironment(next);
-    const runtime = prepareParkRuntime(next, skater.board.contactRig);
-    if (renderer.compileAsync) { try { await renderer.compileAsync(next.park, camera, scene); } catch { /* normal renderer fallback */ } }
-    commitWorld(next, runtime);
-    next = null;
-    skater.score = carry.score;
-    skater.stance = carry.stance; skater.airTakeoffStance = carry.stance;
-    skater.speed = carry.speed;
-    skater.velocity.copy(skater.forward).multiplyScalar(carry.speed);
-    skater.respawnSerial = (skater.respawnSerial || 0) + 1;
-    skater.syncCanonicalState?.();
-    followCamera.snap(skater);
-    sceneNeedsRender = true;
-    return true;
-  } catch (error) {
-    console.warn('Next downhill stretch failed', error);
-    if (next) disposeParkWorld(next, currentWorld);
-    return false;
-  } finally {
-    switchingWorld = false;
-  }
 }
 
 async function selectLocation(id, { hero, finish, file, onProgress } = {}) {
@@ -924,8 +870,6 @@ async function loadGame() {
     skyLife.setWorld(initialWorld);
     mapDressing.setWorld(initialWorld);
     mapAmbience.setWorld(initialWorld);
-    downhillRun.setWorld(initialWorld);
-    gameShell.endless = Boolean(initialWorld.downhill);
     ({ park, collision, manifest } = initialWorld);
     scene.add(park, sun.target);
     graphicsPipeline.setWorld(park);
@@ -953,7 +897,7 @@ async function loadGame() {
     setPaused(true);
     gameShell.setReady();
     window.streetSkate = {
-      ready: true, scene, renderer, camera, manifest, park, collision, skater, mapDressing, mapAmbience, downhillRun,
+      ready: true, scene, renderer, camera, manifest, park, collision, skater, mapDressing, mapAmbience,
       currentLocation: currentWorld.id, selectLocation,
       graphicsStatus: () => graphicsPipeline.getStatus(),
       performanceMetrics:()=>({...frameMetrics.value}),
@@ -1066,8 +1010,7 @@ loadGame();
 
 renderer.setAnimationLoop(() => {
   const realDelta = clock.getDelta();
-  // Banana bullet time slows the simulation; the session clock keeps real time.
-  const dt = Math.min(realDelta, 0.1) * downhillRun.timeScale;
+  const dt = Math.min(realDelta, 0.1);
   const elapsed = clock.elapsedTime;
   if (document.hidden) return;
   const wasPlaying = gameShell.active;
@@ -1125,7 +1068,7 @@ renderer.setAnimationLoop(() => {
       }
       const respawn = skater.respawnSerial;
       sessionEventTime = highlightRecorder.time + realDelta;
-      skater.update(dt, gameShell.inputGrace > 0 ? {} : downhillRun.filterInput(state), elapsed);
+      skater.update(dt, gameShell.inputGrace > 0 ? {} : state, elapsed);
       if(gameShell.practice)practiceDrills.observe(skater,dt);
       if (runInProgress) {
         runSummary.update(skater, realDelta);
@@ -1155,7 +1098,6 @@ renderer.setAnimationLoop(() => {
       worldLife.update(dt,skater,camera);
       followCamera.update(skater, dt, state, skater._smoothedVisualPosition);
       mapAmbience.update(dt, skater, camera);
-      downhillRun.update(realDelta, skater, camera, state);
       if (state.reset) followCamera.snap(skater);
     }
     updateHud();
