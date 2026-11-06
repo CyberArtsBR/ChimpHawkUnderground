@@ -44,9 +44,11 @@ import { SkyLife } from './graphics/SkyLife.js';
 import { MapDressing } from './graphics/MapDressing.js';
 import { MapAmbience } from './graphics/MapAmbience.js';
 import { Rumble } from './game/Rumble.js';
+import { applyWorldFinishes, updateFloorFinishTime } from './graphics/FloorFinish.js';
+import { FloorReflections } from './graphics/FloorReflections.js';
 import { ReactiveMusic } from './game/ReactiveMusic.js';
 import { LocalLeaderboard } from './game/LocalLeaderboard.js';
-import { GRAPHICS_PRESET_ORDER, loadGraphicsPreset, storeGraphicsPreset, normalizedGraphicsPreset, qualityFogDistance } from './graphics/GraphicsSettings.js';
+import { GRAPHICS_PRESET_ORDER, loadGraphicsPreset, loadGraphicsPresetFor, storeGraphicsPreset, normalizedGraphicsPreset, qualityFogDistance } from './graphics/GraphicsSettings.js';
 import { normalizeGlowOverrides, readGlowPresets, saveGlowPresets, initializeGlowDefaults, useCurrentGlowDefaults } from './graphics/GlowTuning.js';
 import './style.css';
 import './game-shell.css';
@@ -145,7 +147,7 @@ const worldLife = new WorldLife(scene);
 graphicsPipeline.setEffectsTarget(skateEffects.root);
 let effectsWereActive = false;
 const graphicsStorage = (() => { try { return window.localStorage; } catch { return null; } })();
-let graphicsPreset = loadGraphicsPreset(graphicsStorage);
+let graphicsPreset = loadGraphicsPresetFor(graphicsStorage, renderer);
 let glowPresets = readGlowPresets(graphicsStorage);
 let legacyGlowDefaults = initializeGlowDefaults(graphicsStorage);
 
@@ -185,6 +187,8 @@ const comboCallouts = new ComboCallouts({ audio: skateAudio });
 const skyLife = new SkyLife(scene);
 const mapDressing = new MapDressing(scene);
 const mapAmbience = new MapAmbience(scene);
+const floorReflections = new FloorReflections(scene);
+graphicsPipeline.reflectionRoot = floorReflections.root;
 window.addEventListener('pointerdown', () => skateAudio.unlock(), { passive: true });
 window.addEventListener('keydown', () => skateAudio.unlock(), { passive: true });
 const legacyPark = new URLSearchParams(location.search).get('park') === 'legacy';
@@ -409,6 +413,8 @@ function applyGraphicsPreset(name) {
   skyLife.setQuality(graphicsPipeline.settings);
   mapDressing.setQuality(graphicsPipeline.settings);
   mapAmbience.setQuality(graphicsPipeline.settings);
+  floorReflections.setSize(innerWidth * renderer.getPixelRatio(), innerHeight * renderer.getPixelRatio());
+  floorReflections.setQuality(graphicsPipeline.settings);
   skateEffects.setSize(innerHeight,renderer.getPixelRatio());
   gameShell.graphicsIndex = GRAPHICS_PRESET_ORDER.indexOf(graphicsPreset);
   storeGraphicsPreset(graphicsStorage, graphicsPreset);
@@ -457,6 +463,7 @@ function applyLighting() {
   fill.target.position.set(...settings.center);
   fill.target.updateMatrixWorld();
   renderer.toneMappingExposure = settings.exposure * (graphicsPipeline.settings?.exposureMultiplier || 1);
+  graphicsPipeline.setGrade(settings.grade);
   scene.environment = currentWorld.environment || sky?.environment?.texture || environment.texture;
   scene.environmentIntensity = (dusk ? 0.22 : settings.environmentIntensity) *
     ((graphicsPipeline.settings?.environmentIntensity || .84) / .84);
@@ -613,7 +620,15 @@ function setMode(nextMode) {
 // HUD flair (enhancement pass): speed gauge fill and a score bump with a
 // floating "+points" when a combo banks. Presentation only.
 let hudFlairScore = 0, hudFlairSpeed = -1;
+// Speed rush (2026-11): wind streaks at the screen edges above ~55 km/h.
+const speedRush = document.createElement('div');
+speedRush.id = 'speed-rush'; speedRush.setAttribute('aria-hidden', 'true');
+document.body.append(speedRush);
+let speedRushLevel = 0;
+
 function updateHudFlair(kmh) {
+  const rush = Math.max(0, Math.min(1, (kmh - 55) / 45));
+  if (Math.abs(rush - speedRushLevel) > .02) { speedRushLevel = rush; speedRush.style.setProperty('--rush', rush.toFixed(2)); }
   const panel = document.querySelector('.skate-hud');
   const ratio = Math.min(1, kmh / 75);
   if (panel && Math.abs(ratio - hudFlairSpeed) > 0.01) {
@@ -748,6 +763,7 @@ function prepareWorldVisuals(world) {
       if (material.map) material.map.anisotropy = anisotropy;
     }
   });
+  applyWorldFinishes(world);
   world.park.updateMatrixWorld(true);
   if(['orbit','grand-warehouse','skate-paradise'].includes(world.id))
     world.staticTransformCount=freezeStaticParkTransforms(world.park);
@@ -809,6 +825,7 @@ function commitWorld(world, runtime) {
     skyLife.setWorld(world);
     mapDressing.setWorld(world);
     mapAmbience.setWorld(world);
+    floorReflections.setWorld(world);
     ({ park, collision, manifest } = world);
     scene.add(park);
     graphicsPipeline.setWorld(park);
@@ -912,6 +929,7 @@ async function loadGame() {
     skyLife.setWorld(initialWorld);
     mapDressing.setWorld(initialWorld);
     mapAmbience.setWorld(initialWorld);
+    floorReflections.setWorld(initialWorld);
     ({ park, collision, manifest } = initialWorld);
     scene.add(park, sun.target);
     graphicsPipeline.setWorld(park);
@@ -942,7 +960,7 @@ async function loadGame() {
     // A managed Portals Party launches online immediately, no manual sub-lobby.
     void portalsOnline?.autoJoinHostedSession();
     window.streetSkate = {
-      ready: true, scene, renderer, camera, manifest, park, collision, skater, mapDressing, mapAmbience, followCamera,
+      ready: true, scene, renderer, camera, manifest, park, collision, skater, mapDressing, mapAmbience, followCamera, graphicsPipeline,
       currentLocation: currentWorld.id, selectLocation,
       graphicsStatus: () => graphicsPipeline.getStatus(),
       performanceMetrics:()=>({...frameMetrics.value}),
@@ -1191,6 +1209,14 @@ renderer.setAnimationLoop(() => {
   if(gameShell.phase!=='select'&&(gameShell.active||(gameShell.phase==='highlights'&&document.hasFocus())||mode==='explore'||sceneNeedsRender)){
     if(gameShell.simulating)frameMetrics.begin();
     skyLife.update(realDelta, camera);
+    // Highlights replay: depth of field on the rider + light motion blur.
+    {
+      const replaying = gameShell.phase === 'highlights' && highlightPlayback.active;
+      let focus = 8;
+      if (replaying && skater?.visual) focus = camera.position.distanceTo(skater.visual.getWorldPosition(new THREE.Vector3()));
+      graphicsPipeline.setCinematic(replaying, focus);
+    }
+    updateFloorFinishTime(elapsed);
     reactiveMusic.update(Math.min(realDelta, .1), { music: gameShell.music, audio: skateAudio, skater, active: gameShell.active });
     mapDressing.update(realDelta, skater, camera);
     graphicsPipeline.render({ contactSource: gameShell.phase === 'highlights' ? null : skater });sceneNeedsRender=false;

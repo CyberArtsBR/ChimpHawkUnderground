@@ -7,12 +7,49 @@ import { SSRPass } from 'three/addons/postprocessing/SSRPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+import { BokehPass } from 'three/addons/postprocessing/BokehPass.js';
+import { AfterimagePass } from 'three/addons/postprocessing/AfterimagePass.js';
 import { resolveGraphicsSettings, resolveRenderPixelRatio, validateRenderAllocation } from './GraphicsSettings.js';
 import { normalizeGlowOverrides, resolveGlowTuning } from './GlowTuning.js';
 import { MapContactDepthPass } from './MapContactDepthPass.js';
 
 // Five-tap contrast-adaptive sharpening: edge-adaptive, avoids amplifying
 // flat-area noise, and is deliberately cheaper than a full extra AA algorithm.
+/**
+ * Colour grade (2026-11), applied last in display space: contrast and
+ * saturation, a cool lift in the shadows and a warm push in the highlights
+ * (tinted per map), and a soft vignette. Values come from MapLook `grade`.
+ */
+export const DEFAULT_GRADE = Object.freeze({
+  contrast: 1.06, saturation: 1.06, shadowTint: [-.05, 0, .1], highlightTint: [.08, .04, -.04], vignette: .28,
+});
+const GRADE_SHADER = {
+  uniforms: {
+    tDiffuse: { value: null },
+    contrast: { value: DEFAULT_GRADE.contrast },
+    saturation: { value: DEFAULT_GRADE.saturation },
+    shadowTint: { value: new THREE.Vector3(...DEFAULT_GRADE.shadowTint) },
+    highlightTint: { value: new THREE.Vector3(...DEFAULT_GRADE.highlightTint) },
+    vignette: { value: DEFAULT_GRADE.vignette },
+  },
+  vertexShader: 'varying vec2 vUv; void main(){ vUv=uv; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0); }',
+  fragmentShader: `
+    uniform sampler2D tDiffuse; uniform float contrast, saturation, vignette; uniform vec3 shadowTint, highlightTint;
+    varying vec2 vUv;
+    void main(){
+      vec4 src = texture2D(tDiffuse, vUv);
+      vec3 c = src.rgb;
+      float l = dot(c, vec3(.2126, .7152, .0722));
+      c = mix(vec3(l), c, saturation);
+      c = (c - .5) * contrast + .5;
+      float shadows = 1. - smoothstep(0., .55, l), highs = smoothstep(.45, 1., l);
+      c += shadowTint * shadows * .35 + highlightTint * highs * .35;
+      vec2 d = vUv - .5; d.x *= 1.15;
+      c *= 1. - vignette * smoothstep(.18, .75, dot(d, d) * 2.2);
+      gl_FragColor = vec4(clamp(c, 0., 1.), src.a);
+    }`,
+};
+
 const CAS_SHADER = {
   uniforms: {
     tDiffuse: { value: null },
@@ -123,8 +160,38 @@ export class GraphicsPipeline {
     this.cas = new ShaderPass(CAS_SHADER);
     this.composer.addPass(this.cas);
     this.composer.addPass(new OutputPass());
+    this.grade = new ShaderPass(GRADE_SHADER);
+    this.composer.addPass(this.grade);
     this.world = null;
     this.settings = null;
+  }
+
+  /**
+   * Cinematic look for the highlights replay only: depth of field focused on
+   * the rider and a light afterimage for motion blur. Created on first use and
+   * switched off during gameplay, so normal frames never pay for it.
+   */
+  setCinematic(active, focusDistance = 8) {
+    if (!active && !this.cinematic) return;
+    if (active && !this.cinematic) {
+      const bokeh = new BokehPass(this.scene, this.camera, { focus: focusDistance, aperture: .00045, maxblur: .007 });
+      const afterimage = new AfterimagePass(.72);
+      const at = this.composer.passes.indexOf(this.cas);
+      this.composer.insertPass(afterimage, at);
+      this.composer.insertPass(bokeh, at + 1);
+      this.cinematic = { bokeh, afterimage };
+      this.resize(this.width, this.height);
+    }
+    const { bokeh, afterimage } = this.cinematic;
+    bokeh.enabled = afterimage.enabled = Boolean(active);
+    if (active) bokeh.uniforms.focus.value = Math.max(1, focusDistance);
+  }
+
+  /** Per-map colour grade (falls back to a gentle default). */
+  setGrade(grade = null) {
+    const g = { ...DEFAULT_GRADE, ...(grade || {}) }, u = this.grade.uniforms;
+    u.contrast.value = g.contrast; u.saturation.value = g.saturation; u.vignette.value = g.vignette;
+    u.shadowTint.value.set(...g.shadowTint); u.highlightTint.value.set(...g.highlightTint);
   }
 
   createSSR() {
@@ -247,7 +314,7 @@ export class GraphicsPipeline {
       };
     }
     this.glowRoot.getWorldPosition(this.shadowWorldPosition);
-    const texel = (radius * 2) / 1024;
+    const texel = (radius * 2) / (light.shadow.mapSize.x || 1024);
     const snap = value => Math.round(value / texel) * texel;
     const offsetX = snap(this.shadowWorldPosition.x - this.shadowAnchor.target.x);
     const offsetZ = snap(this.shadowWorldPosition.z - this.shadowAnchor.target.z);
@@ -304,6 +371,7 @@ export class GraphicsPipeline {
     const contactMesh = this.wheelContactShadows?.mesh;
     const contactVisible = contactMesh?.visible;
     const effectsVisible = this.effectsRoot?.visible;
+    const reflectionsVisible = this.reflectionRoot?.visible;
     try {
       // Reuse the preceding shadow atlas; do not recalculate costly maps twice
       // per frame merely to produce a small actor-only glow mask.
@@ -317,6 +385,8 @@ export class GraphicsPipeline {
       // Dust and spark Points are already shaded in the base pass. Keeping them
       // out of the glow pass prevents additive halos around ordinary wheel dust.
       if (this.effectsRoot) this.effectsRoot.visible = false;
+      // Planar reflections re-render the scene; never inside the glow mask pass.
+      if (this.reflectionRoot) this.reflectionRoot.visible = false;
       // Dark geometry still writes depth: rider bloom cannot appear through walls.
       for (const object of this.bloomSceneMeshes) {
         if (allowed.has(object)) continue;
@@ -338,6 +408,7 @@ export class GraphicsPipeline {
       this.renderer.shadowMap.autoUpdate = shadowAutoUpdate;
       if (contactMesh) contactMesh.visible = contactVisible;
       if (this.effectsRoot) this.effectsRoot.visible = effectsVisible;
+      if (this.reflectionRoot) this.reflectionRoot.visible = reflectionsVisible;
     }
   }
 

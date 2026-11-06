@@ -4,6 +4,7 @@ export const MAP_LOOKS = Object.freeze({
   // Enhancement pass (2026-11): lower, warmer sunset key (~18 degrees up), warm
   // haze and stronger reflections of the photographic sky.
   'skate-paradise': Object.freeze({
+    grade: Object.freeze({ contrast: 1.14, saturation: 1.16, shadowTint: [-.12, -.02, .2], highlightTint: [.22, .1, -.06], vignette: .34 }),
     exposure: 1.03, ambientSky: '#b9c4e5', ambientGround: '#6a5458', ambientIntensity: .62,
     keyColor: '#ffbc85', keyIntensity: 2.85, keyPosition: [-60, 45, -20],
     environmentIntensity: .8,
@@ -17,6 +18,7 @@ export const MAP_LOOKS = Object.freeze({
     fillColor: '#c4dfff', fillIntensity: .38, fillPosition: [45, 26, -60],
   }),
   orbit: Object.freeze({
+    grade: Object.freeze({ contrast: 1.12, saturation: 1.22, shadowTint: [-.06, 0, .24], highlightTint: [.06, .12, .2], vignette: .4 }),
     exposure: 1.02, ambientSky: '#bed7ee', ambientGround: '#29243d', ambientIntensity: .65,
     keyColor: '#d8e8ff', keyIntensity: 2.65, keyPosition: [-32, 52, 26],
     environmentIntensity: .5,
@@ -24,6 +26,7 @@ export const MAP_LOOKS = Object.freeze({
     fogColor: '#141a33', fogDensity: .0011,
   }),
   'grand-warehouse': Object.freeze({
+    grade: Object.freeze({ contrast: 1.12, saturation: 1.1, shadowTint: [-.04, -.02, .1], highlightTint: [.2, .12, 0], vignette: .32 }),
     exposure: 1.02, ambientSky: '#c7d8ed', ambientGround: '#554537', ambientIntensity: .64,
     keyColor: '#ffdcad', keyIntensity: 2.75, keyPosition: [-35, 42, 16],
     environmentIntensity: .28,

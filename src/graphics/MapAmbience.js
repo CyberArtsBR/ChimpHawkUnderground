@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { collisionMeshes } from './MapScan.js';
+import { glowScaleForDistance } from './MapDressing.js';
 
 /**
  * Moving map ambience (2026-11 enhancement pass). Presentation only.
@@ -298,6 +299,7 @@ export class MapAmbience {
       drone.group.rotation.y = -a;
       drone.light.quaternion.copy(drone.group.quaternion).invert().multiply(camera.quaternion);
       drone.light.visible = ((this.time * 2 + i * .33) % 1) < .55;
+      drone.light.scale.setScalar(glowScaleForDistance(drone.group.position.distanceTo(camera.position)) || .001);
       for (const child of drone.group.children) if (child.geometry?.type === 'CylinderGeometry') child.rotation.y += dt * 40;
     }
     // Holograms turn gently and glitch now and then.

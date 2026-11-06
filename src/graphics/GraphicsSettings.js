@@ -19,7 +19,8 @@ export const GRAPHICS_DESCRIPTIONS = Object.freeze({
 // SSR on moving imported meshes creates ghost silhouettes and disappearing geometry at Ultra/Cinematic.\n// Use stable PBR environment reflections on all tiers; preserve high-tier AA, bloom, HDR and 1024 shadows.\n// The 1024 shadow-map size is intentional on ALL tiers: no hidden 2K/4K override.
 const SURFACE_DETAIL = Object.freeze({performance:0,'high-refresh':.45,balanced:.6,high:.85,ultra:1,cinematic:1});
 export const GRAPHICS_PRESETS = Object.freeze(Object.fromEntries(
-  Object.entries(PRESETS).map(([key,value])=>[key,Object.freeze({ ...value, postProcessing:true, shadowResolution:1024, surfaceDetailScale:SURFACE_DETAIL[key], contactDepth:['ultra','cinematic'].includes(key) })])
+  // 2026-11: crisper 2048 shadows from 144 FPS/High up; ambient occlusion from High up.
+  Object.entries(PRESETS).map(([key,value])=>[key,Object.freeze({ ...value, postProcessing:true, shadowResolution:['performance','balanced'].includes(key)?1024:2048, surfaceDetailScale:SURFACE_DETAIL[key], contactDepth:['high','ultra','cinematic'].includes(key) })])
 ));
 export const DEFAULT_GRAPHICS_PRESET = 'high-refresh';
 // Start existing installs on the requested 144 FPS profile once. Explicit
@@ -65,6 +66,25 @@ export function resolveGraphicsSettings(value, capabilities = {}, overrides = {}
     // With glow off, the two lean tiers bypass all offscreen passes.
     postProcessing: ['performance','high-refresh'].includes(name) ? bloomStrength > 0 : preset.postProcessing,
   };
+}
+/**
+ * First-run default (2026-11): a dedicated NVIDIA/AMD card or an Apple
+ * M-series chip starts on High; everything else keeps the 144 FPS preset.
+ * A preset the player picked is always kept.
+ */
+export function suggestGraphicsPreset(renderer) {
+  try {
+    const gl = renderer?.getContext?.();
+    const info = gl?.getExtension?.('WEBGL_debug_renderer_info');
+    const name = String(info ? gl.getParameter(info.UNMASKED_RENDERER_WEBGL) : gl?.getParameter?.(gl.RENDERER) || '');
+    if (/NVIDIA|GeForce|RTX|GTX|Quadro|Radeon (RX|Pro)|AMD Radeon(?!.*Graphics)|Apple M\d/i.test(name)) return 'high';
+  } catch { /* fall through */ }
+  return DEFAULT_GRAPHICS_PRESET;
+}
+export function loadGraphicsPresetFor(storage, renderer) {
+  let saved = null;
+  try { saved = storage?.getItem(GRAPHICS_STORAGE_KEY); } catch { /* none */ }
+  return saved ? normalizedGraphicsPreset(saved) : suggestGraphicsPreset(renderer);
 }
 export function loadGraphicsPreset(storage) {
   try { return normalizedGraphicsPreset(storage?.getItem(GRAPHICS_STORAGE_KEY)); }
