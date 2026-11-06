@@ -46,7 +46,7 @@ export function tutorialPages(bindings=readBindings()) {
       `<p>Start a manual first, then enter the button pair quickly. If the vertical balance marker moves up, press ${key('down')} / stick down; if it moves down, press ${key('up')} / stick up. Manuals connect landed tricks into a longer combo.</p>`},
     {title:'Walls, cameras & your run',subtitle:'Land clean. Keep your combo going.',html:table(['Action','Keyboard','Xbox'],[
       ['Wall Ride',`Hold ${key('grind')} against a wall in the air`,`Hold ${pad('grind')} against a wall in the air`],['Wall Plant',`${key('ollie')} when hitting a wall in the air`,`${pad('ollie')} when hitting a wall in the air`],
-      ['Wallie',`${key('ollie')} during a Wall Ride`,`${pad('ollie')} during a Wall Ride`],['Follow / Follow Test / Follow Close / Follow Low / Classic / Fixed',`${key('cameraMode')} to cycle (1 / 2 / 3: Follow / Classic / Fixed)`,`${pad('cameraMode')} to cycle`],
+      ['Wallie',`${key('ollie')} during a Wall Ride`,`${pad('ollie')} during a Wall Ride`],['Follow Classic 2 / Follow / Follow Close / Follow Low / Classic / Fixed',`${key('cameraMode')} to cycle (1 / 2 / 3: Follow / Classic / Fixed)`,`${pad('cameraMode')} to cycle`],
       ['Look around','Drag mouse','Right stick'],['Tutorial / Practice / music / deck','Pause → menu options','Menu → choose with stick + A'],
     ])+'<p>Clean landings bank points. A bail loses the current combo, then respawns you on nearby flat ground with three flashes. At 00:00, finish an attempt already in progress before the short grace period ends; Practice keeps going.</p>'},
   ];

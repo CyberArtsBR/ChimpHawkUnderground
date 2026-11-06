@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { resolveCameraClearance } from './CameraClearance.js';
-import { CAMERA_MODES } from './CameraModes.js';
+import { CAMERA_MODES, DEFAULT_CAMERA_MODE } from './CameraModes.js';
 import {
   captureCameraState,
   resolveCameraTravelDirection,
@@ -58,7 +58,7 @@ export const THPS_CAMERA = Object.freeze({
   landingHoldTime: 0.9,
   returnReframeRate: 8,
   reverseReturnReframeRate: 2.4,
-  // Follow Test (2026-11): the vert-air swing pauses at a raised side view on
+  // Follow Classic 2 (2026-11): the vert-air swing pauses at a raised side view on
   // the open side of the ramp, then finishes behind the rider on the way down.
   testOrbitMinimumAngle: 100 * Math.PI / 180,
   testRiseSeconds: .38,
@@ -170,7 +170,7 @@ export class FollowCamera {
     this.camera = camera;
     this.preferences = { cameraDistance: 1, cameraFov: 58, speedFov: 1 };
     this.motionPreference=globalThis.matchMedia?.('(prefers-reduced-motion: reduce)');
-    this.mode = 'follow';
+    this.mode = DEFAULT_CAMERA_MODE;
     this.position = new THREE.Vector3();
     this.target = new THREE.Vector3();
     this.direction = new THREE.Vector3(0, 0, -1);
@@ -241,7 +241,7 @@ export class FollowCamera {
   }
 
   setMode(mode, player = null) {
-    this.mode = CAMERA_MODES.includes(mode) ? mode : 'follow';
+    this.mode = CAMERA_MODES.includes(mode) ? mode : DEFAULT_CAMERA_MODE;
     this.camera.fov = this.preferences.cameraFov;
     this.camera.updateProjectionMatrix();
     if (player) this.snap(player);
