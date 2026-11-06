@@ -51,10 +51,20 @@ export const SKATE_FOLEY_BANKS = Object.freeze({
   bail: ['/audio/foley/bail.ogg'],
   ...Object.fromEntries(['confirm','back','ready','go','roundOver','tenSeconds','finalFive'].map(kind => [`cue:${kind}`, [`/audio/foley/cue-${kind}.ogg`]])),
   voicePain: [1,2,3].map(n => `/audio/foley/voice-pain-${n}.mp3`),
-  voiceEffort: ['/audio/foley/voice-effort-1.mp3'],
+  voiceEffort: ['/audio/foley/voice-effort-1.mp3', ...[2,3,4].map(n => `/audio/foley/voice-effort-${n}.wav`)],
   crowdSubdued: ['/audio/foley/crowd-claps.ogg'],
   crowdMedium: ['/audio/foley/crowd-claps.ogg'],
   crowdExceptional: ['/audio/foley/crowd-claps.ogg'],
+  // 2026-11 audio pass: synthesized in-house (see CREDITS.md).
+  landingWood: [1,2].map(n => `/audio/foley/landing-wood-${n}.wav`),
+  landingRubber: ['/audio/foley/landing-rubber-1.wav'],
+  rollWood: ['/audio/foley/roll-wood.wav'],
+  grindClack: [1,2].map(n => `/audio/foley/grind-clack-${n}.wav`),
+  ambienceOrbit: ['/audio/foley/ambience-orbit.wav'],
+  cheerSmall: ['/audio/foley/crowd-cheer-small.wav'],
+  cheerMedium: ['/audio/foley/crowd-cheer-medium.wav'],
+  cheerBig: ['/audio/foley/crowd-cheer-big.wav'],
+  crowdGroan: ['/audio/foley/crowd-groan.wav'],
 });
 
 // Sustained passes only: exclude the field take's mounting contacts and pauses.
@@ -64,10 +74,15 @@ export const SKATE_SCRAPE_WINDOWS = Object.freeze({
   scrapeConcrete: Object.freeze({ start: 19.70, end: 21.75, crossfade: .08 }),
 });
 
-export function loadSkateFoleyBanks(context, onClip, { fetcher=globalThis.fetch, assetUrl=gameAssetUrl }={}) {
+// Map ambience loops load only when that map is entered (2026-11), so a first
+// session does not download all three loops up front.
+export const LAZY_FOLEY_BANKS = Object.freeze(['ambienceWarehouse', 'ambienceParadise', 'ambienceOrbit']);
+
+export function loadSkateFoleyBanks(context, onClip, { fetcher=globalThis.fetch, assetUrl=gameAssetUrl, include=null }={}) {
   if (!context?.decodeAudioData || typeof fetcher!=='function') return Promise.resolve([]);
   // Decode each URL once even when shared by two intensity banks.
-  const urls = [...new Set(Object.values(SKATE_FOLEY_BANKS).flat())];
+  const wanted = Object.entries(SKATE_FOLEY_BANKS).filter(([kind]) => include ? include.includes(kind) : !LAZY_FOLEY_BANKS.includes(kind));
+  const urls = [...new Set(wanted.flatMap(([, paths]) => paths))];
   return Promise.allSettled(urls.map(async path => {
     const buffer = await decodedClip(context,path,fetcher,assetUrl);
     for (const [kind, paths] of Object.entries(SKATE_FOLEY_BANKS)) if (paths.includes(path)) onClip(kind, buffer);

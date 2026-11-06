@@ -16,14 +16,19 @@ export const FX_TUNING = Object.freeze({
   sparkSize: [0.11, 0.08], sparkLife: [0.26, 0.36], sparkBack: [1.5, 2.8], sparkUp: [0.6, 2.2], sparkGravity: 12,
   emberChance: .28, emberSize: [0.05, 0.04], emberLife: [0.8, 0.6], emberGravity: 4.5,
   grindLight: 2.8, grindLightFlicker: 1.8, grindLightDistance: 4.5,
+  // 2026-11: ground ring of dust on landings (scaled by impact), glowing
+  // scars left on metal after a grind, and a ribbon behind the board on big airs.
+  ringCount: [8, 22], ringSpeed: [1.1, 2.6], ringSize: [0.32, 0.42], ringOpacity: [0.16, 0.16],
+  scarPool: 360, scarSpacing: .05, scarLife: 1.5, scarSize: .075,
+  trailPoints: 30, trailWidth: .2, trailMinAir: .32, trailMinSpeed: 6,
 });
 
 export const SURFACE_PARTICLES = Object.freeze({
   neutral: {dust:.35,tint:[.65,.66,.65],grind:.2,sparks:false},
   concrete: {dust:.4,tint:[.73,.74,.73],grind:.45,sparks:false},
-  wood: {dust:.18,tint:[.57,.48,.37],grind:.12,sparks:false},
+  wood: {dust:.26,tint:[.6,.5,.39],grind:.12,sparks:false},
   metal: {dust:0,tint:[.65,.68,.72],grind:.6,sparks:true},
-  rubber: {dust:0,tint:[.4,.42,.43],grind:0,sparks:false},
+  rubber: {dust:.2,tint:[.46,.47,.48],grind:0,sparks:false},
 });
 
 const VERTEX = `
@@ -62,6 +67,41 @@ void main() {
   #include <colorspace_fragment>
 }`;
 
+const TRAIL_VERTEX = `
+attribute float fade;
+varying float vFade;
+varying float vAcross;
+attribute float across;
+void main(){ vFade=fade; vAcross=across; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0); }`;
+const TRAIL_FRAGMENT = `
+uniform vec3 colorA; uniform vec3 colorB; uniform float strength;
+varying float vFade; varying float vAcross;
+void main(){
+  float edge=1.0-abs(vAcross);
+  float a=vFade*vFade*edge*strength;
+  if(a<.003)discard;
+  gl_FragColor=vec4(mix(colorB,colorA,vFade)*a,a);
+  #include <colorspace_fragment>
+}`;
+
+/** Ribbon behind the board on big airs: a strip of the last N board positions. */
+function makeTrail(points) {
+  const geometry=new THREE.BufferGeometry();
+  const position=new Float32Array(points*2*3),fade=new Float32Array(points*2),across=new Float32Array(points*2);
+  for(let i=0;i<points;i++){across[i*2]=-1;across[i*2+1]=1;}
+  const index=[];
+  for(let i=0;i<points-1;i++){const a=i*2;index.push(a,a+1,a+2,a+1,a+3,a+2);}
+  geometry.setIndex(index);
+  geometry.setAttribute('position',new THREE.BufferAttribute(position,3).setUsage(THREE.DynamicDrawUsage));
+  geometry.setAttribute('fade',new THREE.BufferAttribute(fade,1).setUsage(THREE.DynamicDrawUsage));
+  geometry.setAttribute('across',new THREE.BufferAttribute(across,1));
+  const material=new THREE.ShaderMaterial({name:'Board air trail',vertexShader:TRAIL_VERTEX,fragmentShader:TRAIL_FRAGMENT,
+    uniforms:{colorA:{value:new THREE.Color('#8ff3ff')},colorB:{value:new THREE.Color('#ff4fbf')},strength:{value:0}},
+    transparent:true,depthWrite:false,side:THREE.DoubleSide,blending:THREE.AdditiveBlending,toneMapped:false});
+  const mesh=new THREE.Mesh(geometry,material);mesh.name='Board air trail';mesh.frustumCulled=false;mesh.visible=false;
+  return {mesh,position,fade,points,count:0,strength:0,history:[]};
+}
+
 function makePool(name,count,additive) {
   const geometry=new THREE.BufferGeometry();
   const arrays={position:new Float32Array(count*3),motion:new Float32Array(count*3),tint:new Float32Array(count*3),
@@ -86,7 +126,10 @@ export class SkateEffects {
     this.root=new THREE.Group();this.root.name='Skating contact effects';this.root.userData.skateEffects=true;
     this.dust=makePool('Soft landing dust',FX_TUNING.dustPool,false);
     this.glints=makePool('Grind sparks and trick traces',FX_TUNING.sparkPool,true);
-    this.root.add(this.dust.points,this.glints.points);scene?.add(this.root);
+    this.scars=makePool('Rail grind scars',FX_TUNING.scarPool,true);
+    this.trail=makeTrail(FX_TUNING.trailPoints);
+    this.lastScar=new THREE.Vector3(1e9,0,0);
+    this.root.add(this.dust.points,this.glints.points,this.scars.points,this.trail.mesh);scene?.add(this.root);
     this.previousPosition=new THREE.Vector3();this.previousVelocity=new THREE.Vector3();
     this.origin=new THREE.Vector3();this.forward=new THREE.Vector3();this.normal=new THREE.Vector3();this.side=new THREE.Vector3();this.tangent=new THREE.Vector3();
     this.initialized=false;this.previousGrounded=true;this.previousSerial=0;this.airDuration=0;
@@ -116,6 +159,7 @@ export class SkateEffects {
     const pixels=(Number.isFinite(h)&&h>0?h:720)*(Number.isFinite(ratio)&&ratio>0?ratio:1);
     this.dust.points.material.uniforms.viewportHeight.value=pixels;
     this.glints.points.material.uniforms.viewportHeight.value=pixels;
+    this.scars.points.material.uniforms.viewportHeight.value=pixels;
   }
 
   clearPool(pool) {
@@ -126,7 +170,8 @@ export class SkateEffects {
   reset(skater=null) {
     this.bailLiquid.reset();
     this.lastBailImpact=skater?.rider?.ragdoll?.groundImpact||null;
-    this.clearPool(this.dust);this.clearPool(this.glints);
+    this.clearPool(this.dust);this.clearPool(this.glints);this.clearPool(this.scars);
+    this.trail.history.length=0;this.trail.strength=0;this.trail.mesh.visible=false;this.lastScar.set(1e9,0,0);
     if(this.grindLight)this.grindLight.intensity=0;
     this.grindBudget=0;this.traceBudget=0;this.airDuration=0;this.landingLatch=false;
     this.initialized=finite(skater?.position);
@@ -181,6 +226,15 @@ export class SkateEffects {
       this.emit(this.dust,x,y,z,Math.cos(angle)*spread+n.x*.25,.10+n.y*.12,Math.sin(angle)*spread+n.z*.25,
         FX_TUNING.landingSize[0]+severity*FX_TUNING.landingSize[1],FX_TUNING.landingLife[0]+Math.random()*FX_TUNING.landingLife[1],
         FX_TUNING.landingOpacity[0]+severity*FX_TUNING.landingOpacity[1],...profile.tint,0,-.12);
+    }
+    // A low ring of dust rolling out along the ground; harder landings push it further.
+    const t=FX_TUNING,ring=Math.round((t.ringCount[0]+severity*t.ringCount[1])*Math.max(.35,profile.dust*2)*this.scale*(this.performance ? .45 : 1));
+    if(!profile.dust)return;
+    for(let i=0;i<ring;i++) {
+      const angle=i/ring*Math.PI*2+Math.random()*.3,speed=(t.ringSpeed[0]+severity*t.ringSpeed[1])*(.8+Math.random()*.4);
+      const dx=this.tangent.x*Math.cos(angle)+this.side.x*Math.sin(angle),dy=this.tangent.y*Math.cos(angle)+this.side.y*Math.sin(angle),dz=this.tangent.z*Math.cos(angle)+this.side.z*Math.sin(angle);
+      this.emit(this.dust,p.x+dx*.2+n.x*.04,p.y+dy*.2+n.y*.04,p.z+dz*.2+n.z*.04,dx*speed+n.x*.15,dy*speed+n.y*.15,dz*speed+n.z*.15,
+        t.ringSize[0]+severity*t.ringSize[1],.45+severity*.35+Math.random()*.2,t.ringOpacity[0]+severity*t.ringOpacity[1],...profile.tint,0,-.05);
     }
   }
 
@@ -237,7 +291,7 @@ export class SkateEffects {
     // Preserve the full source-time interval while keeping integration stable.
     let remaining=delta;
     while(remaining>1e-8){const dt=Math.min(remaining,.05);
-      this.stepPool(this.dust,dt,true);this.stepPool(this.glints,dt,false);this.bailLiquid.update(dt);remaining-=dt;}
+      this.stepPool(this.dust,dt,true);this.stepPool(this.glints,dt,false);this.stepPool(this.scars,dt,false);this.bailLiquid.update(dt);remaining-=dt;}
   }
 
   update(delta,skater) {
@@ -246,7 +300,7 @@ export class SkateEffects {
     // A location switch, replay seek or respawn is not a physical landing.
     if(!this.initialized||(skater.respawnSerial||0)!==this.previousSerial
       ||this.previousPosition.distanceToSquared(skater.position)>36){this.reset(skater);return;}
-    this.stepPool(this.dust,dt,true);this.stepPool(this.glints,dt,false);
+    this.stepPool(this.dust,dt,true);this.stepPool(this.glints,dt,false);this.stepPool(this.scars,dt,false);
     this.bailLiquid.update(dt);
     const impactEvent=skater.rider?.ragdoll?.groundImpact;
     if(skater.bailTime>0&&impactEvent&&impactEvent!==this.lastBailImpact){
@@ -254,7 +308,7 @@ export class SkateEffects {
       this.bailLiquid.spawn(impactEvent,this.performance,skater.surface);
       this.bailDust(impactEvent);
     }
-    if(skater.bailTime>0){this.airDuration=0;this.grindBudget=0;this.traceBudget=0;this.remember(skater);return;}
+    if(skater.bailTime>0){this.airDuration=0;this.grindBudget=0;this.traceBudget=0;this.updateTrail(dt,skater,false);this.remember(skater);return;}
     this.origin.copy(skater.position);
     this.normal.copy(finite(skater.normal)?skater.normal:THREE.Object3D.DEFAULT_UP);
     this.forward.copy(finite(skater.forward)?skater.forward:THREE.Object3D.DEFAULT_UP);
@@ -272,7 +326,14 @@ export class SkateEffects {
       const tag=surfaceTagFor(skater),profile=SURFACE_PARTICLES[tag];
       this.grindBudget+=dt*(7+Math.min(speed,20)*.6)*this.scale*profile.grind*FX_TUNING.sparkRate;
       while(this.grindBudget>=1) { this.grindBudget--;this.grindParticle(profile); }
-    } else this.grindBudget=0;
+      // Glowing scar left on the metal: stationary dashes that cool and fade.
+      if(profile.sparks&&this.lastScar.distanceToSquared(this.origin)>FX_TUNING.scarSpacing**2) {
+        const jump=this.lastScar.distanceToSquared(this.origin)>1;
+        if(!jump)this.emit(this.scars,(this.origin.x+this.lastScar.x)/2,this.origin.y+.012,(this.origin.z+this.lastScar.z)/2,
+          this.forward.x*.02,0,this.forward.z*.02,FX_TUNING.scarSize,FX_TUNING.scarLife*(.8+Math.random()*.4),.85,1,.42,.1,1,0);
+        this.lastScar.copy(this.origin);
+      }
+    } else { this.grindBudget=0;this.lastScar.set(1e9,0,0); }
     // Short, faint board-edge traces only during fast, active airborne tricks.
     if(!this.performance&&!grounded&&!skater.grind&&speed>11&&(skater.flipState||skater.grabState)) {
       this.traceBudget+=dt*20*this.scale;
@@ -282,7 +343,37 @@ export class SkateEffects {
           -this.forward.x*.6,0,-this.forward.z*.6,.11,.14,.14,.56,.77,1,1,0);
       }
     } else this.traceBudget=0;
+    this.updateTrail(dt,skater,!this.performance&&!grounded&&!skater.grind&&!skater.wallRide
+      &&this.airDuration>FX_TUNING.trailMinAir&&speed>FX_TUNING.trailMinSpeed);
     this.remember(skater);
+  }
+
+  /** Ribbon behind the board on big airs; fades out after landing. */
+  updateTrail(dt,skater,active) {
+    const tr=this.trail,t=FX_TUNING;
+    tr.strength+=((active?.55*this.scale:0)-tr.strength)*Math.min(1,dt*(active?6:5));
+    if(active) {
+      const board=skater.board?.root;
+      const p=board?board.getWorldPosition(new THREE.Vector3()):skater.position.clone().addScaledVector(this.normal,.12);
+      tr.history.unshift(p);
+      if(tr.history.length>tr.points)tr.history.length=tr.points;
+    } else if(tr.strength<.01){tr.history.length=0;}
+    const n=tr.history.length;
+    tr.mesh.visible=n>1&&tr.strength>.01;
+    if(!tr.mesh.visible)return;
+    const side=new THREE.Vector3(),dir=new THREE.Vector3(),up=THREE.Object3D.DEFAULT_UP;
+    for(let i=0;i<tr.points;i++) {
+      const a=tr.history[Math.min(i,n-1)],b=tr.history[Math.min(i+1,n-1)]||a;
+      dir.subVectors(a,b);if(dir.lengthSq()<1e-6)dir.copy(this.forward);
+      side.crossVectors(dir,up).normalize().multiplyScalar(t.trailWidth*(1-i/tr.points*.6));
+      if(!Number.isFinite(side.x))side.set(t.trailWidth,0,0);
+      const k=i*6;
+      tr.position[k]=a.x-side.x;tr.position[k+1]=a.y-side.y;tr.position[k+2]=a.z-side.z;
+      tr.position[k+3]=a.x+side.x;tr.position[k+4]=a.y+side.y;tr.position[k+5]=a.z+side.z;
+      const f=i<n?1-i/Math.max(1,n-1):0;tr.fade[i*2]=tr.fade[i*2+1]=f;
+    }
+    tr.mesh.geometry.attributes.position.needsUpdate=true;tr.mesh.geometry.attributes.fade.needsUpdate=true;
+    tr.mesh.material.uniforms.strength.value=tr.strength;
   }
 
   dispose() {
@@ -290,5 +381,7 @@ export class SkateEffects {
     this.root.removeFromParent();
     this.dust.points.geometry.dispose();this.dust.points.material.dispose();
     this.glints.points.geometry.dispose();this.glints.points.material.dispose();
+    this.scars.points.geometry.dispose();this.scars.points.material.dispose();
+    this.trail.mesh.geometry.dispose();this.trail.mesh.material.dispose();
   }
 }

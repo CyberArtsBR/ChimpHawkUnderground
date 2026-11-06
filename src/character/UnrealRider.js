@@ -18,6 +18,32 @@ const V = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
 const Q = () => new THREE.Quaternion();
 const C = THREE.MathUtils.clamp;
 const SIDES = ['l', 'r'];
+/**
+ * Per-grab body styling (2026-11): each grab gets its own silhouette. arch
+ * leans the chest back (+) or tucks it (-), twist turns the shoulders, and the
+ * free (non-grabbing) arm goes up / out / forward in arm lengths.
+ */
+const GRAB_STYLE = Object.freeze({
+  Indy: { arch: .1, twist: .28, up: .75, out: .45, fwd: -.35 },
+  Melon: { arch: .04, twist: -.22, up: .35, out: .75, fwd: .4 },
+  Nosegrab: { arch: -.08, twist: .12, up: .65, out: .35, fwd: -.55 },
+  Tailgrab: { arch: .14, twist: -.12, up: .8, out: .3, fwd: .5 },
+  Japan: { arch: -.16, twist: .32, up: .25, out: .45, fwd: -.25 },
+  Madonna: { arch: .2, twist: -.18, up: .7, out: .55, fwd: .2 },
+  Benihana: { arch: .16, twist: -.26, up: .85, out: .55, fwd: 0 },
+  Method: { arch: .3, twist: .38, up: .55, out: .9, fwd: -.25 },
+  Stalefish: { arch: .08, twist: -.32, up: .8, out: .4, fwd: .3 },
+  'Rocket Air': { arch: .22, twist: 0, up: .5, out: .3, fwd: .3 },
+  Seatbelt: { arch: .05, twist: .42, up: .45, out: .5, fwd: -.4 },
+  Mute: { arch: -.06, twist: .22, up: .55, out: .5, fwd: -.15 },
+  Judo: { arch: .24, twist: -.3, up: .75, out: .55, fwd: .1 },
+  Crail: { arch: .1, twist: .36, up: .6, out: .6, fwd: .45 },
+  'Christ Air': { arch: .26, twist: 0, up: .3, out: 1, fwd: 0 },
+  Airwalk: { arch: .2, twist: .15, up: .4, out: .7, fwd: .1 },
+});
+const GESTURE_TIME = Object.freeze({ celebrate: 1.15, stumble: .75, switch: .45 });
+/** Rise quickly, hold, then ease out over a gesture's 0..1 progress. */
+const gestureEnvelope = p => THREE.MathUtils.smoothstep(p, 0, .14) * (1 - THREE.MathUtils.smoothstep(p, .62, 1));
 const SEMANTIC = Object.freeze({
   root: 'root', pelvis: 'pelvis', spine1: 'spine_01', spine2: 'spine_02', spine3: 'spine_03',
   neck: 'neck_01', head: 'head', clavicleL: 'clavicle_l', clavicleR: 'clavicle_r',
@@ -95,6 +121,8 @@ export class UnrealRider {
       airBalance: { value: 0, velocity: 0 }, grabGather: { value: 0, velocity: 0 } };
     this.grabReachName = null;
     this.grabReachDirection = 1;
+    this.gestureState = null;
+    this.lastStance = null;
     this.ragdoll = new SkateRagdoll();
     this.ft = { l: V(), r: V() };
     this.soleOffsets={l:0.05,r:0.05};
@@ -332,6 +360,18 @@ export class UnrealRider {
     }
   }
 
+  /**
+   * One-shot body gestures layered over the skating pose (2026-11):
+   * 'celebrate' (big landed combo), 'stumble' (sloppy landing). Stance
+   * switches start their own 'switch' gesture. Strength is 0..1.
+   */
+  gesture(kind, strength = 1) {
+    if (!GESTURE_TIME[kind]) return;
+    const current = this.gestureState;
+    if (current && current.kind === 'celebrate' && kind !== 'celebrate' && current.t < current.duration * .7) return;
+    this.gestureState = { kind, t: 0, duration: GESTURE_TIME[kind], strength: C(strength, 0, 1), seed: Math.random() * 6 };
+  }
+
   update({ presentation, board, speedRatio = 0, crouch = 0, steer = 0, pushWeight = 0, pushPhase = 0,
     flipState = null, grabState = null, grabWeight = 0, manual = null, manualBalance = 0,
     grindType = null, grindBalance = 0, wallRide = null, vert = false, verticalVelocity = 0, airTime = null,
@@ -451,6 +491,33 @@ export class UnrealRider {
       if (shoulderBendAxis && shoulderBendAxis.lengthSq() > .5)
         this.rotate(name, shoulderBendAxis, grabPose.shoulderBend / 3, rootQ);
     }
+    // Gesture and grab-style layer (2026-11). Advances once per frame.
+    const gs = this.gestureState;
+    if (gs) { gs.t += dt; if (gs.t >= gs.duration || bail) this.gestureState = null; }
+    const gw = gs && !bail ? gestureEnvelope(gs.t / gs.duration) * gs.strength : 0;
+    const gKind = gw > 0 ? gs.kind : null;
+    if (!this.lastStance) this.lastStance = stance;
+    if (stance !== this.lastStance) {
+      if (!inAir && !bail && !flipState && !grabState) this.gesture('switch', 1);
+      this.lastStance = stance;
+    }
+    const style = grab > .01 && !flipState && !bail ? GRAB_STYLE[grabState?.name] : null;
+    for (const name of ['spine_01', 'spine_02', 'spine_03']) {
+      if (style) {
+        this.rotate(name, pitchAxis, style.arch * grab / 3, rootQ);
+        this.rotate(name, V(0, 1, 0), style.twist * stance * grab / 3, rootQ);
+      }
+      if (gKind === 'celebrate') this.rotate(name, pitchAxis, .14 * gw / 3, rootQ);
+      if (gKind === 'stumble') {
+        const wobble = Math.sin(gs.t * 13 + gs.seed) * .2 * gw;
+        this.rotate(name, this.kneeForward, wobble / 3, rootQ);
+        this.rotate(name, pitchAxis, -.12 * gw / 3, rootQ);
+      }
+      if (gKind === 'switch') this.rotate(name, V(0, 1, 0), -stance * .85 * gw / 3, rootQ);
+    }
+    if (gKind === 'celebrate') this.rotate('head', pitchAxis, .22 * gw, rootQ);
+    if (gKind === 'switch') this.rotate('head', V(0, 1, 0), -stance * .5 * gw, rootQ);
+    if (style) this.rotate('head', pitchAxis, style.arch * .5 * grab, rootQ);
     this.rotate('pelvis', V(0, 0, 1), manualBalance * manualW * 0.08 - grindBalance * grind * 0.06, rootQ);
     this.rotate('neck_01', V(0, 1, 0), .12 * stance + balance * .04, rootQ);
     this.rotate('head', V(0, 1, 0), .25 * stance + balance * .08, rootQ);
@@ -675,6 +742,19 @@ export class UnrealRider {
           breathing: Math.sin(poseTime * 1.8 + (side === front ? .3 : 0)) * .006 * (1 - air) },
       );
       world.lerp(skatingPose.wrist, skatingWeight);
+      // Gesture / free-arm styling: a goal in arm lengths from the shoulder.
+      const armGoal = (up, out, fwd) => shoulderWorld.clone()
+        .addScaledVector(armUp, up * armLength).addScaledVector(lateral.clone().applyQuaternion(rootQ), out * armLength)
+        .addScaledVector(this.kneeForward.clone().applyQuaternion(rootQ), fwd * armLength);
+      if (style && !grabTarget) world.lerp(armGoal(style.up, style.out, style.fwd), .85 * grab);
+      if (gKind === 'celebrate') {
+        const pump = side === front ? .1 * Math.sin(gs.t * 15) : 0;
+        world.lerp(side === front ? armGoal(.95 + pump, .2, .1) : armGoal(.15, .85, 0), gw);
+      }
+      if (gKind === 'stumble') {
+        const flail = Math.sin(gs.t * 17 + gs.seed + (side === 'l' ? 0 : 2.4));
+        world.lerp(armGoal(.25 + .4 * flail, .85, .25 * flail), gw);
+      }
       const reachWeight = handstand ? flat : calibratedGrab ? gather : grab;
       let palmRotation = null;
       let wristReach = reach;

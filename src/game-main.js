@@ -122,6 +122,10 @@ scene.add(sun);
 const fill = new THREE.DirectionalLight('#bfd8ff', .4);
 fill.name = 'Map skylight fill';
 scene.add(fill, fill.target, sun.target);
+// Warm light bounced off sunlit ground into the shadow side (maps that ask for it).
+const bounce = new THREE.DirectionalLight('#ffa16a', 0);
+bounce.name = 'Map ground bounce';
+scene.add(bounce, bounce.target);
 
 const floor = new THREE.Mesh(
   new THREE.PlaneGeometry(2000, 2000),
@@ -342,6 +346,8 @@ function observeRunScoring(controller) {
         skateAudio.onComboSettled?.({points:moment.points,id:currentWorld.id+':'+sessionEventTime,location:currentWorld.id,
           personalBest:!gameShell.practice&&oldBest>0&&moment.points>oldBest});
         comboCallouts.show(moment.points);
+        // Big landed combos get a celebration from the rider.
+        if(moment.points>=2500)skater?.rider?.gesture?.('celebrate',Math.min(1,.6+moment.points/12000));
         if(moment.points>=1200){const node=document.getElementById('trick-feedback');node?.classList.remove('exceptional-line');
           requestAnimationFrame(()=>node?.classList.add('exceptional-line'));}
       }
@@ -433,6 +439,13 @@ function applyLighting() {
   fill.position.set(...(settings.fillPosition || [35, 25, -45]));
   fill.target.position.set(...settings.center);
   fill.target.updateMatrixWorld();
+  // Bounce comes from low on the far side of the sun, mirrored across the map centre.
+  const [cx, cy, cz] = settings.center, [kx, , kz] = settings.keyPosition;
+  bounce.color.set(settings.bounceColor || '#ffa16a');
+  bounce.intensity = (settings.bounceIntensity || 0) * (dusk ? .4 : 1);
+  bounce.position.set(cx - (kx - cx), cy + 6, cz - (kz - cz));
+  bounce.target.position.set(cx, cy, cz);
+  bounce.target.updateMatrixWorld();
   renderer.toneMappingExposure = settings.exposure * (graphicsPipeline.settings?.exposureMultiplier || 1);
   graphicsPipeline.setGrade(settings.grade);
   scene.environment = currentWorld.environment || sky?.environment?.texture || environment.texture;

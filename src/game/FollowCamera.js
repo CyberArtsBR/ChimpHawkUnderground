@@ -495,11 +495,37 @@ export class FollowCamera {
     // them only to the collision solver preserves Follow/Classic camera mode.
     this.clearanceCache.wallNormal = state.wallRideActive
       ? player?.wallRide?.normal : null;
-    const resolvedPosition = resolveCameraClearance(
+    let resolvedPosition = resolveCameraClearance(
       player?.surface, riderAnchor, this.position, this.camera.position, this.clearanceCache,
     );
+    // On some coping lips and deck edges the head anchor itself touches the
+    // ramp, so every sightline fails at zero length and the camera would land
+    // on the rider's head (rider gone, sky only). Re-solve from a nearby clear
+    // anchor; if none is clear, hold the last verified eye for this frame.
+    let clearanceAnchor = riderAnchor;
+    if (resolvedPosition.distanceTo(riderAnchor) < minArm && player?.surface?.camera && player?.position) {
+      let fixed = false;
+      for (const lift of [0.55, 2.2, 3.4]) {
+        const alt = player.position.clone().addScaledVector(UP, lift);
+        const solved = resolveCameraClearance(player.surface, alt,
+          this.position.clone().add(alt.clone().sub(riderAnchor)), null, null);
+        if (solved.distanceTo(alt) >= minArm) {
+          resolvedPosition = solved;
+          clearanceAnchor = alt;
+          fixed = true;
+          break;
+        }
+      }
+      if (!fixed && !firstFrame && this.camera.position.distanceTo(riderAnchor) >= minArm) {
+        if (player?.visual) player.visual.visible = true;
+        this.occlusionActive = true;
+        // Aim at the rider directly: the damped target can lag a fast drop-in.
+        this.camera.lookAt(this.framedTarget(player));
+        return;
+      }
+    }
     const wasOccluded = this.occlusionActive;
-    const eyeOffset = resolvedPosition.clone().sub(riderAnchor);
+    const eyeOffset = resolvedPosition.clone().sub(clearanceAnchor);
     const clearDistance = eyeOffset.length();
     const clipped = resolvedPosition.distanceToSquared(this.position) > 0.0001;
 
@@ -518,16 +544,16 @@ export class FollowCamera {
     const safeDistance = Math.min(clearDistance, Math.max(minArm, this.occlusionDistance));
     if (clearDistance > 1e-8) eyeOffset.multiplyScalar(safeDistance / clearDistance);
     this.occlusionActive = clipped || safeDistance < clearDistance - 0.02;
-    const safeEye = riderAnchor.clone().add(eyeOffset);
+    const safeEye = clearanceAnchor.clone().add(eyeOffset);
     // Smooth the lateral/vertical escape once the old camera is still in a
     // valid third-person space. A final collision sweep is mandatory: never
     // visually interpolate through a wall for the sake of a smooth transition.
     if (!firstFrame && (clipped || wasOccluded) && player?.surface?.camera) {
       const intermediate = this.camera.position.clone().lerp(safeEye,
         1 - Math.exp(-THPS_CAMERA.occlusionSideFollowRate * dt));
-      const checked = player.surface.camera(riderAnchor, intermediate, 0.28);
+      const checked = player.surface.camera(clearanceAnchor, intermediate, 0.28);
       const unobstructed = checked.distanceToSquared(intermediate) < 0.0025
-        && checked.distanceTo(riderAnchor) >= minArm;
+        && checked.distanceTo(clearanceAnchor) >= minArm;
       this.camera.position.copy(unobstructed ? intermediate : safeEye);
     } else if (!firstFrame && !clipped && !wasOccluded && dt > 0) {
       // Clear sight lines also need a damped tripod. Previously the camera
@@ -538,9 +564,9 @@ export class FollowCamera {
       const alpha = 1 - Math.exp(-11 * dt);
       const candidate = this.camera.position.clone().lerp(safeEye, alpha);
       const tested = player?.surface?.camera
-        ? player.surface.camera(riderAnchor, candidate, 0.28) : candidate;
+        ? player.surface.camera(clearanceAnchor, candidate, 0.28) : candidate;
       const safe = tested.distanceToSquared(candidate) < 0.0025
-        && candidate.distanceTo(riderAnchor) >= minArm;
+        && candidate.distanceTo(clearanceAnchor) >= minArm;
       this.camera.position.copy(safe ? candidate : safeEye);
     } else {
       this.camera.position.copy(safeEye);
@@ -548,6 +574,26 @@ export class FollowCamera {
     // Even when geometry offers no minimum-clearance solution, never hide the
     // model or choose an untested point through a solid surface.
     if (player?.visual) player.visual.visible = true;
-    this.camera.lookAt(this.target);
+    this.camera.lookAt(this.framedTarget(player));
+  }
+
+  /**
+   * The aim point is damped, so after a fast drop-in it can trail metres above
+   * the rider. When the camera is pulled in close (walls, coping) that lag
+   * pushes the rider off screen. Turn the final aim just enough to keep the
+   * rider inside ~70% of the lens; with no lag this returns the target as is.
+   */
+  framedTarget(player) {
+    if (!player?.position) return this.target;
+    const eye = this.camera.position;
+    const toTarget = this.target.clone().sub(eye), toRider = player.position.clone().addScaledVector(UP, 0.9).sub(eye);
+    const reach = toTarget.length();
+    if (reach < 1e-6 || toRider.lengthSq() < 1e-6) return this.target;
+    const angle = toTarget.angleTo(toRider);
+    const limit = THREE.MathUtils.degToRad(this.camera.fov * 0.5 * 0.7);
+    if (angle <= limit) return this.target;
+    const turn = new THREE.Quaternion().setFromUnitVectors(toTarget.clone().normalize(), toRider.normalize());
+    const partial = new THREE.Quaternion().slerp(turn, 1 - limit / angle);
+    return eye.clone().add(toTarget.applyQuaternion(partial).setLength(reach));
   }
 }
