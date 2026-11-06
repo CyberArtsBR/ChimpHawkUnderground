@@ -183,37 +183,3 @@
     width:34px;
   }
 }
-
-/* Loadout tabs (2026-11): one step at a time so nothing sits below the fold.
-   RIDER = crew + preview, BOARD = preview + full deck/wheels/art, SPOT = maps. */
-#game-shell.loadout-screen .loadout-tabs{display:flex;justify-content:center;gap:12px;flex:none}
-#game-shell.loadout-screen .loadout-tabs button{flex:0 1 220px;display:flex;align-items:center;justify-content:center;gap:10px;min-height:46px;padding:8px 20px;border-radius:999px;border:2px solid #4b3a70;background:#1b1430d9;color:#eadfff;font:400 22px/1 Bangers,Impact,sans-serif;letter-spacing:.06em;cursor:pointer;transition:transform .12s,background .12s}
-#game-shell.loadout-screen .loadout-tabs button:hover,#game-shell.loadout-screen .loadout-tabs button:focus-visible{transform:translateY(-2px);border-color:#ffd23f}
-#game-shell.loadout-screen .loadout-tabs button.is-active{background:linear-gradient(#ffe45c,#ffb11f);color:#1a1024;border-color:#fff3b0;box-shadow:0 5px 0 #7a4b00}
-#game-shell.loadout-screen .loadout-tabs .tab-number{display:inline-grid;place-items:center;min-width:28px;height:28px;border-radius:50%;background:#0d0a18;color:#8dff4f;font-size:15px}
-#game-shell.loadout-screen .loadout-tabs button.is-active .tab-number{background:#1a1024;color:#ffe45c}
-#game-shell.loadout-screen .loadout-shell[data-tab="rider"] .deck-panel,
-#game-shell.loadout-screen .loadout-shell[data-tab="rider"] .spot-panel,
-#game-shell.loadout-screen .loadout-shell[data-tab="board"] .loadout-roster-band,
-#game-shell.loadout-screen .loadout-shell[data-tab="board"] .spot-panel,
-#game-shell.loadout-screen .loadout-shell[data-tab="spot"] .loadout-roster-band,
-#game-shell.loadout-screen .loadout-shell[data-tab="spot"] .rider-panel,
-#game-shell.loadout-screen .loadout-shell[data-tab="spot"] .deck-panel{display:none!important}
-#game-shell.loadout-screen .loadout-shell[data-tab="rider"] .loadout-panels{grid-template-columns:minmax(0,1fr)}
-#game-shell.loadout-screen .loadout-shell[data-tab="board"] .loadout-panels{grid-template-columns:minmax(0,1fr) minmax(0,2fr)}
-#game-shell.loadout-screen .loadout-shell[data-tab="spot"] .loadout-panels{grid-template-columns:minmax(0,1fr)}
-#game-shell.loadout-screen .loadout-shell[data-tab="board"] .loadout-boards{grid-template-columns:repeat(4,minmax(0,1fr));grid-template-rows:auto}
-#game-shell.loadout-screen .loadout-shell[data-tab="spot"] .loadout-locations{grid-template-columns:repeat(3,minmax(0,1fr));grid-template-rows:auto}
-@media(max-width:720px){
-  #game-shell.loadout-screen .loadout-tabs button{font-size:17px;padding:6px 10px;min-height:40px}
-  #game-shell.loadout-screen .loadout-shell[data-tab] .loadout-panels{grid-template-columns:1fr}
-  #game-shell.loadout-screen .loadout-shell[data-tab="spot"] .loadout-locations{grid-template-columns:1fr}
-  #game-shell.loadout-screen .loadout-shell[data-tab="board"] .loadout-boards{grid-template-columns:repeat(2,minmax(0,1fr))}
-}
-/* BOARD tab: decks in one row on wide screens so wheels and art stay in view. */
-@media(min-width:1100px){
-  #game-shell.loadout-screen .loadout-shell[data-tab="board"] .loadout-boards{grid-template-columns:repeat(8,minmax(0,1fr))}
-  #game-shell.loadout-screen .loadout-shell[data-tab="board"] .loadout-deck b{font-size:13px}
-}
-#game-shell.loadout-screen .loadout-shell[data-tab="board"] .deck-panel{overflow:auto;max-height:100%}
-#game-shell.loadout-screen .loadout-shell[data-tab="spot"] .location-art{height:clamp(150px,24vh,250px)}

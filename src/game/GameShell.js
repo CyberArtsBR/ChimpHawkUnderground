@@ -135,7 +135,7 @@ export class GameShell {
   // Hide a subtitle that only repeats the rider's name (e.g. "The Hollow / THE HOLLOW").
   heroSubtitle(hero){return String(hero.subtitle||'').toLowerCase()===String(hero.name||'').toLowerCase()?'':hero.subtitle||'';}
   // The start button says what is still missing instead of sitting greyed out.
-  loadoutStartLabel(){return this.selectBusy?'LOADING RIDER…':!this.heroConfirmed?'PICK A RIDER':!this.boardConfirmed?'PICK A DECK':'LET’S SKATE →';}
+  loadoutStartLabel(){return this.selectBusy?'LOADING RIDER…':!this.ready?'LOADING MAP…':!this.heroConfirmed?'PICK A RIDER':!this.boardConfirmed?'PICK A DECK':'LET’S SKATE →';}
   setScreen(phase){
     if(this.phase==='creator'&&phase!=='creator'&&this.mapUploadBusy){
       this.mapUploadGeneration++;this.mapUploadBusy=false;this.mapUploadStatus='';this.actions.cancelLoadout?.();
@@ -219,7 +219,7 @@ export class GameShell {
   }
   boardLabel(){return BOARD_CHOICES[this.boardIndex]?.label||'';}
   locationName(){return this.testMapName||LOCATIONS[this.locationIndex]?.name||'';}
-  loadoutStatus(){return this.selectError||(!this.heroConfirmed||!this.boardConfirmed?'Choose a rider and a deck with A / Enter / Click to unlock START SESSION.':'Rider and deck selected · Ready to start session.');}
+  loadoutStatus(){return this.selectError||(!this.ready?'Loading the map… pick your rider, deck and spot meanwhile.':!this.heroConfirmed||!this.boardConfirmed?'Choose a rider and a deck with A / Enter / Click to unlock START SESSION.':'Rider and deck selected · Ready to start session.');}
   renderMenuFrame(title, body){
     const hero=this.heroes[this.heroIndex];
     const spot=LOCATIONS[this.locationIndex];
@@ -254,7 +254,7 @@ export class GameShell {
     if(this.active)return;
     let title='',body='';
     if(this.phase==='title') {
-      body=`<button class="art-hit art-start" data-menu data-action="start" aria-label="Start Game — 90 seconds" ${this.ready?'':'disabled'}><span>START GAME</span></button><button class="art-hit art-back" data-menu data-action="launcher" aria-label="Back to Game Selection"><span>BACK TO GAME SELECTION</span></button><div class="title-tools">${this.button('PRACTICE','practice',!this.ready)}${this.button('TUTORIAL','tutorial')}${this.button('OPTIONS','options')}${this.actions.portalsAvailable?.()?this.button('PORTALS RANKINGS','portals'):''}${this.actions.portalsOnlineAvailable?.()?this.button('PLAY ONLINE · BETA','online'):''}</div><p class="title-status" role="status">${this.ready?'':this.loadError?`Unable to load the park: ${safe(this.loadErrorDetail||'Reload to retry.')}`:'Loading Skate Paradise…'}</p>`;
+      body=`<button class="art-hit art-start" data-menu data-action="start" aria-label="Start Game — 90 seconds" ${this.loadError?'disabled':''}><span>START GAME</span></button><button class="art-hit art-back" data-menu data-action="launcher" aria-label="Back to Game Selection"><span>BACK TO GAME SELECTION</span></button><div class="title-tools">${this.button('PRACTICE','practice',Boolean(this.loadError))}${this.button('TUTORIAL','tutorial')}${this.button('OPTIONS','options')}${this.actions.portalsAvailable?.()?this.button('PORTALS RANKINGS','portals'):''}${this.actions.portalsOnlineAvailable?.()?this.button('PLAY ONLINE · BETA','online'):''}</div><p class="title-status" role="status">${this.loadError?`Unable to load the park: ${safe(this.loadErrorDetail||'Reload to retry.')}`:''}</p>`;
     } else if(this.phase==='select') {
       const cards=this.heroes.map((hero,i)=>`<button data-menu data-action="hero" data-index="${i}" class="loadout-character ${this.heroConfirmed&&i===this.heroIndex?'is-chosen':''}"
         style="--rider-accent:${hero.accent}" aria-pressed="${this.heroConfirmed&&i===this.heroIndex}">
@@ -265,13 +265,9 @@ export class GameShell {
       const spots=LOCATIONS.map((spot,i)=>`<button data-menu data-action="location" data-index="${i}"
         data-location="${safe(spot.id)}" class="loadout-location ${i===this.locationIndex?'is-chosen':''}" ${spot.available?'':'disabled'} aria-pressed="${i===this.locationIndex}">
         <span class="location-art" aria-hidden="true"><span class="map-number">MAP ${String(spot.number).padStart(2,'0')}</span><span class="location-stamp">${spot.id==='skate-paradise'?'SUNSET / SKATEPARK':spot.id==='rooftop'?'STEEL / FREIGHT':spot.id === 'grand-warehouse' ? 'ARTIST BUILD' : 'AFTER HOURS'}</span></span><strong>${safe(spot.name)}</strong><small>${safe(spot.subtitle)}</small></button>`).join('');
-      const tab=['rider','board','spot'].includes(this.loadoutTab)?this.loadoutTab:'rider';
-      const done=[this.heroConfirmed,this.boardConfirmed,true];
-      const tabs=`<nav class="loadout-tabs" role="tablist" aria-label="Loadout steps">${['RIDER','BOARD','SPOT'].map((label,i)=>{const id=['rider','board','spot'][i];
-        return `<button data-menu data-action="loadoutTab" data-index="${i}" role="tab" aria-selected="${id===tab}" class="${id===tab?'is-active':''}"><span class="tab-number">${done[i]?'✓':'0'+(i+1)}</span>${label}</button>`;}).join('')}</nav>`;
-      body=`<div class="loadout-shell" data-tab="${tab}"><header><small>CHIMP HAWK / THE SESSION LAB <span class="session-mode">${this.pendingMode==='practice'?'FREE SKATE':'90 SECOND RUN'}</span></small><h2>${graffitiLettering('BUILD YOUR LINE')}</h2>
+      body=`<div class="loadout-shell"><header><small>CHIMP HAWK / THE SESSION LAB <span class="session-mode">${this.pendingMode==='practice'?'FREE SKATE':'90 SECOND RUN'}</span></small><h2>${graffitiLettering('BUILD YOUR LINE')}</h2>
         <p>PICK YOUR RIDER. PAINT YOUR DECK. OWN YOUR SPOT.</p><p class="session-rule">${this.pendingMode==='practice'?'Unlimited practice. Save a marker, retry your line, and work through drills at your own pace.':'90 seconds. Your last attempt gets up to 6 extra seconds to land. Bail or time limit loses pending points.'}</p><div class="music-menu-slot"></div></header>
-        ${tabs}<div class="loadout-roster loadout-roster-band" role="group" aria-label="Choose your rider">${cards}</div>
+        <div class="loadout-roster loadout-roster-band" role="group" aria-label="Choose your rider">${cards}</div>
         <div class="loadout-panels">
         <section class="loadout-section rider-panel" aria-label="Choose your rider"><div class="loadout-heading"><span class="section-number">01</span><h3>${graffitiLettering('RIDER','gold')}</h3><span class="panel-kicker">THE CREW</span></div>
         <div class="selected-rider" style="--rider-accent:${this.heroes[this.heroIndex].accent}"><span class="rider-stage-number" aria-hidden="true">${String(this.heroIndex+1).padStart(2,'0')}</span>
@@ -282,7 +278,7 @@ export class GameShell {
         <div class="loadout-boards">${colors}</div>${this.boardStyleRows()}<div class="selection-note"><span>${this.boardConfirmed?'DECK LOCKED IN':'CHOOSE YOUR FINISH'}</span><strong>${safe(BOARD_CHOICES[this.boardIndex].label)}</strong></div></section>
         <section class="loadout-section spot-panel" aria-label="Choose your location"><div class="loadout-heading"><span class="section-number">03</span><h3>${graffitiLettering('SPOT','gold')}</h3><span class="panel-kicker">THREE PARKS. YOUR LINE.</span></div>
         <div class="loadout-locations">${spots}</div><div class="selection-note"><span>SESSION LOCATION</span><strong>MAP ${LOCATIONS[this.locationIndex].number} / ${safe(LOCATIONS[this.locationIndex].name)}</strong></div></section></div>
-        <footer>${this.button('← BACK','back')}<div class="loadout-recap"><span class="loadout-checks"><span class="${this.heroConfirmed?'complete':''}">${this.heroConfirmed?'✓':'01'} RIDER</span><span class="${this.boardConfirmed?'complete':''}">${this.boardConfirmed?'✓':'02'} DECK</span><span class="complete">✓ SPOT</span></span><span><span data-recap-rider>${safe(this.heroes[this.heroIndex].name)}</span> <i>/</i> <span data-recap-deck>${safe(BOARD_CHOICES[this.boardIndex].label)}</span> <i>/</i> <span data-recap-spot>MAP ${LOCATIONS[this.locationIndex].number}</span></span></div>${this.button(this.loadoutStartLabel(),'confirmLoadout',this.selectBusy||!this.heroConfirmed||!this.boardConfirmed)}</footer>
+        <footer>${this.button('← BACK','back')}<div class="loadout-recap"><span class="loadout-checks"><span class="${this.heroConfirmed?'complete':''}">${this.heroConfirmed?'✓':'01'} RIDER</span><span class="${this.boardConfirmed?'complete':''}">${this.boardConfirmed?'✓':'02'} DECK</span><span class="complete">✓ SPOT</span></span><span><span data-recap-rider>${safe(this.heroes[this.heroIndex].name)}</span> <i>/</i> <span data-recap-deck>${safe(BOARD_CHOICES[this.boardIndex].label)}</span> <i>/</i> <span data-recap-spot>MAP ${LOCATIONS[this.locationIndex].number}</span></span></div>${this.button(this.loadoutStartLabel(),'confirmLoadout',this.selectBusy||!this.ready||!this.heroConfirmed||!this.boardConfirmed)}</footer>
         <p class="loadout-status" aria-live="polite">${safe(this.loadoutStatus())}</p></div>`;
     } else if(this.phase==='pause') {
       title='PAUSED';body=this.button('▶ RESUME SESSION','resume')+this.button('RESTART SESSION','restart')+
@@ -506,8 +502,8 @@ export class GameShell {
     if(caption)caption.textContent=text;
   }
   begin(practice=false){
-    this.loadoutTab='rider';
-    if(!this.ready)return;
+    // The loadout does not need the park: pick a rider while it finishes loading.
+    if(this.loadError)return;
     if(this.phase!=='select')this.pendingSelection={returnScreen:this.phase,selection:this.selection,
       heroIndex:this.heroIndex,boardIndex:this.boardIndex,locationIndex:this.locationIndex,finishIndex:this.finishIndex,
       heroConfirmed:this.heroConfirmed,boardConfirmed:this.boardConfirmed};
@@ -661,7 +657,7 @@ export class GameShell {
     }
   }
   async confirmLoadout(){
-    if(this.selectBusy||this.phase!=='select')return;
+    if(this.selectBusy||!this.ready||this.phase!=='select')return;
     const hero=this.heroes[this.heroIndex];
     const board=BOARD_CHOICES[this.boardIndex];
     const location=LOCATIONS[this.locationIndex];
@@ -724,7 +720,6 @@ export class GameShell {
       case 'online':this.actions.portalsOnlineOpen?.();break;
       case 'launcher':window.location.assign('https://chimp-jump.onrender.com/');break;
       case 'start':this.begin(false);break;case 'practice':this.begin(true);break;
-      case 'loadoutTab':this.loadoutTab=['rider','board','spot'][index]||'rider';this.render();break;
       case 'hero':this.heroIndex=index;this.heroConfirmed=true;this.updateLoadoutSelection(action,index);break;
       case 'board':this.boardIndex=index;this.boardConfirmed=true;this.updateLoadoutSelection(action,index);break;
       case 'wheels':case 'graphic':
