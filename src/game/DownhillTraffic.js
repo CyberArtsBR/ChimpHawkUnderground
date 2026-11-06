@@ -1,15 +1,15 @@
 import * as THREE from 'three';
 
 /**
- * Downhill Bomb hazards (2026-11, phase 3): parked cars by the curb and live
- * traffic, both ways. Hitting a car makes you bail; ollie over it and you are
- * fine. Cars steer around ramps and other features. Presentation + a bail
- * call only: no change to the skate physics.
+ * Downhill Bomb hazards (2026-11): oncoming cars driving up the hill against
+ * you, plus road hazards: oil slicks, potholes, fallen rocks, logs and road
+ * works. Hit a car, rock, log or barrier and you bail (jump it and you are
+ * fine); oil makes the board wobble; a pothole costs speed. Cars steer around
+ * ramps and hazards.
  */
 export const TRAFFIC = Object.freeze({
   lanes: [-4.6, 0, 4.6],
   aheadMin: 70, aheadMax: 260, behindDespawn: 40,
-  downSpeed: [9, 14],   // m/s, cars going downhill (you overtake them)
   upSpeed: [8, 12],     // m/s, oncoming cars coming up the hill
   maxCars: 7,
   spawnEvery: [1.6, 3.4],
@@ -20,6 +20,60 @@ const rand = (a, b) => a + Math.random() * (b - a);
 const PAINTS = ['#d63b3b', '#2e6fd6', '#f2f2ee', '#1d1f24', '#3fa66b', '#8b5cd6', '#ff8a2b', '#9aa3ad'];
 
 /** Low-poly car; returns { group, length, width, height, lights }. */
+/** Static road hazards. Footprint (w x l), height h and what hitting it does. */
+const HAZARD_SPECS = {
+  oil: { w: 2.6, l: 3.4, h: 0, effect: 'oil' },
+  pothole: { w: 1.5, l: 1.8, h: 0, effect: 'pothole' },
+  rock: { w: 1.8, l: 1.8, h: 1.25, effect: 'bail', message: 'ROCKSLIDE!' },
+  log: { w: 3.6, l: .8, h: .75, effect: 'bail', message: 'TIMBER!' },
+  works: { w: 2.6, l: .7, h: 1.15, effect: 'bail', message: 'ROAD WORKS!' },
+};
+
+function blobGeometry(rx, rz, seed) {
+  const pts = [];
+  for (let k = 0; k < 18; k++) { const a = k / 18 * Math.PI * 2, r = 1 + .18 * Math.sin(a * 3 + seed) + .1 * Math.sin(a * 5 + seed * 2); pts.push(new THREE.Vector2(Math.cos(a) * rx * r, Math.sin(a) * rz * r)); }
+  const g = new THREE.ShapeGeometry(new THREE.Shape(pts), 1);
+  g.rotateX(-Math.PI / 2);
+  return g;
+}
+
+function makeHazard(kind) {
+  const group = new THREE.Group(); group.name = `Hazard: ${kind}`;
+  const seed = Math.random() * 10;
+  if (kind === 'oil') {
+    const slick = new THREE.Mesh(blobGeometry(1.3, 1.7, seed), new THREE.MeshPhysicalMaterial({
+      color: '#07070a', metalness: .2, roughness: .04, clearcoat: 1, iridescence: 1, iridescenceIOR: 1.6, iridescenceThicknessRange: [180, 600],
+      polygonOffset: true, polygonOffsetFactor: -3, polygonOffsetUnits: -3,
+    }));
+    slick.position.y = .02; group.add(slick);
+  } else if (kind === 'pothole') {
+    const rim = new THREE.Mesh(blobGeometry(.85, 1, seed), new THREE.MeshStandardMaterial({ color: '#4a4844', roughness: 1, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 }));
+    const hole = new THREE.Mesh(blobGeometry(.62, .76, seed), new THREE.MeshStandardMaterial({ color: '#0e0d0c', roughness: 1, polygonOffset: true, polygonOffsetFactor: -4, polygonOffsetUnits: -4 }));
+    rim.position.y = .015; hole.position.y = .02; group.add(rim, hole);
+  } else if (kind === 'rock') {
+    const rock = new THREE.Mesh(new THREE.DodecahedronGeometry(.85, 0), new THREE.MeshStandardMaterial({ color: '#77736b', roughness: .95, flatShading: true }));
+    rock.scale.set(1.1, .8, 1); rock.position.y = .55; rock.rotation.set(seed, seed * 2, seed * 3); rock.castShadow = true; group.add(rock);
+    for (let k = 0; k < 4; k++) { const pebble = new THREE.Mesh(new THREE.DodecahedronGeometry(.18 + Math.random() * .12, 0), rock.material); pebble.position.set((Math.random() - .5) * 2.2, .12, (Math.random() - .5) * 2.2); pebble.castShadow = true; group.add(pebble); }
+  } else if (kind === 'log') {
+    const log = new THREE.Mesh(new THREE.CylinderGeometry(.34, .38, 3.6, 12), new THREE.MeshStandardMaterial({ color: '#6b4a2f', roughness: .9 }));
+    log.rotation.z = Math.PI / 2; log.position.y = .36; log.castShadow = true; group.add(log);
+    for (const x of [-1.8, 1.8]) { const end = new THREE.Mesh(new THREE.CircleGeometry(.36, 12), new THREE.MeshStandardMaterial({ color: '#c79a64', roughness: .8 })); end.position.set(x + Math.sign(x) * .01, .36, 0); end.rotation.y = Math.sign(x) * Math.PI / 2; group.add(end); }
+  } else if (kind === 'works') {
+    const stripes = document.createElement('canvas'); stripes.width = 256; stripes.height = 32;
+    const ctx = stripes.getContext('2d');
+    for (let k = 0; k < 8; k++) { ctx.fillStyle = k % 2 ? '#f4f4f4' : '#ff5a1a'; ctx.beginPath(); ctx.moveTo(k * 32, 32); ctx.lineTo(k * 32 + 16, 0); ctx.lineTo(k * 32 + 48, 0); ctx.lineTo(k * 32 + 32, 32); ctx.fill(); }
+    const tex = new THREE.CanvasTexture(stripes); tex.colorSpace = THREE.SRGBColorSpace;
+    const board = new THREE.Mesh(new THREE.BoxGeometry(2.6, .32, .06), new THREE.MeshStandardMaterial({ map: tex, roughness: .6 }));
+    board.position.y = .95; board.castShadow = true; group.add(board);
+    const leg = new THREE.MeshStandardMaterial({ color: '#d8d8d8', roughness: .6 });
+    for (const x of [-1.1, 1.1]) for (const z of [-.25, .25]) { const l = new THREE.Mesh(new THREE.BoxGeometry(.06, 1.1, .06), leg); l.position.set(x, .52, z); l.rotation.x = z > 0 ? -.25 : .25; l.castShadow = true; group.add(l); }
+    const lamp = new THREE.Mesh(new THREE.SphereGeometry(.09, 10, 8), new THREE.MeshStandardMaterial({ color: '#ffb020', emissive: '#ffa000', emissiveIntensity: 4 }));
+    lamp.position.set(1.1, 1.2, 0); group.add(lamp);
+    group.userData.blink = lamp;
+  }
+  return group;
+}
+
 function makeCar(kind, paint) {
   const group = new THREE.Group();
   const spec = { sedan: [4.4, 1.8, 1.42], taxi: [4.5, 1.82, 1.46], van: [5.0, 2.0, 2.1], pickup: [5.2, 1.95, 1.75] }[kind];
@@ -58,8 +112,9 @@ export class DownhillTraffic {
   constructor(root, audio = null) {
     this.root = root;
     this.audio = audio;
-    this.parked = [];
+    this.hazards = [];
     this.moving = [];
+    this.time = 0;
     this.spawnTimer = 2;
     this.data = null;
     this.tmp = new THREE.Vector3();
@@ -67,18 +122,20 @@ export class DownhillTraffic {
   }
 
   setData(data, frames) {
-    for (const car of [...this.parked, ...this.moving]) car.group.removeFromParent();
-    this.parked = []; this.moving = [];
+    for (const item of [...this.hazards, ...this.moving]) item.group.removeFromParent();
+    this.hazards = []; this.moving = [];
     this.data = data; this.frames = frames;
     this.spawnTimer = 2;
     if (!data) return;
-    const kinds = ['sedan', 'sedan', 'taxi', 'van', 'pickup'];
-    for (const p of data.parked || []) {
-      const car = makeCar(kinds[Math.floor(Math.random() * kinds.length)], PAINTS[Math.floor(Math.random() * PAINTS.length)]);
-      const pose = this.pose(p.s, p.u);
-      car.group.position.copy(pose.position); car.group.quaternion.copy(pose.quaternion);
-      this.root.add(car.group);
-      this.parked.push({ ...car, s: p.s, u: p.u });
+    for (const h of data.hazards || []) {
+      const spec = HAZARD_SPECS[h.kind];
+      if (!spec) continue;
+      const group = makeHazard(h.kind);
+      const pose = this.pose(h.s, h.u);
+      group.position.copy(pose.position); group.quaternion.copy(pose.quaternion);
+      if (h.kind === 'oil' || h.kind === 'pothole' || h.kind === 'rock') group.rotateY(h.yaw || 0);
+      this.root.add(group);
+      this.hazards.push({ group, kind: h.kind, width: spec.w, length: spec.l, height: spec.h, effect: spec.effect, message: spec.message, cooldown: 0 });
     }
   }
 
@@ -103,7 +160,8 @@ export class DownhillTraffic {
   }
 
   spawn(progressS, hard) {
-    const up = Math.random() < .45;
+    // Traffic only comes up the hill, against the rider.
+    const up = true;
     const s = progressS + rand(TRAFFIC.aheadMin, TRAFFIC.aheadMax);
     if (s > this.data.length - 60) return;
     const lanes = TRAFFIC.lanes.filter(u => this.laneFree(s, u) && !this.moving.some(c => Math.abs(c.s - s) < 18 && Math.abs(c.u - u) < 2));
@@ -111,9 +169,9 @@ export class DownhillTraffic {
     const u = up ? lanes[0] : lanes[lanes.length - 1]; // oncoming keep left, downhill keep right
     const kinds = ['sedan', 'sedan', 'taxi', 'van', 'pickup'];
     const car = makeCar(kinds[Math.floor(Math.random() * kinds.length)], PAINTS[Math.floor(Math.random() * PAINTS.length)]);
-    const speed = up ? -rand(...TRAFFIC.upSpeed) * (1 + hard * .3) : rand(...TRAFFIC.downSpeed);
+    const speed = -rand(...TRAFFIC.upSpeed) * (1 + hard * .3);
     this.root.add(car.group);
-    this.moving.push({ ...car, s, u, target: u, speed, honked: false });
+    this.moving.push({ ...car, s, u, target: u, speed, honked: false, effect: 'bail', message: 'HIT A CAR!' });
   }
 
   honk() {
@@ -128,15 +186,20 @@ export class DownhillTraffic {
   }
 
   /** Is the rider overlapping this car (and not clearing it in the air)? */
-  hits(car, rider) {
-    const inv = car.group.quaternion.clone().invert();
-    const local = this.tmp.copy(rider).sub(car.group.position).applyQuaternion(inv);
-    const m = TRAFFIC.hitMargin;
-    return Math.abs(local.x) < car.width / 2 + m && Math.abs(local.z) < car.length / 2 + m && local.y < car.height + .05 && local.y > -1;
+  hits(item, rider, grounded) {
+    const inv = item.group.quaternion.clone().invert();
+    const local = this.tmp.copy(rider).sub(item.group.position).applyQuaternion(inv);
+    const m = item.effect === 'bail' ? TRAFFIC.hitMargin : 0;
+    if (Math.abs(local.x) > item.width / 2 + m || Math.abs(local.z) > item.length / 2 + m) return false;
+    // Flat hazards only act on wheels on the ground; solid ones unless you clear them.
+    if (!item.height) return grounded && local.y < .5;
+    return local.y < item.height + .05 && local.y > -1;
   }
 
   update(dt, skater, progressS, hard) {
     if (!this.data) return;
+    this.time += dt;
+    for (const h of this.hazards) { if (h.cooldown > 0) h.cooldown -= dt; if (h.group.userData.blink) h.group.userData.blink.visible = (this.time % .8) < .4; }
     // Spawn ahead, despawn behind.
     this.spawnTimer -= dt;
     if (this.spawnTimer <= 0 && this.moving.length < TRAFFIC.maxCars + Math.round(hard * 3)) {
@@ -163,11 +226,10 @@ export class DownhillTraffic {
     // Hits and honks.
     const rider = skater?.position;
     if (!rider || skater.bailTime > 0) return;
-    for (const car of [...this.moving, ...this.parked]) {
-      const d2 = car.group.position.distanceToSquared(rider);
-      if (d2 > 64) continue;
-      if (car.speed !== undefined && !car.honked && d2 < 400) { car.honked = true; this.honk(); }
-      if (this.hits(car, rider)) { this.onHit?.(car); return; }
+    const grounded = Boolean(skater.grounded);
+    for (const item of [...this.moving, ...this.hazards]) {
+      if (item.cooldown > 0 || item.group.position.distanceToSquared(rider) > 64) continue;
+      if (this.hits(item, rider, grounded)) { item.cooldown = 1.5; this.onHit?.(item); if (item.effect === 'bail') return; }
     }
     for (const car of this.moving) if (!car.honked && car.group.position.distanceToSquared(rider) < 900) { car.honked = true; this.honk(); }
   }

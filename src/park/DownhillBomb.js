@@ -1,14 +1,13 @@
 import * as THREE from 'three';
 import { createSurfaceMaterials, surfaceTexturesReady } from './SurfaceMaterials.js';
-import { gameAssetUrl } from '../game/AssetPaths.js';
 
 /**
- * DOWNHILL BOMB (2026-11, phase 1): a procedurally generated sunset city hill.
+ * DOWNHILL BOMB (2026-11): a procedurally generated sunset mountain pass.
  *  - A winding road with left and right bends, banked into each turn.
  *  - The slope steepens with distance, so speed keeps building as you go.
  *  - Rounded curbs to grind, quarter-pipe banks on the outside of tight bends,
  *    and procedural kickers, fun boxes, manual pads, ledges, rails and gaps.
- *  - Sunset city around it: towers with lit windows, lamps, palms, the ocean.
+ *  - Forested hills, boulders, snowy mountains, a lake, roadside warning signs.
  * Physics is the game's own, untouched. Bananas and bullet time live in
  * DownhillRun.js; this file only builds the world and lists their spots.
  */
@@ -86,58 +85,6 @@ function chevronTexture() {
   }, { repeat: false });
 }
 
-/**
- * Facade maps for one building style: colour, lit windows (emissive) and a
- * roughness/metalness pair so the glass reflects the sunset sky while the
- * walls stay matte. One tile = 3 bays x 4 floors (12 m x 14.4 m).
- */
-function facadeTextures(style, rand) {
-  const W = 512, H = 512, cols = 3, rows = 4, bw = W / cols, fh = H / rows;
-  const lit = Array.from({ length: cols * rows }, () => rand() < style.lit);
-  const windows = (fn) => { for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) fn(c * bw + 16, r * fh + 18, bw - 32, fh - 44, r * cols + c); };
-  const map = canvasTexture(W, H, ctx => {
-    ctx.fillStyle = style.wall; ctx.fillRect(0, 0, W, H);
-    // Subtle plaster grain.
-    for (let i = 0; i < 9000; i++) { ctx.fillStyle = rand() < .5 ? 'rgba(0,0,0,.05)' : 'rgba(255,255,255,.05)'; ctx.fillRect(rand() * W, rand() * H, 2, 2); }
-    windows((x, y, w, h) => {
-      const g = ctx.createLinearGradient(x, y, x + w * .4, y + h);
-      g.addColorStop(0, style.glass); g.addColorStop(1, '#141a2a');
-      ctx.fillStyle = g; ctx.fillRect(x, y, w, h);
-      ctx.fillStyle = style.frame; ctx.fillRect(x + w / 2 - 2, y, 4, h); ctx.fillRect(x, y + h * .35, w, 3);
-      ctx.strokeStyle = style.frame; ctx.lineWidth = 5; ctx.strokeRect(x, y, w, h);
-      ctx.fillStyle = 'rgba(0,0,0,.3)'; ctx.fillRect(x - 4, y + h, w + 8, 8); // sill shadow
-      ctx.fillStyle = style.frame; ctx.fillRect(x - 6, y + h, w + 12, 4);
-    });
-    // Floor slabs and pilasters.
-    for (let r = 0; r <= rows; r++) { ctx.fillStyle = 'rgba(0,0,0,.18)'; ctx.fillRect(0, r * fh - 6, W, 12); ctx.fillStyle = 'rgba(255,255,255,.14)'; ctx.fillRect(0, r * fh - 6, W, 3); }
-    for (let c = 0; c <= cols; c++) { ctx.fillStyle = 'rgba(0,0,0,.12)'; ctx.fillRect(c * bw - 5, 0, 10, H); }
-  });
-  const emissive = canvasTexture(W, H, ctx => {
-    ctx.fillStyle = '#000'; ctx.fillRect(0, 0, W, H);
-    windows((x, y, w, h, k) => {
-      if (!lit[k]) return;
-      const g = ctx.createLinearGradient(x, y, x, y + h);
-      g.addColorStop(0, rand() < .5 ? '#ffd9a0' : '#ffe9c9'); g.addColorStop(1, '#a8682e');
-      ctx.fillStyle = g; ctx.fillRect(x + 4, y + 4, w - 8, h - 8);
-    });
-  });
-  // Roughness (G) and metalness (B) share one texture: glass smooth + metallic.
-  const surface = canvasTexture(W, H, ctx => {
-    ctx.fillStyle = `rgb(0,${style.glossy ? 150 : 225},${style.glossy ? 90 : 0})`; ctx.fillRect(0, 0, W, H);
-    windows((x, y, w, h) => { ctx.fillStyle = 'rgb(0,30,200)'; ctx.fillRect(x, y, w, h); });
-  }, { color: false });
-  return { map, emissive, surface };
-}
-
-const BUILDING_STYLES = [
-  { wall: '#e8a08a', glass: '#3c4a66', frame: '#f4d7c6', lit: .35, glossy: false },
-  { wall: '#7fc4bf', glass: '#2e4057', frame: '#e8f2ef', lit: .3, glossy: false },
-  { wall: '#efe2c4', glass: '#43506b', frame: '#ffffff', lit: .4, glossy: false },
-  { wall: '#b49ad1', glass: '#30395a', frame: '#e9defa', lit: .3, glossy: false },
-  { wall: '#2b3d5c', glass: '#6f9cc9', frame: '#1c2840', lit: .25, glossy: true },
-];
-
-// ── The generator ───────────────────────────────────────────────────────
 /** Endless mode: the next stretch to build (1 = the first hill of a session). */
 const nextStretch = { stretch: 1, seed: null };
 export function setDownhillStretch(stretch = 1, seed = null) {
@@ -156,18 +103,20 @@ export function createDownhillBomb({ seed = nextStretch.seed ?? (Date.now() & 0x
   const collision = new THREE.Group(); collision.name = 'Downhill Bomb collision';
   const rails = [];
   const bananas = [];
-  const occupied = [];   // road lanes taken by features (for traffic and parked cars)
-  const parked = [];
+  const occupied = [];   // road lanes taken by features and hazards (traffic steers around them)
+  const signs = [];
   const cones = [];
 
   // 1) Curvature plan: straights and left/right bends, eased in and out.
   const count = Math.ceil(C.length / C.step) + 1;
   const kappaRaw = new Float32Array(count);
+  const bends = [];
   let s = C.startFlat + 50, sign = rand() < .5 ? 1 : -1;
   while (s < C.length - 80) {
     s += (25 + rand() * 40) * (1 - hard * .35); // straight
     const radius = (48 + rand() * 55) * (1 - hard * .2), angle = (35 + rand() * 50) * Math.PI / 180, len = radius * angle;
     if (rand() < .72) sign = -sign;
+    bends.push({ s: s - 45, kind: sign > 0 ? 'right' : 'left' });
     const i0 = Math.floor(s / C.step), i1 = Math.min(count - 1, Math.floor((s + len) / C.step));
     for (let i = i0; i <= i1; i++) kappaRaw[i] = sign / radius;
     s += len;
@@ -221,7 +170,7 @@ export function createDownhillBomb({ seed = nextStretch.seed ?? (Date.now() & 0x
   const asphalt = asphaltTextures(rand);
   const mats = {
     road: new THREE.MeshStandardMaterial({ name: 'Downhill asphalt', map: asphalt.map, bumpMap: asphalt.bump, bumpScale: .025, roughness: .86, metalness: 0 }),
-    sidewalk: new THREE.MeshStandardMaterial({ name: 'Downhill sidewalk', color: '#8d877e', map: surfaces.concrete.map, bumpMap: surfaces.concrete.bumpMap, bumpScale: .02, roughness: .92 }),
+    sidewalk: new THREE.MeshStandardMaterial({ name: 'Downhill shoulder', map: gravelTexture(rand), bumpMap: surfaces.concrete.bumpMap, bumpScale: .03, roughness: .97 }),
     kerb: new THREE.MeshStandardMaterial({ name: 'Downhill kerb', map: kerbTexture(), roughness: .7 }),
     barrier: new THREE.MeshStandardMaterial({ name: 'Downhill barrier', color: '#a7a198', roughness: .9, map: surfaces.concrete.map }),
     bank: surfaces.bowl,
@@ -233,10 +182,9 @@ export function createDownhillBomb({ seed = nextStretch.seed ?? (Date.now() & 0x
     bush: new THREE.MeshStandardMaterial({ name: 'Downhill bush', color: '#3f7a3a', roughness: .9 }),
     chevron: new THREE.MeshStandardMaterial({ name: 'Downhill chevron', map: chevronTexture(), roughness: .5, emissive: '#ffd23f', emissiveIntensity: .25 }),
     collision: new THREE.MeshBasicMaterial({ visible: false }),
-    terrain: new THREE.MeshStandardMaterial({ name: 'Downhill terrain', color: '#4f4d47', roughness: .97, map: surfaces.concrete.map }),
   };
   // Procedural faces are built in several orientations: draw both sides.
-  for (const key of ['sidewalk', 'kerb', 'barrier', 'bank', 'wood', 'ledge', 'planter', 'terrain']) mats[key].side = THREE.DoubleSide;
+  for (const key of ['sidewalk', 'kerb', 'barrier', 'bank', 'wood', 'ledge', 'planter']) mats[key].side = THREE.DoubleSide;
   mats.bank.polygonOffset = true; mats.bank.polygonOffsetFactor = -1; mats.bank.polygonOffsetUnits = -1;
 
   const addMesh = (geometry, material, { solid = false, collide = true, transition = false, rail = null, name = '', cast = true, cameraTransparent = false } = {}) => {
@@ -318,12 +266,6 @@ export function createDownhillBomb({ seed = nextStretch.seed ?? (Date.now() & 0x
       const wall = new THREE.Mesh(fence, mats.collision);
       wall.userData.surface = 'solid'; wall.userData.cameraTransparent = true; wall.name = 'Containment';
       collision.add(wall);
-      // Ground beyond the barrier for the city to stand on (visual only).
-      // On the inside of a tight bend the ground strip is narrower, so it never folds over itself.
-      const groundWidth = i => (kappa[i] > 0 ? 1 : -1) === side && Math.abs(kappa[i]) > 1e-4
-        ? clamp(1 / Math.abs(kappa[i]) - out - 6, 4, 44) : 44;
-      addMesh(ribbon(i0, i1, i => side < 0 ? [[-out - groundWidth(i), -4], [-out - .6, .15]] : [[out + .6, .15], [out + groundWidth(i), -4]],
-        (u, h, si) => [u / 6, si / 6]), mats.terrain, { name: 'Terrain', collide: false, cast: false });
     }
   }
   // Grindable curb edges (rails split into ~40 m pieces).
@@ -491,22 +433,29 @@ export function createDownhillBomb({ seed = nextStretch.seed ?? (Date.now() & 0x
     fs += (used + 34 + rand() * 40 * (1.1 - Math.min(1, difficulty) * .4)) * (1 - hard * .3);
   }
 
-  // Parked cars by the curb on the straights, clear of features (hazards).
+  // Road hazards: oil slicks, potholes, fallen rocks, logs and road works,
+  // always leaving at least one lane clear of features and hazards.
+  const hazards = [];
   const laneTaken = (s0, s1, u) => occupied.some(o => Math.abs(o.u - u) < 1 && o.s1 > s0 && o.s0 < s1);
-  for (let ps = 160; ps < C.length - 80; ps += 35 + rand() * 55 * (1 - hard * .4)) {
-    const side = rand() < .5 ? -1 : 1, n = 1 + Math.floor(rand() * 3), len = n * 6;
-    const f0 = frameAt(ps);
-    if (Math.abs(kappa[f0.i]) > 1 / 160 || laneTaken(ps - 4, ps + len + 4, side * 4.6)) continue;
-    for (let k = 0; k < n; k++) parked.push({ s: ps + k * 6 + rand() * .8, u: side * (W - 1.35) });
-    occupied.push({ s0: ps - 4, s1: ps + len + 4, u: side * 4.6 });
-    ps += len;
+  const kinds = [['oil', .28], ['pothole', .22], ['rock', .18], ['log', .14], ['works', .18]];
+  for (let hs = 150; hs < C.length - 70; hs += (34 + rand() * 46) * (1 - hard * .4)) {
+    let r = rand(), kind = 'oil';
+    for (const [k, w] of kinds) { if (r < w) { kind = k; break; } r -= w; }
+    const free = lanes.filter(u => !laneTaken(hs - 8, hs + 8, u));
+    if (free.length < 2) continue;
+    const u = free[Math.floor(rand() * free.length)];
+    hazards.push({ kind, s: hs, u: u + (rand() - .5) * 1.2, yaw: rand() * 6.3 });
+    occupied.push({ s0: hs - 5, s1: hs + 5, u });
+    if (kind === 'rock' && rand() < .6) signs.push({ s: hs - 60, kind: 'rocks' });
+    if (kind === 'oil' && rand() < .4) signs.push({ s: hs - 60, kind: 'slippery' });
   }
-  // Checkpoint arches every 400 m add time to the clock.
+  // Checkpoint arches every 400 m: a score bonus.
   const checkpoints = [];
   for (let cs = 320; cs < C.length - 120; cs += 400) checkpoints.push(cs);
 
-  // 7) City around the hill.
-  buildCity({ park, rand, count, P, L, D, theta, sArr, W, sidewalk: C.sidewalk, point, kappa, taper, bankSide });
+  // 7) Mountain pass scenery.
+  for (const b of bends) if (b.s > 60) signs.push(b);
+  buildWilderness({ park, rand, count, P, L, N, theta, sArr, kappa, W, sidewalk: C.sidewalk, signs });
 
   // 8) Start platform gate and the tunnel at the bottom.
   buildGateAndTunnel({ park, collision, mats, point, frameAt, local, count, sArr, W, C, addMesh, stretch, checkpoints });
@@ -535,7 +484,7 @@ export function createDownhillBomb({ seed = nextStretch.seed ?? (Date.now() & 0x
     downhill: {
       seed, stretch, length: C.length, step: C.step, halfWidth: W,
       centre: P.map(p => p.toArray()), headings: Array.from(theta),
-      bananas, cones, parked, occupied, checkpoints,
+      bananas, cones, hazards, occupied, checkpoints,
       laterals: L.map(v => v.toArray()), normals: N.map(v => v.toArray()),
     },
   };
@@ -555,306 +504,187 @@ function quadMesh(corners, quads) {
 }
 
 // ── City: towers with lit windows, lamps, palms, ocean and far hills ────
-function buildCity({ park, rand, count, P, L, D, theta, sArr, W, sidewalk, point, kappa, taper, bankSide }) {
-  const styles = BUILDING_STYLES.map(style => {
-    const tex = facadeTextures(style, rand);
-    return {
-      style,
-      material: new THREE.MeshStandardMaterial({
-        name: 'Downhill facade', map: tex.map, emissiveMap: tex.emissive, emissive: '#ffcf8f', emissiveIntensity: 1.1, side: THREE.DoubleSide,
-        roughnessMap: tex.surface, metalnessMap: tex.surface, roughness: 1, metalness: 1, envMapIntensity: 1.3,
-      }),
-      sides: [], roofs: [],
-    };
+// ── Mountain pass: forested hills, boulders, mountains, a lake, road signs ─
+function grassTexture(rand) {
+  return canvasTexture(512, 512, (ctx, w, h) => {
+    ctx.fillStyle = '#4c5e33'; ctx.fillRect(0, 0, w, h);
+    for (let i = 0; i < 30000; i++) {
+      ctx.fillStyle = ['#435530', '#56693a', '#5f6b3c', '#3d4a2a', '#6b6a44', '#4a4433'][Math.floor(rand() * 6)];
+      ctx.fillRect(rand() * w, rand() * h, 1 + rand() * 3, 1 + rand() * 3);
+    }
+    for (let i = 0; i < 40; i++) {
+      const x = rand() * w, y = rand() * h, r = 10 + rand() * 40;
+      const g = ctx.createRadialGradient(x, y, 0, x, y, r);
+      g.addColorStop(0, 'rgba(90,70,45,.35)'); g.addColorStop(1, 'rgba(90,70,45,0)');
+      ctx.fillStyle = g; ctx.fillRect(x - r, y - r, r * 2, r * 2);
+    }
   });
-  const roofMaterial = new THREE.MeshStandardMaterial({ name: 'Downhill roof', color: '#4a4550', roughness: .9 });
-  const corridor = W + sidewalk + 6;
-  const clearOfRoad = (corners, near) => {
-    for (const c of corners) {
-      for (let i = Math.max(0, near - 90); i < Math.min(count, near + 90); i += 3) {
-        const dx = c.x - P[i].x, dz = c.z - P[i].z;
-        if (dx * dx + dz * dz < corridor * corridor) return false;
-      }
-    }
-    return true;
-  };
-  const pushBuilding = (target, corners, base, height) => {
-    const [a, b, c, d] = corners; // footprint, counter-clockwise from above
-    const top = height;
-    const walls = [[a, b], [b, c], [c, d], [d, a]];
-    for (const [p, q] of walls) {
-      const width = Math.hypot(q.x - p.x, q.z - p.z);
-      const v0 = new THREE.Vector3(p.x, base, p.z), v1 = new THREE.Vector3(q.x, base, q.z);
-      const v2 = new THREE.Vector3(q.x, base + top, q.z), v3 = new THREE.Vector3(p.x, base + top, p.z);
-      const uMax = width / 12, vMax = top / 14.4;
-      target.sides.push([v0, v1, v2, v3, uMax, vMax]);
-    }
-    target.roofs.push([new THREE.Vector3(a.x, base + top, a.z), new THREE.Vector3(b.x, base + top, b.z), new THREE.Vector3(c.x, base + top, c.z), new THREE.Vector3(d.x, base + top, d.z)]);
-  };
-  const shops = [], awnings = [[], [], [], []], roofProps = { tank: [], ac: [], antenna: [] }, billboards = [];
-  const awningColors = ['#d9473b', '#2fa69a', '#f0b429', '#8e5bd1'];
-  for (const side of [-1, 1]) {
-    let si = 8, nextBoard = 60 + rand() * 60;
-    while (si < sArr[count - 1] - 10) {
-      const i = Math.min(count - 1, Math.round(si / 1.5));
-      const width = 12 + rand() * 14, depth = 12 + rand() * 10;
-      const tall = rand() < .16;
-      const height = tall ? 45 + rand() * 40 : 10 + rand() * 26;
-      const setback = 2 + rand() * 6;
-      const right = new THREE.Vector3(Math.cos(theta[i]), 0, -Math.sin(theta[i]));
-      const fwd = new THREE.Vector3(-Math.sin(theta[i]), 0, -Math.cos(theta[i]));
-      const centre = P[i].clone().addScaledVector(right, side * (corridor + setback + depth / 2));
-      const footprint = (hw, hd) => {
-        const corner = (fx, rx) => centre.clone().addScaledVector(fwd, fx).addScaledVector(right, rx);
-        return side > 0
-          ? [corner(-hw, -hd), corner(-hw, hd), corner(hw, hd), corner(hw, -hd)]
-          : [corner(-hw, hd), corner(-hw, -hd), corner(hw, -hd), corner(hw, hd)];
-      };
-      const corners = footprint(width / 2, depth / 2);
-      const base = P[i].y - 6;
-      if (clearOfRoad(corners, i)) {
-        const style = () => styles[Math.floor(rand() * styles.length)];
-        const roofY = base + height + 6;
-        let roofCorners = corners;
-        if (height > 24 && rand() < .55) {
-          // Podium with an inset tower on top.
-          const podium = 8 + rand() * 6;
-          pushBuilding(style(), corners, base, podium + 6);
-          roofCorners = footprint(width / 2 - 2 - rand() * 2, depth / 2 - 2 - rand() * 2);
-          pushBuilding(style(), roofCorners, base + podium + 6, height - podium);
-        } else pushBuilding(style(), corners, base, height + 6);
-        // Shopfront on the road-facing wall (corners 3 to 0), with an awning.
-        const toRoad = right.clone().multiplyScalar(-side);
-        const a = corners[3].clone().addScaledVector(toRoad, .25), b = corners[0].clone().addScaledVector(toRoad, .25);
-        const ground = P[i].y - 1.2, shopTop = P[i].y + 4;
-        shops.push([a.clone().setY(ground), b.clone().setY(ground), b.clone().setY(shopTop), a.clone().setY(shopTop), a.distanceTo(b) / 24]);
-        const out = toRoad.clone().multiplyScalar(1.5);
-        awnings[Math.floor(rand() * 4)].push([a.clone().setY(shopTop + .5), b.clone().setY(shopTop + .5), b.clone().add(out).setY(shopTop - .1), a.clone().add(out).setY(shopTop - .1)]);
-        // Rooftop clutter.
-        const rc = roofCorners[0].clone().add(roofCorners[2]).multiplyScalar(.5);
-        if (rand() < .4) roofProps.tank.push({ p: rc.clone().addScaledVector(fwd, (rand() - .5) * width * .4).setY(roofY), s: .8 + rand() * .5 });
-        for (let k = 0, n = Math.floor(rand() * 4); k < n; k++) roofProps.ac.push({ p: rc.clone().addScaledVector(fwd, (rand() - .5) * width * .6).addScaledVector(right, (rand() - .5) * depth * .5).setY(roofY), s: .8 + rand() * .6 });
-        if (tall || rand() < .2) roofProps.antenna.push({ p: rc.clone().setY(roofY), s: .7 + rand() * .8 });
-      }
-      // Billboards on tall poles just behind the barrier, angled up the hill.
-      if (si > nextBoard) {
-        nextBoard = si + 110 + rand() * 90;
-        const spot = P[i].clone().addScaledVector(right, side * (corridor - 1.5));
-        const facing = right.clone().multiplyScalar(-side * .55).addScaledVector(fwd, -.85).normalize();
-        billboards.push({ p: spot, facing, groundY: P[i].y });
-      }
-      si += width + 2 + rand() * 6;
-    }
-  }
-  for (const entry of styles) {
-    if (entry.sides.length) {
-      const pos = [], uv = [];
-      for (const [v0, v1, v2, v3, uMax, vMax] of entry.sides) {
-        for (const [v, u, w] of [[v0, 0, 0], [v1, uMax, 0], [v2, uMax, vMax], [v0, 0, 0], [v2, uMax, vMax], [v3, 0, vMax]]) { pos.push(v.x, v.y, v.z); uv.push(u, w); }
-      }
-      const g = new THREE.BufferGeometry();
-      g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
-      g.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2));
-      g.computeVertexNormals();
-      const mesh = new THREE.Mesh(g, entry.material); mesh.name = 'City towers'; mesh.castShadow = true; mesh.receiveShadow = true;
-      park.add(mesh);
-    }
-  }
-  const roofPos = [];
-  for (const entry of styles) for (const [a, b, c, d] of entry.roofs) for (const v of [a, c, b, a, d, c]) roofPos.push(v.x, v.y, v.z);
-  if (roofPos.length) {
-    const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(roofPos, 3)); g.computeVertexNormals();
-    const roofs = new THREE.Mesh(g, roofMaterial); roofs.name = 'City roofs'; roofs.material.side = THREE.DoubleSide; park.add(roofs);
-  }
+}
 
-  // Shopfronts and awnings.
-  const quadsMesh = (quads, material, name, uvScale = false) => {
-    if (!quads.length) return;
-    const pos = [], uv = [];
-    for (const q of quads) {
-      const [v0, v1, v2, v3] = q, u = uvScale ? q[4] : 1;
-      for (const [v, tu, tv] of [[v0, 0, 0], [v1, u, 0], [v2, u, 1], [v0, 0, 0], [v2, u, 1], [v3, 0, 1]]) { pos.push(v.x, v.y, v.z); uv.push(tu, tv); }
+function gravelTexture(rand) {
+  return canvasTexture(256, 256, (ctx, w, h) => {
+    ctx.fillStyle = '#5b5751'; ctx.fillRect(0, 0, w, h);
+    for (let i = 0; i < 16000; i++) {
+      ctx.fillStyle = ['#4a4742', '#6b665e', '#77716a', '#3f3c38', '#5f5a50'][Math.floor(rand() * 5)];
+      ctx.fillRect(rand() * w, rand() * h, 1 + rand() * 2, 1 + rand() * 2);
     }
+  });
+}
+
+function signTexture(kind) {
+  return canvasTexture(256, 256, (ctx, w, h) => {
+    ctx.translate(w / 2, h / 2); ctx.rotate(Math.PI / 4);
+    ctx.fillStyle = '#1a1a1a'; ctx.fillRect(-92, -92, 184, 184);
+    ctx.fillStyle = '#ffcf1f'; ctx.fillRect(-84, -84, 168, 168);
+    ctx.rotate(-Math.PI / 4);
+    ctx.fillStyle = '#141414'; ctx.strokeStyle = '#141414'; ctx.lineWidth = 16; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    if (kind === 'left' || kind === 'right') {
+      const s = kind === 'left' ? -1 : 1;
+      ctx.beginPath(); ctx.moveTo(-10 * s, 60); ctx.lineTo(-10 * s, 0); ctx.quadraticCurveTo(-10 * s, -30, 20 * s, -30); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(14 * s, -58); ctx.lineTo(52 * s, -30); ctx.lineTo(14 * s, -2); ctx.closePath(); ctx.fill();
+    } else if (kind === 'rocks') {
+      ctx.beginPath(); ctx.moveTo(-60, 60); ctx.lineTo(-60, -40); ctx.lineTo(10, 60); ctx.closePath(); ctx.fill();
+      for (const [x, y, r] of [[20, -30, 12], [36, 6, 10], [50, 40, 14]]) { ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill(); }
+    } else {
+      // Slippery road: a skidding car.
+      ctx.fillRect(-26, -40, 52, 34); ctx.lineWidth = 8;
+      for (const s of [-1, 1]) { ctx.beginPath(); ctx.moveTo(s * 14, 4); ctx.bezierCurveTo(s * 40, 24, s * -10, 40, s * 22, 64); ctx.stroke(); }
+    }
+  }, { repeat: false });
+}
+
+function buildWilderness({ park, rand, count, P, L, N, theta, sArr, kappa, W, sidewalk, signs }) {
+  const out = W + sidewalk + .3;
+  const clampN = (v, a, b) => Math.max(a, Math.min(b, v));
+  const rightOf = i => new THREE.Vector3(Math.cos(theta[i]), 0, -Math.sin(theta[i]));
+  const reach = (i, side) => (kappa[i] > 0 ? 1 : -1) === side && Math.abs(kappa[i]) > 1e-4
+    ? clampN(1 / Math.abs(kappa[i]) - out - 6, 6, 72) : 72;
+  const rise = (i, d, side) => d < 3 ? -d * .08
+    : -.24 + Math.pow((d - 3) / 69, 1.25) * (17 + 9 * Math.sin(i * .021 + side * 1.7) + 4 * Math.sin(i * .087 + side));
+  const ground = (i, side, d) => P[i].clone().addScaledVector(L[i], side * (out + .6)).addScaledVector(N[i], .15)
+    .addScaledVector(rightOf(i), side * Math.max(0, d - .6)).add(new THREE.Vector3(0, rise(i, d, side), 0));
+
+  // Terrain ribbons (visual only).
+  const grass = new THREE.MeshStandardMaterial({ name: 'Downhill forest floor', map: grassTexture(rand), roughness: .97, side: THREE.DoubleSide });
+  const columns = [.6, 3, 8, 16, 28, 44, 72];
+  const CH = 60;
+  for (const side of [-1, 1]) for (let i0 = 0; i0 < count - 1; i0 += CH) {
+    const i1 = Math.min(count - 1, i0 + CH), pos = [], uv = [], index = [];
+    for (let i = i0; i <= i1; i++) for (const d0 of columns) {
+      const d = Math.min(d0, reach(i, side)), p = ground(i, side, d);
+      pos.push(p.x, p.y, p.z); uv.push(d / 8, sArr[i] / 8);
+    }
+    const cols = columns.length;
+    for (let r = 0; r < i1 - i0; r++) for (let j = 0; j < cols - 1; j++) { const a = r * cols + j, b = a + cols; index.push(a, a + 1, b, a + 1, b + 1, b); }
     const g = new THREE.BufferGeometry();
     g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
     g.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2));
-    g.computeVertexNormals();
-    const mesh = new THREE.Mesh(g, material); mesh.name = name; mesh.receiveShadow = true; mesh.castShadow = true;
+    g.setIndex(index); g.computeVertexNormals();
+    const mesh = new THREE.Mesh(g, grass); mesh.name = 'Forest hills'; mesh.receiveShadow = true;
     park.add(mesh);
-  };
-  const shopTex = shopfrontTexture(rand);
-  quadsMesh(shops, new THREE.MeshStandardMaterial({ name: 'Downhill shopfront', map: shopTex.map, emissiveMap: shopTex.emissive, emissive: '#ffe2b0', emissiveIntensity: 1.2, roughnessMap: shopTex.surface, metalnessMap: shopTex.surface, side: THREE.DoubleSide }), 'Shopfronts', true);
-  const stripes = awningTexture();
-  awningColors.forEach((color, k) => quadsMesh(awnings[k], new THREE.MeshStandardMaterial({ name: 'Downhill awning', map: stripes, color, roughness: .8, side: THREE.DoubleSide }), 'Awnings'));
+  }
 
-  // Rooftop clutter (instanced).
-  const roofInstances = (list, geometry, material, name) => {
+  // Trees: pines and autumn broadleaf trees (instanced, coloured per tree).
+  const pineParts = [new THREE.CylinderGeometry(.14, .24, 2.6, 6).translate(0, 1.3, 0)];
+  for (const [r, h, y] of [[1.9, 3, 2.6], [1.5, 2.7, 4.2], [1.05, 2.4, 5.7], [.6, 1.8, 7]]) pineParts.push(new THREE.ConeGeometry(r, h, 8).translate(0, y + h / 2 - .4, 0));
+  const pineGeo = mergeSimple(pineParts);
+  const roundParts = [new THREE.CylinderGeometry(.16, .26, 3, 6).translate(0, 1.5, 0), new THREE.IcosahedronGeometry(2.2, 1).translate(0, 4.6, 0), new THREE.IcosahedronGeometry(1.5, 1).translate(.9, 5.6, .4)];
+  const roundGeo = mergeSimple(roundParts);
+  // Vertex colours: trunk brown, foliage white (tinted per instance).
+  const paintTrunk = (geometry, trunkTop) => {
+    const p = geometry.attributes.position, c = new Float32Array(p.count * 3);
+    for (let k = 0; k < p.count; k++) { const trunk = p.getY(k) < trunkTop && Math.hypot(p.getX(k), p.getZ(k)) < .3; c.set(trunk ? [.32, .22, .14] : [1, 1, 1], k * 3); }
+    geometry.setAttribute('color', new THREE.BufferAttribute(c, 3));
+  };
+  paintTrunk(pineGeo, 2.3); paintTrunk(roundGeo, 2.9);
+  const foliage = new THREE.MeshStandardMaterial({ name: 'Downhill trees', vertexColors: true, roughness: .9, flatShading: true });
+  const pines = [], rounds = [];
+  for (let n = 0; n < count * 1.25; n++) {
+    const i = Math.floor(rand() * count), side = rand() < .5 ? -1 : 1;
+    const max = reach(i, side);
+    const d = 5 + Math.pow(rand(), 1.3) * (max - 5);
+    if (d > max) continue;
+    (rand() < .72 ? pines : rounds).push({ p: ground(i, side, d), s: .75 + rand() * .85, yaw: rand() * 6.3 });
+  }
+  const forest = (list, geometry, palette, name) => {
     if (!list.length) return;
-    const mesh = new THREE.InstancedMesh(geometry, material, list.length);
-    mesh.name = name; mesh.castShadow = true;
-    const m = new THREE.Matrix4(), q = new THREE.Quaternion();
-    list.forEach((item, k) => mesh.setMatrixAt(k, m.compose(item.p, q.setFromAxisAngle(THREE.Object3D.DEFAULT_UP, (k * 2.39) % 6.28), new THREE.Vector3(item.s, item.s, item.s))));
-    park.add(mesh);
-  };
-  const metalGrey = new THREE.MeshStandardMaterial({ name: 'Downhill rooftop metal', color: '#8b8f97', metalness: .6, roughness: .45 });
-  const tankGeo = mergeSimple([
-    new THREE.CylinderGeometry(1.4, 1.4, 2.4, 14).translate(0, 3.2, 0), new THREE.ConeGeometry(1.5, .8, 14).translate(0, 4.8, 0),
-    ...[[-1, -1], [1, -1], [1, 1], [-1, 1]].map(([x, z]) => new THREE.CylinderGeometry(.08, .08, 2, 6).translate(x * .9, 1, z * .9)),
-  ]);
-  roofInstances(roofProps.tank, tankGeo, new THREE.MeshStandardMaterial({ name: 'Downhill water tank', color: '#8a6a4f', roughness: .85 }), 'Water tanks');
-  roofInstances(roofProps.ac, new THREE.BoxGeometry(1.6, 1.1, 1.2).translate(0, .55, 0), metalGrey, 'AC units');
-  roofInstances(roofProps.antenna, new THREE.CylinderGeometry(.06, .12, 9, 6).translate(0, 4.5, 0), metalGrey, 'Antennas');
-  roofInstances(roofProps.antenna, new THREE.SphereGeometry(.28, 10, 8).translate(0, 9.1, 0),
-    new THREE.MeshStandardMaterial({ name: 'Downhill antenna light', color: '#ff2a2a', emissive: '#ff2a2a', emissiveIntensity: 4 }), 'Antenna lights');
-
-  // Crew billboards.
-  buildBillboards(park, billboards, rand);
-
-  // Street lamps (instanced), alternating sides every 26 m.
-  const lampPositions = [];
-  for (let si = 20, k = 0; si < sArr[count - 1] - 10; si += 26, k++) {
-    const i = Math.round(si / 1.5), side = k % 2 ? 1 : -1;
-    if (taper[i] > 0 && bankSide(i) === side) continue;
-    lampPositions.push({ p: point(i, side * (W + sidewalk - .3), .15), yaw: theta[i] + (side > 0 ? Math.PI / 2 : -Math.PI / 2) });
-  }
-  const poleGeo = new THREE.CylinderGeometry(.07, .1, 7, 8); poleGeo.translate(0, 3.5, 0);
-  const armGeo = new THREE.BoxGeometry(.08, .08, 2.2); armGeo.translate(0, 6.9, -1.05);
-  const headGeo = new THREE.BoxGeometry(.35, .12, .6); headGeo.translate(0, 6.82, -2.1);
-  const lampMetal = new THREE.MeshStandardMaterial({ name: 'Downhill lamp', color: '#2d3038', metalness: .7, roughness: .4 });
-  const lampLight = new THREE.MeshStandardMaterial({ name: 'Downhill lamp light', color: '#fff3d6', emissive: '#ffd9a0', emissiveIntensity: 3.2 });
-  const instanced = (geometry, material, name) => {
-    const mesh = new THREE.InstancedMesh(geometry, material, lampPositions.length);
-    mesh.name = name; mesh.castShadow = true;
-    const m = new THREE.Matrix4(), q = new THREE.Quaternion();
-    lampPositions.forEach((lamp, i) => mesh.setMatrixAt(i, m.compose(lamp.p, q.setFromAxisAngle(THREE.Object3D.DEFAULT_UP, lamp.yaw), new THREE.Vector3(1, 1, 1))));
-    park.add(mesh);
-  };
-  if (lampPositions.length) {
-    instanced(poleGeo, lampMetal, 'Street lamp poles');
-    instanced(armGeo, lampMetal, 'Street lamp arms');
-    instanced(headGeo, lampLight, 'Street lamp heads');
-  }
-
-  // Palms on the sidewalks (instanced; their leaves sway via MapDressing).
-  const palmSpots = [];
-  for (let si = 34, k = 0; si < sArr[count - 1] - 10; si += 31 + rand() * 18, k++) {
-    const i = Math.round(si / 1.5), side = rand() < .5 ? -1 : 1;
-    if (taper[i] > 0 && bankSide(i) === side) continue;
-    palmSpots.push({ p: point(i, side * (W + sidewalk - 1.2), .15), yaw: rand() * Math.PI * 2, scale: .85 + rand() * .4 });
-  }
-  if (palmSpots.length) {
-    const trunkCurve = new THREE.CatmullRomCurve3([new THREE.Vector3(0, 0, 0), new THREE.Vector3(.25, 3, 0), new THREE.Vector3(.7, 6, 0), new THREE.Vector3(1.2, 8.5, 0)]);
-    const trunk = new THREE.TubeGeometry(trunkCurve, 16, .2, 7);
-    const fronds = [];
-    for (let k = 0; k < 9; k++) {
-      const g = new THREE.PlaneGeometry(.9, 3.6, 1, 6);
-      const pos = g.attributes.position;
-      for (let v = 0; v < pos.count; v++) { const yy = pos.getY(v) + 1.8; pos.setXYZ(v, pos.getX(v) * (1 - yy / 4.2), 0, yy); pos.setY(v, -Math.pow(yy / 3.6, 2) * 1.4); }
-      g.rotateY(k / 9 * Math.PI * 2); g.translate(1.2, 8.5, 0);
-      fronds.push(g);
-    }
-    const frondGeo = mergeSimple(fronds);
-    const bark = new THREE.MeshStandardMaterial({ name: 'Downhill palm bark', color: '#7a5f45', roughness: .95 });
-    const leaf = new THREE.MeshStandardMaterial({ name: 'Downhill palm leaf', color: '#4f8f3c', roughness: .8, side: THREE.DoubleSide });
-    for (const [geometry, material, name] of [[trunk, bark, 'Downhill palm trunk'], [frondGeo, leaf, 'Downhill palm leaf']]) {
-      const mesh = new THREE.InstancedMesh(geometry, material, palmSpots.length);
-      mesh.name = name; mesh.castShadow = true;
-      const m = new THREE.Matrix4(), q = new THREE.Quaternion();
-      palmSpots.forEach((palm, i) => mesh.setMatrixAt(i, m.compose(palm.p, q.setFromAxisAngle(THREE.Object3D.DEFAULT_UP, palm.yaw), new THREE.Vector3(palm.scale, palm.scale, palm.scale))));
-      park.add(mesh);
-    }
-  }
-
-  // Ocean at the bottom of the hill and far hills around the city.
-  const end = P[count - 1];
-  const ocean = new THREE.Mesh(new THREE.PlaneGeometry(9000, 9000), new THREE.MeshStandardMaterial({ name: 'Downhill ocean', color: '#1d3f63', roughness: .1, metalness: .6 }));
-  ocean.rotation.x = -Math.PI / 2; ocean.position.set(end.x, end.y - 45, end.z); ocean.receiveShadow = false;
-  park.add(ocean);
-  const hillMat = new THREE.MeshStandardMaterial({ name: 'Downhill far hills', color: '#5b4a6e', roughness: 1, flatShading: true });
-  const mid = P[Math.floor(count / 2)];
-  for (let k = 0; k < 18; k++) {
-    const a = k / 18 * Math.PI * 2 + rand() * .2, r = 1500 + rand() * 700;
-    const hill = new THREE.Mesh(new THREE.ConeGeometry(260 + rand() * 300, 120 + rand() * 260, 6), hillMat);
-    hill.position.set(mid.x + Math.cos(a) * r, mid.y - 60, mid.z + Math.sin(a) * r);
-    hill.rotation.y = rand() * 3;
-    park.add(hill);
-  }
-}
-
-function shopfrontTexture(rand) {
-  const W = 1024, H = 256, bay = W / 4, signs = ['CAFE', 'SKATE', 'TACOS', 'VINYL', 'ARCADE', 'BANANA BAR', 'SURF', 'PIZZA'];
-  const kinds = Array.from({ length: 4 }, () => ({ sign: signs[Math.floor(rand() * signs.length)], glow: ['#ff3d8b', '#4fe3ff', '#ffd23f', '#8dff4f'][Math.floor(rand() * 4)] }));
-  const make = layer => canvasTexture(W, H, ctx => {
-    ctx.fillStyle = layer === 'surface' ? 'rgb(0,220,0)' : layer === 'emissive' ? '#000' : '#2a2630'; ctx.fillRect(0, 0, W, H);
-    kinds.forEach((k, n) => {
-      const x = n * bay;
-      if (layer === 'map') {
-        ctx.fillStyle = '#1b1a20'; ctx.fillRect(x, 0, bay, 60);
-        ctx.fillStyle = '#3a3640'; ctx.fillRect(x + 4, 60, bay - 8, 8);
-        const g = ctx.createLinearGradient(x, 70, x, H); g.addColorStop(0, '#5a6a80'); g.addColorStop(1, '#1d2230');
-        ctx.fillStyle = g; ctx.fillRect(x + 14, 74, bay - 28, H - 84);
-        ctx.fillStyle = '#e8e2d4'; ctx.fillRect(x + bay / 2 - 3, 74, 6, H - 84);
-        ctx.font = '400 44px Bangers, Impact, sans-serif'; ctx.textAlign = 'center'; ctx.fillStyle = k.glow;
-        ctx.fillText(k.sign, x + bay / 2, 46, bay - 30);
-      } else if (layer === 'emissive') {
-        ctx.font = '400 44px Bangers, Impact, sans-serif'; ctx.textAlign = 'center'; ctx.shadowColor = k.glow; ctx.shadowBlur = 16; ctx.fillStyle = k.glow;
-        ctx.fillText(k.sign, x + bay / 2, 46, bay - 30); ctx.shadowBlur = 0;
-        const g = ctx.createLinearGradient(x, 74, x, H); g.addColorStop(0, 'rgba(255,214,160,.85)'); g.addColorStop(1, 'rgba(120,70,30,.3)');
-        ctx.fillStyle = g; ctx.fillRect(x + 18, 78, bay - 36, H - 92);
-      } else { ctx.fillStyle = 'rgb(0,25,160)'; ctx.fillRect(x + 14, 74, bay - 28, H - 84); }
+    const mesh = new THREE.InstancedMesh(geometry, foliage, list.length);
+    mesh.name = name; mesh.castShadow = true; mesh.receiveShadow = true;
+    const m = new THREE.Matrix4(), q = new THREE.Quaternion(), c = new THREE.Color();
+    list.forEach((t, k) => {
+      mesh.setMatrixAt(k, m.compose(t.p, q.setFromAxisAngle(THREE.Object3D.DEFAULT_UP, t.yaw), new THREE.Vector3(t.s, t.s * (.9 + rand() * .3), t.s)));
+      mesh.setColorAt(k, c.set(palette[Math.floor(rand() * palette.length)]));
     });
-  }, { color: layer !== 'surface' });
-  return { map: make('map'), emissive: make('emissive'), surface: make('surface') };
-}
+    park.add(mesh);
+  };
+  forest(pines, pineGeo, ['#2f5a34', '#2a4f30', '#3a6a3a', '#24452b', '#3f5f33'], 'Pine trees');
+  forest(rounds, roundGeo, ['#c8632b', '#d9902f', '#a8432a', '#6f8a35', '#b9762e'], 'Autumn trees');
 
-function awningTexture() {
-  return canvasTexture(128, 64, (ctx, w, h) => {
-    for (let i = 0; i < 8; i++) { ctx.fillStyle = i % 2 ? '#ffffff' : '#bdbdbd'; ctx.fillRect(i * w / 8, 0, w / 8, h); }
-    ctx.fillStyle = 'rgba(0,0,0,.25)'; ctx.fillRect(0, h - 8, w, 8);
-  });
-}
+  // Boulders scattered in the forest.
+  const rocks = [];
+  for (let n = 0; n < count * .25; n++) {
+    const i = Math.floor(rand() * count), side = rand() < .5 ? -1 : 1, max = reach(i, side), d = 4 + rand() * (max - 4);
+    rocks.push({ p: ground(i, side, d), s: .5 + rand() * 1.8 });
+  }
+  if (rocks.length) {
+    const mesh = new THREE.InstancedMesh(new THREE.DodecahedronGeometry(1, 0), new THREE.MeshStandardMaterial({ name: 'Downhill boulders', color: '#7d7a73', roughness: .95, flatShading: true }), rocks.length);
+    mesh.name = 'Boulders'; mesh.castShadow = true; mesh.receiveShadow = true;
+    const m = new THREE.Matrix4(), q = new THREE.Quaternion();
+    rocks.forEach((r, k) => mesh.setMatrixAt(k, m.compose(r.p, q.setFromEuler(new THREE.Euler(rand() * 3, rand() * 3, rand() * 3)), new THREE.Vector3(r.s * 1.3, r.s * .8, r.s))));
+    park.add(mesh);
+  }
 
-/** Big pole billboards advertising the crew (art drawn in once it loads). */
-function buildBillboards(park, list, rand) {
-  if (!list.length) return;
-  const ads = [
-    { line: 'GO BANANAS', sub: 'CHIMP HAWK UNDERGROUND', color: '#ffd23f', art: 'tuxr' },
-    { line: 'THE HOLLOW', sub: 'SKATE OR DIE', color: '#4fe3ff', art: 'hollow' },
-    { line: 'TUXR ENERGY', sub: 'THE MASTERMIND DRINK', color: '#c879ff', art: 'tuxr' },
-    { line: 'HERETIC DECKS', sub: 'BUILT TO BREAK RULES', color: '#ff5a4f', art: 'heretic' },
-    { line: 'ANCHOR WAX', sub: 'WIZARD-GRADE GRINDS', color: '#8dff4f', art: 'anchor' },
-    { line: 'YOUNGBLOOD', sub: 'ADOLESCENT CREW', color: '#ff9a3d', art: 'adolescent' },
-  ];
-  const poleMat = new THREE.MeshStandardMaterial({ name: 'Downhill billboard frame', color: '#25272e', metalness: .7, roughness: .4 });
-  list.forEach((board, n) => {
-    const ad = ads[(n + Math.floor(rand() * ads.length)) % ads.length];
-    const c = document.createElement('canvas'); c.width = 1024; c.height = 512;
-    const ctx = c.getContext('2d');
-    const paint = art => {
-      const g = ctx.createLinearGradient(0, 0, 1024, 512); g.addColorStop(0, '#1a1030'); g.addColorStop(1, '#3a1d4f');
-      ctx.fillStyle = g; ctx.fillRect(0, 0, 1024, 512);
-      ctx.fillStyle = ad.color; ctx.globalAlpha = .18; ctx.beginPath(); ctx.arc(250, 256, 230, 0, Math.PI * 2); ctx.fill(); ctx.globalAlpha = 1;
-      if (art) { const h = 470, w = h * art.width / art.height; ctx.drawImage(art, 250 - w / 2, 20, w, h); }
-      ctx.textAlign = 'left'; ctx.font = '400 128px Bangers, Impact, sans-serif'; ctx.fillStyle = '#fffaf0';
-      ctx.shadowColor = ad.color; ctx.shadowBlur = 24; ctx.fillText(ad.line, 480, 230, 520); ctx.shadowBlur = 0;
-      ctx.font = '700 46px "Barlow Condensed", Impact, sans-serif'; ctx.fillStyle = ad.color; ctx.fillText(ad.sub, 486, 300, 510);
-      ctx.strokeStyle = ad.color; ctx.lineWidth = 12; ctx.strokeRect(6, 6, 1012, 500);
-    };
-    paint(null);
-    const texture = new THREE.CanvasTexture(c); texture.colorSpace = THREE.SRGBColorSpace;
-    const art = new Image(); art.decoding = 'async';
-    art.onload = () => { paint(art); texture.needsUpdate = true; };
-    art.src = gameAssetUrl(`/assets/rider/art/${ad.art}.webp`);
-    const group = new THREE.Group(); group.name = 'Billboard';
-    const panel = new THREE.Mesh(new THREE.PlaneGeometry(13, 6.5), new THREE.MeshStandardMaterial({ name: 'Downhill billboard', map: texture, emissiveMap: texture, emissive: '#ffffff', emissiveIntensity: .55, roughness: .6 }));
-    panel.position.y = 13; group.add(panel);
-    const back = new THREE.Mesh(new THREE.BoxGeometry(13.6, 7.1, .4), poleMat); back.position.set(0, 13, -.25); group.add(back);
-    for (const x of [-4, 4]) { const pole = new THREE.Mesh(new THREE.CylinderGeometry(.22, .3, 13, 8), poleMat); pole.position.set(x, 6.5, -.4); group.add(pole); }
+  // Road signs on the right shoulder: bend warnings, falling rocks, slippery road.
+  const post = new THREE.MeshStandardMaterial({ name: 'Downhill sign post', color: '#8c9096', metalness: .7, roughness: .4 });
+  const textures = {};
+  for (const sign of signs) {
+    const f = Math.max(0, Math.min(count - 1, Math.round(sign.s / 1.5)));
+    const p = P[f].clone().addScaledVector(L[f], W + sidewalk - .6).addScaledVector(N[f], .15);
+    const group = new THREE.Group(); group.name = 'Road sign';
+    const pole = new THREE.Mesh(new THREE.CylinderGeometry(.05, .05, 2.4, 6), post); pole.position.y = 1.2; group.add(pole);
+    textures[sign.kind] ||= signTexture(sign.kind);
+    const panel = new THREE.Mesh(new THREE.PlaneGeometry(1.3, 1.3), new THREE.MeshStandardMaterial({ name: 'Downhill sign', map: textures[sign.kind], transparent: true, alphaTest: .4, roughness: .45 }));
+    panel.position.y = 2.6; group.add(panel);
     group.traverse(o => { if (o.isMesh) o.castShadow = true; });
-    group.position.copy(board.p).setY(board.groundY - 1);
-    group.lookAt(group.position.clone().add(board.facing));
+    group.position.copy(p);
+    const facing = new THREE.Vector3(Math.sin(theta[f]), 0, Math.cos(theta[f])); // back up the hill
+    group.lookAt(group.position.clone().add(facing));
     park.add(group);
-  });
+  }
+
+  // Mountains in three hazy layers, snow on the high ones.
+  const mid = P[Math.floor(count / 2)], low = Math.min(...P.map(p => p.y));
+  const mountain = (radius, height, snowy, color) => {
+    const g = new THREE.ConeGeometry(radius, height, 9, 5);
+    const p = g.attributes.position, c = new Float32Array(p.count * 3), base = new THREE.Color(color), snow = new THREE.Color('#f4f1f8');
+    for (let k = 0; k < p.count; k++) {
+      const y = p.getY(k) / height + .5;
+      if (y < .98) { const wob = 1 + (rand() - .5) * .22; p.setX(k, p.getX(k) * wob); p.setZ(k, p.getZ(k) * wob); }
+      const col = snowy && y > .62 + rand() * .08 ? snow : base;
+      c.set([col.r, col.g, col.b], k * 3);
+    }
+    g.setAttribute('color', new THREE.BufferAttribute(c, 3)); g.computeVertexNormals();
+    return g;
+  };
+  const rockMat = new THREE.MeshStandardMaterial({ name: 'Downhill mountains', vertexColors: true, roughness: 1, flatShading: true });
+  for (const [n, rMin, rMax, hMin, hMax, snowy, color] of [
+    [14, 700, 1200, 180, 380, false, '#3f5a3c'],
+    [16, 1300, 2000, 420, 820, true, '#6b6478'],
+    [18, 2300, 3300, 700, 1300, true, '#8d86a0'],
+  ]) {
+    for (let k = 0; k < n; k++) {
+      const a = k / n * Math.PI * 2 + rand() * .3, r = rMin + rand() * (rMax - rMin), h = hMin + rand() * (hMax - hMin);
+      const m = new THREE.Mesh(mountain(h * (1.1 + rand() * .6), h, snowy, color), rockMat);
+      m.position.set(mid.x + Math.cos(a) * r, low - 60 + h / 2, mid.z + Math.sin(a) * r);
+      m.rotation.y = rand() * 3;
+      park.add(m);
+    }
+  }
+  // A lake down in the valley.
+  const end = P[count - 1];
+  const lake = new THREE.Mesh(new THREE.PlaneGeometry(9000, 9000), new THREE.MeshStandardMaterial({ name: 'Downhill lake', color: '#2b5a6e', roughness: .08, metalness: .6 }));
+  lake.rotation.x = -Math.PI / 2; lake.position.set(end.x, low - 40, end.z);
+  park.add(lake);
 }
 
 function mergeSimple(geometries) {
@@ -901,7 +731,7 @@ function buildGateAndTunnel({ park, collision, mats, point, frameAt, local, coun
   };
   gate(26, stretch > 1 ? `STRETCH ${stretch}` : 'DOWNHILL BOMB', stretch > 1 ? '#ffd23f' : '#ff3d8b');
   gate(sArr[count - 1] - 40, 'NEXT STRETCH →', '#4fe3ff');
-  for (const cs of checkpoints) gate(cs, 'CHECKPOINT +10s', '#8dff4f');
+  for (const cs of checkpoints) gate(cs, 'CHECKPOINT', '#8dff4f');
   // Tunnel mouth: dark arch over the last metres; a wall deep inside stops the rider.
   const f = frameAt(sArr[count - 1] - 30);
   const tunnel = new THREE.Mesh(new THREE.BoxGeometry(2 * (W + C.sidewalk + 1.5), 9, 22), new THREE.MeshStandardMaterial({ name: 'Downhill tunnel', color: '#18181e', roughness: .9, side: THREE.BackSide }));

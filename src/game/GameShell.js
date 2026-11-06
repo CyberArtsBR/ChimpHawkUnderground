@@ -782,11 +782,11 @@ export class GameShell {
   }
   updateTimer(){
     const warn=sessionWarning(this.remaining,this.practice);
-    const text=this.practice?'∞':`${Math.floor(Math.ceil(this.remaining)/60)}:${String(Math.ceil(this.remaining)%60).padStart(2,'0')}`;
+    const text=this.practice||this.endless?'∞':`${Math.floor(Math.ceil(this.remaining)/60)}:${String(Math.ceil(this.remaining)%60).padStart(2,'0')}`;
     if(this.timer.textContent===text&&this.timer.dataset.timerWarning===warn)return;
     setHudGlyphValue(this.timerValue,text);this.timer.dataset.timerWarning=warn;
     this.timer.dataset.practice=String(this.practice);
-    this.timer.setAttribute('aria-label',this.practice?'Free skate · no time limit':`Time remaining ${text}`);
+    this.timer.setAttribute('aria-label',this.practice||this.endless?'Free skate · no time limit':`Time remaining ${text}`);
     this.timer.classList.toggle('time-low',warn!=='none');
     this.timer.classList.toggle('time-critical',warn==='critical');
     this.timer.dataset.warningLabel=warn==='critical'?'FINAL 5 SECONDS':warn==='warning'?'10 SECONDS LEFT':'';
@@ -848,6 +848,8 @@ export class GameShell {
     }
     this.previousPad=keys;
     if(this.active&&document.hasFocus()){
+      // Endless maps (Downhill Bomb) never run out of time.
+      if(this.endless&&!this.practice)this.sessionFlow.remaining=Infinity;
       const before=this.remaining;
       const flow=this.sessionFlow.update(dt,this.actions.attemptState?.()||{});
       this.remaining=flow.remaining;this.goRemaining=Math.max(0,this.goRemaining-dt);

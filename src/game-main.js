@@ -311,11 +311,8 @@ downhillRun.music = gameShell.music;
 // Endless downhill: at the tunnel, build the next (harder) stretch and carry
 // the run through it: score (with the combo banked), speed, stance, bananas.
 downhillRun.onAdvance = () => advanceDownhillStretch();
-// Checkpoints on the downhill add time to the session clock (timed runs only).
-downhillRun.onCheckpoint = seconds => {
-  const flow = gameShell.sessionFlow;
-  if (flow && !gameShell.practice && flow.phase === 'playing') flow.remaining += seconds;
-};
+// Checkpoints on the downhill are a score bonus (the downhill has no clock).
+downhillRun.onCheckpoint = bonus => { if (skater) skater.score += bonus; };
 // Fallback if a new stretch cannot be built: back to the top of this one.
 downhillRun.onRestart = () => {
   if (!skater || !currentWorld?.manifest) return;
@@ -789,6 +786,7 @@ function commitWorld(world, runtime) {
     mapDressing.setWorld(world);
     mapAmbience.setWorld(world);
     downhillRun.setWorld(world);
+    gameShell.endless = Boolean(world.downhill);
     ({ park, collision, manifest } = world);
     scene.add(park);
     graphicsPipeline.setWorld(park);
@@ -927,6 +925,7 @@ async function loadGame() {
     mapDressing.setWorld(initialWorld);
     mapAmbience.setWorld(initialWorld);
     downhillRun.setWorld(initialWorld);
+    gameShell.endless = Boolean(initialWorld.downhill);
     ({ park, collision, manifest } = initialWorld);
     scene.add(park, sun.target);
     graphicsPipeline.setWorld(park);
@@ -1126,7 +1125,7 @@ renderer.setAnimationLoop(() => {
       }
       const respawn = skater.respawnSerial;
       sessionEventTime = highlightRecorder.time + realDelta;
-      skater.update(dt, gameShell.inputGrace > 0 ? {} : state, elapsed);
+      skater.update(dt, gameShell.inputGrace > 0 ? {} : downhillRun.filterInput(state), elapsed);
       if(gameShell.practice)practiceDrills.observe(skater,dt);
       if (runInProgress) {
         runSummary.update(skater, realDelta);

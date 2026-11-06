@@ -23,7 +23,8 @@ export const DOWNHILL_RUN = Object.freeze({
   speedFloorStart: 15,          // m/s (54 km/h) …
   speedFloorGrowth: .1,         // … plus 0.1 m/s every second of riding …
   speedFloorMax: 38,            // … up to 137 km/h
-  checkpointSeconds: 10,
+  checkpointBonus: 1000,  // points x stretch number
+  oilSeconds: 1.6,
 });
 const UP = new THREE.Vector3(0, 1, 0);
 const wrapAngle = a => Math.atan2(Math.sin(a), Math.cos(a));
@@ -104,7 +105,8 @@ export class DownhillRun {
     this.runTime = 0;
     this.onCheckpoint = null;
     this.traffic = new DownhillTraffic(this.root, audio);
-    this.traffic.onHit = () => { this.lastSkater?.bail?.('HIT A CAR!'); };
+    this.oilTime = 0;
+    this.traffic.onHit = item => this.hazard(item);
     this.geometry = typeof document === 'undefined' ? null : bananaGeometry();
     this.glow = typeof document === 'undefined' ? null : glowTexture();
     this.matrix = new THREE.Matrix4(); this.quat = new THREE.Quaternion(); this.scaleV = new THREE.Vector3(); this.pos = new THREE.Vector3();
@@ -265,6 +267,41 @@ export class DownhillRun {
   }
 
   /** realDelta: wall-clock seconds; the simulation slow-down is handled by timeScale. */
+  hazard(item) {
+    const skater = this.lastSkater;
+    if (!skater) return;
+    if (item.effect === 'bail') { skater.bail?.(item.message || 'WIPEOUT!'); return; }
+    if (item.effect === 'oil') {
+      this.oilTime = DOWNHILL_RUN.oilSeconds;
+      skater.feedback = 'OIL SLICK!'; skater.feedbackTime = 1.4;
+      this.skid();
+    } else if (item.effect === 'pothole') {
+      this.setSpeed(skater, Math.abs(Number(skater.speed) || 0) * .78);
+      if (skater.velocity) skater.velocity.y = Math.max(skater.velocity.y, 2.2);
+      skater.feedback = 'POTHOLE!'; skater.feedbackTime = 1.2;
+      skater.syncCanonicalState?.();
+      this.blip(-10);
+    }
+  }
+
+  skid() {
+    if (!this.playable()) return;
+    const ctx = this.audio.context, t = ctx.currentTime, src = ctx.createBufferSource();
+    const buffer = ctx.createBuffer(1, Math.ceil(ctx.sampleRate * .9), ctx.sampleRate), data = buffer.getChannelData(0);
+    for (let i = 0; i < data.length; i++) data[i] = (Math.random() * 2 - 1) * (1 - i / data.length);
+    src.buffer = buffer;
+    const band = ctx.createBiquadFilter(); band.type = 'bandpass'; band.Q.value = 6;
+    band.frequency.setValueAtTime(2400, t); band.frequency.exponentialRampToValueAtTime(900, t + .8);
+    const g = ctx.createGain(); g.gain.value = .12;
+    src.connect(band).connect(g).connect(this.audio.master); src.start(t);
+  }
+
+  /** On an oil slick the steering goes wobbly: the board slides side to side. */
+  filterInput(state) {
+    if (!this.active || this.oilTime <= 0 || !state) return state;
+    return { ...state, steer: Math.sin(this.time * 9) * .9 };
+  }
+
   /** Rotate the rider (heading, velocity, travel direction) by delta radians. */
   turn(skater, delta) {
     if (!delta) return;
@@ -288,7 +325,7 @@ export class DownhillRun {
     if (!skater.grounded) return; // spins and grabs in the air stay untouched
     const roadYaw = this.headings[Math.min(this.headings.length - 1, this.progress)] ?? skater.heading;
     const speed = Math.abs(Number(skater.speed) || 0);
-    const steer = Number(input?.steer) || 0;
+    const steer = this.oilTime > 0 ? 0 : Number(input?.steer) || 0;
     if (steer) this.turn(skater, -steer * DOWNHILL_RUN.steerAssist * Math.min(1, Math.max(0, (speed - 5) / 15)) * dt);
     const v = skater.velocity;
     if (Math.hypot(v.x, v.z) > 1.5) {
@@ -366,15 +403,17 @@ export class DownhillRun {
     if (rider && this.centre.length && !this.swapping) {
       const simDt = dt * this.scale;
       this.runTime += simDt;
+      this.oilTime = Math.max(0, this.oilTime - simDt);
       this.track(rider);
       const progressS = this.progress * this.step;
       this.ride(simDt, skater, input);
       this.traffic.update(simDt, skater, progressS, Math.min(1, (this.stretch - 1) / 5));
       while (this.nextCheckpoint < this.checkpoints.length && progressS >= this.checkpoints[this.nextCheckpoint]) {
         this.nextCheckpoint++;
-        this.onCheckpoint?.(DOWNHILL_RUN.checkpointSeconds);
+        const bonus = DOWNHILL_RUN.checkpointBonus * this.stretch;
+        this.onCheckpoint?.(bonus);
         this.blip(12);
-        this.callouts?.showLabel?.('CHECKPOINT', `+${DOWNHILL_RUN.checkpointSeconds} SEC`, { letters: 'green', digits: 'gold', tone: 'gold', level: 2 });
+        this.callouts?.showLabel?.('CHECKPOINT', `+${bonus.toLocaleString('en-US')}`, { letters: 'green', digits: 'gold', tone: 'gold', level: 2 });
       }
     }
     // Reaching the tunnel: freeze behind a fade and build the next stretch.
