@@ -7,3 +7,4 @@ artifacts/verification/
 __pycache__/
 *.log
 public/assets/park/hd/
+dist-itch/
