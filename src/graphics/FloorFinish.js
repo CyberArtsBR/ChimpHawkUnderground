@@ -13,8 +13,7 @@ import * as THREE from 'three';
  *  - ORBIT floor: thin dark panel seams everywhere; seams glow only near the
  *    features, with a slow ripple. Satin, not mirror (no glare blob).
  *  - ORBIT ramps: 1.2 m panel lines, darker base, lit lip near the coping.
- *  - GRAND WAREHOUSE wood: plywood sheets, grain, screw rows, wax near the
- *    coping, rubber skid marks. Floor: stains, worn paths, skid streaks.
+ *  - GRAND WAREHOUSE: none (kept light; its original look is unchanged).
  *  - SKATE PARADISE concrete: skid marks, wax on ledges, chipped coping edge.
  * Chains any existing onBeforeCompile hook on the material.
  */
@@ -81,51 +80,6 @@ const FINISHES = {
     roughness: 'roughnessFactor = mix(roughnessFactor, ffRough, .6);',
     emissive: 'totalEmissiveRadiance += vec3(.25, .7, 1.) * ffGlow * .55;',
   },
-  'warehouse-floor': {
-    color: `
-      vec2 q = vFinishWorld.xz;
-      float stain = ffNoise(q * .07) * .6 + ffNoise(q * .23) * .4;
-      float worn = smoothstep(.5, .8, ffNoise(q * .11 + 9.));
-      vec4 m = ffMask(q);
-      float path = smoothstep(.2, .9, m.r);
-      diffuseColor.rgb *= mix(.7, 1.2, stain);
-      diffuseColor.rgb = mix(diffuseColor.rgb, diffuseColor.rgb * vec3(1.24, 1.17, 1.08) + .02, max(worn * .55, path * .45));
-      diffuseColor.rgb *= 1. - .5 * ffSkid(q, .55);
-      diffuseColor.rgb *= 1. - .25 * smoothstep(.85, 1., ffNoise(q * .9 + 40.));
-      ffRough = mix(.94, .52, max(worn, path * .7));`,
-    roughness: 'roughnessFactor = min(roughnessFactor, ffRough);',
-    emissive: '',
-  },
-  'warehouse-wood': {
-    color: `
-      vec3 n = normalize(vFinishNormal);
-      vec2 p = ffPlanar(vFinishWorld, n);
-      vec2 size = vec2(1.22, 2.44);
-      vec2 sheet = p / size, sl = fract(sheet), sid = floor(sheet);
-      vec2 sd = min(sl, 1. - sl) * size;
-      float seam = 1. - smoothstep(.004, .012, min(sd.x, sd.y));
-      float grime = (1. - smoothstep(.012, .09, min(sd.x, sd.y))) - seam;
-      float off = ffHash(sid) * 40.;
-      float fibre = ffNoise(vec2(p.x * 34. + off, p.y * 1.4)) * .55 + ffNoise(vec2(p.x * 120. + off, p.y * 5.)) * .45;
-      float rings = .5 + .5 * sin((p.x + ffNoise(vec2(p.x * 2., p.y * .35) + off) * .35) * 48.);
-      float grain = mix(fibre, rings, .35);
-      diffuseColor.rgb *= (.88 + .2 * ffHash(sid * 1.37)) * mix(.8, 1.1, grain);
-      diffuseColor.rgb *= 1. - .18 * grime;
-      diffuseColor.rgb = mix(diffuseColor.rgb, diffuseColor.rgb * .42, seam);
-      // Screw rows 3.5 cm in from each sheet edge, every 25 cm.
-      float sa = length(vec2(abs(sd.x - .035), abs(fract(p.y / .25 + .5) - .5) * .25));
-      float sb = length(vec2(abs(sd.y - .035), abs(fract(p.x / .25 + .5) - .5) * .25));
-      float screw = 1. - smoothstep(.0045, .0075, min(sa, sb));
-      diffuseColor.rgb = mix(diffuseColor.rgb, vec3(.2, .19, .18), screw * .9);
-      // Wax and board slide marks along the coping; rubber skids on the faces.
-      vec4 m = ffMask(vFinishWorld.xz);
-      float wax = m.g * (.55 + .45 * ffNoise(p * 7.));
-      diffuseColor.rgb *= 1. - .3 * wax;
-      diffuseColor.rgb *= 1. - .42 * ffSkid(p * 1.3, .5);
-      ffRough = mix(.74, .3, wax);`,
-    roughness: 'roughnessFactor = mix(roughnessFactor, ffRough, .8);',
-    emissive: '',
-  },
   'paradise-concrete': {
     color: `
       vec3 n = normalize(vFinishNormal);
@@ -177,13 +131,6 @@ const WORLD_RULES = {
     floor: name => name === 'Ceramic / silver riding concrete',
     feature: name => /^(Ceramic \/ pearl|Panel \/ satin|Foundry_|Grind \/|Hardware \/)/.test(name),
     edge: name => /^(Grind \/|Hardware \/)/.test(name),
-  },
-  'grand-warehouse': {
-    finish: name => /vulcanized rubber floor/i.test(name) ? 'warehouse-floor'
-      : /^Foundry_(Plywood|Dark_Timber)$/.test(name) ? 'warehouse-wood' : null,
-    floor: name => /vulcanized rubber floor/i.test(name),
-    feature: name => /^Foundry_(Plywood|Dark_Timber|Steel|Grind_Rail|Stainless_Coping|Concrete)/.test(name),
-    edge: name => /^Foundry_(Stainless_Coping|Grind_Rail)/.test(name),
   },
   'skate-paradise': {
     finish: name => /^Paradise \/ scanned (concrete|asphalt)/.test(name) ? 'paradise-concrete' : null,

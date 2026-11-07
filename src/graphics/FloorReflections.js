@@ -3,13 +3,12 @@ import { Reflector } from 'three/addons/objects/Reflector.js';
 
 /**
  * Planar floor reflections (2026-11 graphics pass) for ORBIT's polished floor
- * and the GRAND WAREHOUSE floor. The reflector copies only the floor mesh's
+ * (not the Grand Warehouse: too heavy there). The reflector copies only the floor mesh's
  * flat, level triangles (so bowls and floor holes stay open), sits a hair
  * above it and blends in faintly, stronger at grazing angles. High+ presets.
  */
 const REFLECTIONS = {
   orbit: { match: name => name === 'Ceramic / silver riding concrete', opacity: .34, tint: '#bcd4ff' },
-  'grand-warehouse': { match: name => /vulcanized rubber floor/i.test(name), opacity: .16, tint: '#ffe8cc' },
 };
 
 const ReflectionShader = {
