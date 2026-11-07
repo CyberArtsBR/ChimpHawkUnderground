@@ -58,9 +58,10 @@ export async function warmFlashPrograms(renderer,camera,scene,{skater,target=nul
 /** Draw the real recovery variants behind loadout. Hidden particle/liquid
  * pools and translucent respawn materials otherwise compile on the first bail.
  * This transaction never emits an effect or advances animation/physics. */
-export function renderGameplayWarmup({skater,effects,render}) {
+export function renderGameplayWarmup({skater,effects,render,extraRoots=[]}) {
   const nodes = [];
-  effects?.root?.traverse(node => {
+  // extraRoots: other hidden pools (e.g. pigeons) drawn into reflections too.
+  for (const root of [effects?.root,...extraRoots]) root?.traverse(node => {
     nodes.push({node,visible:node.visible,frustumCulled:node.frustumCulled});
   });
   const materials = (skater?.flashMaterials || []).map(saved => ({saved,

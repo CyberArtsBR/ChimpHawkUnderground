@@ -834,7 +834,7 @@ let shadersWarming = false;
 /** Compile every program the real frame will use, without blocking the page. */
 async function warmAllPrograms() {
   if(mapDressing.pending&&mapDressing.world){mapDressing.pending=false;await mapDressing.build(mapDressing.world).catch(error=>console.warn('Map dressing skipped',error));}
-  await warmScenePrograms(renderer,scene,camera,{target:warmupTarget(),reveal:[skateEffects.root]});
+  await warmScenePrograms(renderer,scene,camera,{target:warmupTarget(),reveal:[skateEffects.root,worldLife.root]});
   await graphicsPipeline.compileBloomVariants?.().catch(()=>{});
   await warmFlashPrograms(renderer,camera,scene,{skater,target:warmupTarget(),reveal:[skateEffects.root],alsoCompile:()=>graphicsPipeline.compileBloomVariants()});
 }
@@ -880,7 +880,7 @@ async function selectLocation(id, { hero, finish, file, onProgress } = {}) {
       }
     }
     await warmScenePrograms(renderer,scene,camera,{
-      isCurrent:()=>request===loadoutRequest,target:warmupTarget(),reveal:[skateEffects.root],
+      isCurrent:()=>request===loadoutRequest,target:warmupTarget(),reveal:[skateEffects.root,worldLife.root],
     });
     if(request!==loadoutRequest){if(nextWorld)disposeParkWorld(nextWorld,currentWorld);return false;}
     // One synchronous commit boundary: Back cannot interleave halfway through.
@@ -892,7 +892,7 @@ async function selectLocation(id, { hero, finish, file, onProgress } = {}) {
     progress('PREPARING SHADERS…');
     await warmAllPrograms();
     followCamera.snap(skater);
-    try{renderGameplayWarmup({skater,effects:skateEffects,
+    try{renderGameplayWarmup({skater,effects:skateEffects,extraRoots:[worldLife.root],
       render:()=>graphicsPipeline.render({contactSource:skater,warmup:true})});}catch(error){console.warn('Presentation warmup skipped',error);}
     return { locationId: currentWorld.id, manifest };
   } catch (error) {
@@ -960,7 +960,7 @@ async function loadGame() {
     document.querySelector('#loading').classList.add('done');
     gameShell.setReady();
     window.streetSkate = {
-      ready: true, scene, renderer, camera, manifest, park, collision, skater, mapDressing, mapAmbience, followCamera, graphicsPipeline,
+      ready: true, scene, renderer, camera, manifest, park, collision, skater, mapDressing, mapAmbience, followCamera, graphicsPipeline, worldLife,
       currentLocation: currentWorld.id, selectLocation,
       graphicsStatus: () => graphicsPipeline.getStatus(),
       performanceMetrics:()=>({...frameMetrics.value}),
