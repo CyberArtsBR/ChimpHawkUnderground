@@ -838,6 +838,16 @@ export class GameShell {
     this.timer.classList.toggle('time-critical',warn==='critical');
     this.timer.dataset.warningLabel=warn==='critical'?'FINAL 5 SECONDS':warn==='warning'?'10 SECONDS LEFT':'';
   }
+  /**
+   * Menu direction from the left stick: the stronger axis wins, so a slightly
+   * diagonal push up still means up. Engages past .5, lets go below .3.
+   */
+  stickDirection(x,y){
+    const strength=Math.max(Math.abs(x),Math.abs(y));
+    if(strength<.3)this.stickHeld=null;
+    else if(strength>.5)this.stickHeld=Math.abs(y)>=Math.abs(x)?(y<0?'up':'down'):(x<0?'left':'right');
+    return this.stickHeld||null;
+  }
   update(dt){
     if(this.phase==='timeup'&&performance.now()>=this.timeupEndsAt)this.showResults();
     if(this.phase==='highlights')this.updateReplayCaption();
@@ -852,11 +862,11 @@ export class GameShell {
     const padChanged=padIdentity!==this.padIdentity;
     this.padIdentity=padIdentity;
     const b=i=>!!pad?.buttons[i]?.pressed;
-    const stickX=pad?.axes?.[0]||0,stickY=pad?.axes?.[1]||0;
+    const stick=this.stickDirection(pad?.axes?.[0]||0,pad?.axes?.[1]||0);
     const keys={a:b(0),back:b(1),select:b(8),start:b(9),
       shoulderLeft:b(4),shoulderRight:b(5),
-      up:b(12)||stickY<-.65,down:b(13)||stickY>.65,
-      left:b(14)||stickX<-.65,right:b(15)||stickX>.65};
+      up:b(12)||stick==='up',down:b(13)||stick==='down',
+      left:b(14)||stick==='left',right:b(15)||stick==='right'};
     // Read the physical state even when unfocused so regaining focus cannot
     // synthesize a stale edge from a button held while the tab was inactive.
     if(!focused){this.padFocused=false;this.previousPad=keys;this.navRepeat=.22;return;}
