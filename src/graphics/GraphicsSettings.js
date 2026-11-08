@@ -22,9 +22,9 @@ export const GRAPHICS_PRESETS = Object.freeze(Object.fromEntries(
   // 2026-11: crisper 2048 shadows from 144 FPS/High up; ambient occlusion from High up.
   Object.entries(PRESETS).map(([key,value])=>[key,Object.freeze({ ...value, postProcessing:true, shadowResolution:['performance','balanced'].includes(key)?1024:2048, surfaceDetailScale:SURFACE_DETAIL[key], contactDepth:['high','ultra','cinematic'].includes(key) })])
 ));
-export const DEFAULT_GRAPHICS_PRESET = 'high-refresh';
-// Start existing installs on the requested 144 FPS profile once. Explicit
-// choices made after this rollout continue to persist normally.
+// New players start on Cinematic (2026-11). A preset a returning player
+// already has saved is always kept.
+export const DEFAULT_GRAPHICS_PRESET = 'cinematic';
 export const GRAPHICS_STORAGE_KEY = 'streetskate.graphicsPreset.v2';
 
 export function normalizedGraphicsPreset(value) {
@@ -67,24 +67,10 @@ export function resolveGraphicsSettings(value, capabilities = {}, overrides = {}
     postProcessing: ['performance','high-refresh'].includes(name) ? bloomStrength > 0 : preset.postProcessing,
   };
 }
-/**
- * First-run default (2026-11): a dedicated NVIDIA/AMD card or an Apple
- * M-series chip starts on High; everything else keeps the 144 FPS preset.
- * A preset the player picked is always kept.
- */
-export function suggestGraphicsPreset(renderer) {
-  try {
-    const gl = renderer?.getContext?.();
-    const info = gl?.getExtension?.('WEBGL_debug_renderer_info');
-    const name = String(info ? gl.getParameter(info.UNMASKED_RENDERER_WEBGL) : gl?.getParameter?.(gl.RENDERER) || '');
-    if (/NVIDIA|GeForce|RTX|GTX|Quadro|Radeon (RX|Pro)|AMD Radeon(?!.*Graphics)|Apple M\d/i.test(name)) return 'high';
-  } catch { /* fall through */ }
-  return DEFAULT_GRAPHICS_PRESET;
-}
 export function loadGraphicsPresetFor(storage, renderer) {
   let saved = null;
   try { saved = storage?.getItem(GRAPHICS_STORAGE_KEY); } catch { /* none */ }
-  return saved ? normalizedGraphicsPreset(saved) : suggestGraphicsPreset(renderer);
+  return normalizedGraphicsPreset(saved);
 }
 export function loadGraphicsPreset(storage) {
   try { return normalizedGraphicsPreset(storage?.getItem(GRAPHICS_STORAGE_KEY)); }

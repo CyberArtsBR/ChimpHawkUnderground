@@ -1,4 +1,5 @@
-export const AUDIO_DEFAULTS = Object.freeze({ music: 0.5, effects: 0.35, announcer: 0.45, crowd: 0.3, voice: 0.45 });
+// New-player levels (2026-11): music 20%, effects 45%. Saved levels are kept.
+export const AUDIO_DEFAULTS = Object.freeze({ music: 0.2, effects: 0.45, announcer: 0.45, crowd: 0.3, voice: 0.45 });
 
 export function clampVolume(value, fallback = 0) {
   const number = Number(value);

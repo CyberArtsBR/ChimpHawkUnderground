@@ -15,7 +15,9 @@
 @keyframes cue-pulse{0%,100%{transform:rotate(-2deg) scale(1)}50%{transform:rotate(-2deg) scale(1.08)}}
 @media (prefers-reduced-motion:reduce){.round-cue .round-cue-word,.round-cue small{animation:none!important}}
 .round-cue[hidden],.frame-metrics[hidden]{display:none}
-.frame-metrics{position:absolute;left:18px;top:90px;padding:5px 8px;background:#101820d9;color:#dce8e9;font:13px 'DM Sans',sans-serif;pointer-events:none;z-index:10;font-variant-numeric:tabular-nums}
+/* FPS counter: top right, under the TIME box (placed from game-main). Skating only. */
+.frame-metrics{position:fixed;right:24px;top:100px;padding:4px 9px;border:1px solid rgba(255,140,200,.25);border-radius:9px;background:#120e1fcc;color:#e9e2f2;font:700 12px/1.2 'DM Sans',sans-serif;letter-spacing:.02em;pointer-events:none;z-index:9;font-variant-numeric:tabular-nums;white-space:nowrap}
+body:not([data-screen='playing']) .frame-metrics,.frame-metrics:empty{display:none}
 .run-personal-best{padding:14px 0;color:#d9ff9c}.run-personal-best p{margin:6px 0;color:#e0e7e5;font-size:calc(15px * var(--ui-scale,1))}
 .run-score-breakdown summary{cursor:pointer;padding:14px 4px;font:700 calc(18px * var(--ui-scale,1)) 'Barlow Condensed',sans-serif;color:#fff1c2}
 .run-results-actions{position:sticky;bottom:0;z-index:2;background:#111b28f5;padding:14px!important;border-top:1px solid #5f7479}

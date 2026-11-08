@@ -114,3 +114,21 @@ export function flipUpgradeFor(activeName, baseName) {
 export function grabFor(direction) { return GRAB_TRICKS[direction] || GRAB_TRICKS[DIR.NONE]; }
 export function grindFor(direction, boardslide = false) { return boardslide ? BOARDSLIDE : (GRIND_TRICKS[direction] || GRIND_TRICKS[DIR.NONE]); }
 export function grindPresentation(name) { return grindProfile(name); }
+
+/**
+ * Hand plants on vert copings (hold Grab through the lip). `hand` is the hand
+ * on the coping; the other hand holds the board with `grab`. `holdRate` is
+ * points per second while balanced upside down.
+ */
+export const HANDPLANT_TRICKS = Object.freeze({
+  [DIR.NONE]: { name: 'Invert', points: 400, holdRate: 70, hand: 'rear', grab: 'Melon' },
+  [DIR.UP]: { name: 'Eggplant', points: 450, holdRate: 75, hand: 'front', grab: 'Indy' },
+  [DIR.DOWN]: { name: 'Andrecht', points: 450, holdRate: 75, hand: 'rear', grab: 'Mute' },
+  [DIR.LEFT]: { name: 'Sad Plant', points: 550, holdRate: 85, hand: 'rear', grab: 'Melon', legOut: true },
+});
+const HANDPLANT_DIRECTION = Object.freeze({
+  [DIR.UP_LEFT]: DIR.UP, [DIR.UP_RIGHT]: DIR.UP, [DIR.DOWN_LEFT]: DIR.DOWN, [DIR.DOWN_RIGHT]: DIR.DOWN, [DIR.RIGHT]: DIR.LEFT,
+});
+export function handplantFor(direction) {
+  return HANDPLANT_TRICKS[HANDPLANT_DIRECTION[direction] || direction] || HANDPLANT_TRICKS[DIR.NONE];
+}

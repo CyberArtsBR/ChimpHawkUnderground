@@ -27,7 +27,7 @@ import { CopingTrace } from './game/CopingTrace.js';
 import { RunSummary } from './game/RunSummary.js';
 import { sessionAttemptState } from './game/SessionFlow.js';
 import { ScoreRecords } from './game/ScoreRecords.js';
-import { readPlayerPreferences, applyPlayerPreferences } from './game/PlayerPreferences.js';
+import { readPlayerPreferences, applyPlayerPreferences, enableFpsCounterOnce } from './game/PlayerPreferences.js';
 import { FrameMetrics } from './graphics/FrameMetrics.js';
 import { PracticeDrills } from './game/PracticeDrills.js';
 import { HighlightRecorder } from './game/HighlightRecorder.js';
@@ -144,6 +144,7 @@ scene.add(floor);
 const graphicsPipeline = new GraphicsPipeline(renderer, scene, camera);
 const performanceHud=document.createElement('div');performanceHud.className='frame-metrics';performanceHud.hidden=true;app.append(performanceHud);
 const frameMetrics=new FrameMetrics(renderer,performanceHud);
+enableFpsCounterOnce();
 let playerPreferences=applyPlayerPreferences(readPlayerPreferences());
 frameMetrics.setEnabled(playerPreferences.performance);
 const skateEffects = new SkateEffects(scene);
@@ -335,6 +336,16 @@ const gameShell = new GameShell({
   boardStyle: style => skater?.board?.setStyle?.(style),
   testMap: ({file,hero,board,onProgress}) => selectLocation('test-map', {file,hero,finish:board.finishIndex,onProgress}),
 });
+// The FPS counter sits just under the TIME box, which changes size with the screen.
+function placeFpsCounter() {
+  const box = gameShell.timer.getBoundingClientRect();
+  if (!box.height) return;
+  performanceHud.style.top = `${Math.round(box.bottom + 10)}px`;
+  performanceHud.style.right = `${Math.round(innerWidth - box.right)}px`;
+}
+new ResizeObserver(placeFpsCounter).observe(gameShell.timer);
+addEventListener('resize', placeFpsCounter);
+
 skateAudio.onMusicDuck=({durationMs,amount,releaseMs})=>gameShell.music.duck(durationMs,amount,releaseMs);
 portalsPhase1 = new PortalsPhase1(gameShell);
 void portalsPhase1.start();
@@ -869,7 +880,7 @@ let shadersWarming = false;
 /** Compile every program the real frame will use, without blocking the page. */
 async function warmAllPrograms() {
   if(mapDressing.pending&&mapDressing.world){mapDressing.pending=false;await mapDressing.build(mapDressing.world).catch(error=>console.warn('Map dressing skipped',error));}
-  await warmScenePrograms(renderer,scene,camera,{target:warmupTarget(),reveal:[skateEffects.root]});
+  await warmScenePrograms(renderer,scene,camera,{target:warmupTarget(),reveal:[skateEffects.root,worldLife.root]});
   await graphicsPipeline.compileBloomVariants?.().catch(()=>{});
   await warmFlashPrograms(renderer,camera,scene,{skater,target:warmupTarget(),reveal:[skateEffects.root],alsoCompile:()=>graphicsPipeline.compileBloomVariants()});
 }
@@ -915,7 +926,7 @@ async function selectLocation(id, { hero, finish, file, onProgress } = {}) {
       }
     }
     await warmScenePrograms(renderer,scene,camera,{
-      isCurrent:()=>request===loadoutRequest,target:warmupTarget(),reveal:[skateEffects.root],
+      isCurrent:()=>request===loadoutRequest,target:warmupTarget(),reveal:[skateEffects.root,worldLife.root],
     });
     if(request!==loadoutRequest){if(nextWorld)disposeParkWorld(nextWorld,currentWorld);return false;}
     // One synchronous commit boundary: Back cannot interleave halfway through.
@@ -927,7 +938,7 @@ async function selectLocation(id, { hero, finish, file, onProgress } = {}) {
     progress('PREPARING SHADERS…');
     await warmAllPrograms();
     followCamera.snap(skater);
-    try{renderGameplayWarmup({skater,effects:skateEffects,
+    try{renderGameplayWarmup({skater,effects:skateEffects,extraRoots:[worldLife.root],
       render:()=>graphicsPipeline.render({contactSource:skater,warmup:true})});}catch(error){console.warn('Presentation warmup skipped',error);}
     return { locationId: currentWorld.id, manifest };
   } catch (error) {
@@ -998,7 +1009,7 @@ async function loadGame() {
     // A managed Portals Party launches online immediately, no manual sub-lobby.
     void portalsOnline?.autoJoinHostedSession();
     window.streetSkate = {
-      ready: true, scene, renderer, camera, manifest, park, collision, skater, mapDressing, mapAmbience, followCamera, graphicsPipeline,
+      ready: true, scene, renderer, camera, manifest, park, collision, skater, mapDressing, mapAmbience, followCamera, graphicsPipeline, worldLife,
       currentLocation: currentWorld.id, selectLocation,
       graphicsStatus: () => graphicsPipeline.getStatus(),
       performanceMetrics:()=>({...frameMetrics.value}),

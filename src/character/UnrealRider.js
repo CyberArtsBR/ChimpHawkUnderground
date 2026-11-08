@@ -361,6 +361,35 @@ export class UnrealRider {
   }
 
   /**
+   * Reach one hand to a world point (hand plants), blended by weight, with the
+   * elbow bending toward `pole`. The head turns to look at the hand.
+   */
+  reachArm(side, target, pole, weight = 1) {
+    const upper = this.bones['upperarm_' + side], lower = this.bones['lowerarm_' + side], hand = this.bones['hand_' + side];
+    if (!upper || !lower || !hand || !finiteV(target) || weight <= 0) return;
+    const goal = hand.getWorldPosition(V()).lerp(target, C(weight, 0, 1));
+    limb(upper, lower, hand, goal, pole, 2.1);
+    const head = this.bones.head;
+    if (head) {
+      const from = head.getWorldPosition(V()), look = target.clone().sub(from);
+      const facing = V(0, 0, 1).applyQuaternion(head.getWorldQuaternion(Q()));
+      if (look.lengthSq() > 1e-6) {
+        const turn = Q().setFromUnitVectors(facing.normalize(), look.normalize());
+        setWorldQ(head, Q().slerp(turn, .35 * weight).multiply(head.getWorldQuaternion(Q())));
+      }
+    }
+    this.root.updateWorldMatrix(true, true);
+  }
+
+  /** Straighten a leg toward a world point (Sad Plant), knee bending toward `pole`. */
+  reachLeg(side, target, pole, weight = 1) {
+    const upper = this.bones['thigh_' + side], lower = this.bones['calf_' + side], foot = this.bones['foot_' + side];
+    if (!upper || !lower || !foot || !finiteV(target) || weight <= 0) return;
+    limb(upper, lower, foot, foot.getWorldPosition(V()).lerp(target, C(weight, 0, 1)), pole);
+    this.root.updateWorldMatrix(true, true);
+  }
+
+  /**
    * One-shot body gestures layered over the skating pose (2026-11):
    * 'celebrate' (big landed combo), 'stumble' (sloppy landing). Stance
    * switches start their own 'switch' gesture. Strength is 0..1.
@@ -375,7 +404,7 @@ export class UnrealRider {
   update({ presentation, board, speedRatio = 0, crouch = 0, steer = 0, pushWeight = 0, pushPhase = 0,
     flipState = null, grabState = null, grabWeight = 0, manual = null, manualBalance = 0,
     grindType = null, grindBalance = 0, wallRide = null, vert = false, verticalVelocity = 0, airTime = null,
-    airborne = null, bailPhysics = null,
+    airborne = null, bailPhysics = null, plantExtend = 0,
     bail = false, bailProgress = 0, stance = 1, flatland = null, landingSeverity = 0, time = 0, dt = 1 / 60 }) {
     if (!this.model) return;
     if (bail && bailPhysics && (this.ragdoll.active || this.ragdoll.start(this, bailPhysics))) {
@@ -414,6 +443,8 @@ export class UnrealRider {
     const halfPipe = halfPipePose({ charge: crouch, air, vert, verticalVelocity,
       landing: landingSeverity, speed: speedRatio, grab,
       popProgress: presentation?.popProgress ?? 1, airTime });
+    // Hand plants open the knees at the top so the board rides high overhead.
+    if (plantExtend > 0) halfPipe.compression = THREE.MathUtils.lerp(halfPipe.compression, .42, C(plantExtend, 0, 1));
     const compTarget = C(halfPipe.compression + grindShift.compression + manualW * 0.04 + supportShift * .08, 0, 1);
     const compression = C(springStep(this.scalar.compression, compTarget, halfPipe.response, dt), 0, 1);
     const inAir = airborne ?? ['AIR', 'VERT_AIR', 'OLLIE_POP'].includes(presentation?.state);

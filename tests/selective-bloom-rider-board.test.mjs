@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
+import * as THREE from 'three';
 import { GraphicsPipeline } from '../src/graphics/GraphicsPipeline.js';
 
 function fixture(shouldThrow = false) {
@@ -10,7 +11,7 @@ function fixture(shouldThrow = false) {
   const windowMesh = { isMesh:true, material:glass };
   const rider = { isMesh:true, material:riderMaterial };
   const board = { isMesh:true, material:deckMaterial };
-  const background = { id:'HDRI-background' }, fog={ id:'per-map-fog' }, override={ id:'before' };
+  const background = { id:'HDRI-background' }, fog=new THREE.Fog('#223344', 20, 140), override={ id:'before' };
   const scene = {
     background, fog, overrideMaterial:override,
     traverse(visitor) {
@@ -32,7 +33,8 @@ function fixture(shouldThrow = false) {
     render() {
       called++;
       assert.equal(scene.background,null,'HDRI must not contribute to bloom');
-      assert.equal(scene.fog,null,'map fog must not contribute to bloom');
+      assert.equal(scene.fog,fog,'fog keeps its shader variant');
+      assert.ok(fog.near>=1e8&&fog.far>fog.near,'map fog must not contribute to bloom');
       assert.equal(warehouse.material,darkMaterial,'floor cannot glow');
       assert.equal(windowMesh.material,darkMaterial,'glass cannot glow');
       assert.equal(rider.material,darkMaterial,'ordinary costume highlights must not contribute to bloom');
@@ -52,6 +54,7 @@ test('bloom masks environment and non-emissive costume, retains board glow and r
   assert.equal(called(),1);
   assert.equal(scene.background,background);
   assert.equal(scene.fog,fog);
+  assert.deepEqual([fog.near,fog.far],[20,140],'fog range restored');
   assert.equal(scene.overrideMaterial,override);
   assert.equal(pipeline.renderer.shadowMap.autoUpdate,true);
   meshes.forEach((m,i)=>assert.equal(m.material,materials[i]));

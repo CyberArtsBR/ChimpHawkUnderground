@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { spreadPick } from './MapScan.js';
+import { gameAssetUrl } from '../game/AssetPaths.js';
 
 /**
  * Extra map detail (2026-11 visual pass). Presentation only: no collision and
@@ -140,7 +141,7 @@ function posterTexture(spec) {
   if (spec.art && typeof Image !== 'undefined') {
     const image = new Image();
     image.onload = () => { draw(image); texture.needsUpdate = true; };
-    image.src = spec.art;
+    image.src = gameAssetUrl(spec.art);
   }
   return texture;
 }
