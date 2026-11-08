@@ -165,7 +165,11 @@ export function createOrbitVisualPass(world) {
     geometry.setAttribute('normal',new THREE.Float32BufferAttribute(normals,3));geometry.setAttribute('uv',new THREE.Float32BufferAttribute(uvs,2));geometry.computeBoundingSphere();
     const material=new THREE.MeshStandardMaterial({name:`ORBIT / projected ${['wheel wear','navigation','caution'][kindIndex]}`,
       map:createMarkMask(kindIndex),color:kind.color,opacity:kind.opacity,transparent:true,roughness:.9,metalness:0,
-      depthWrite:false,polygonOffset:true,polygonOffsetFactor:-1,polygonOffsetUnits:-1,side:THREE.DoubleSide});
+      depthWrite:false,polygonOffset:true,polygonOffsetFactor:-1,polygonOffsetUnits:-1,side:THREE.DoubleSide,
+      // A floor decal shows one face per pixel. Three draws transparent
+      // double-sided materials twice (back, then front) and re-resolves the
+      // shader each time; one pass draws the same pixels.
+      forceSinglePass:true});
     const mesh=new THREE.Mesh(geometry,material);mesh.name=material.name;mesh.renderOrder=1;mesh.receiveShadow=true;mesh.castShadow=false;
     mesh.userData.castShadow=false;mesh.userData.streetSkateRole='decoration';root.add(mesh);batches.push({mesh,ends});
     stats.drawCalls++;stats.triangles+=positions.length/9;

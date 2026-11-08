@@ -59,6 +59,35 @@ function finiteV(v) {
   return v && Number.isFinite(v.x) && Number.isFinite(v.y) && Number.isFinite(v.z);
 }
 
+/**
+ * Some rigs attach rigid props (helmets, pads) with the body's own material.
+ * A material drawn on both a skinned and an unskinned mesh flips between two
+ * shader variants every frame. Give the rigid meshes an identical copy.
+ */
+export function separateSkinnedMaterials(model) {
+  const usage = new Map();
+  model.traverse(object => {
+    if (!object.isMesh) return;
+    for (const material of [].concat(object.material)) {
+      if (!material) continue;
+      const entry = usage.get(material) || { skinned: false, rigid: [] };
+      if (object.isSkinnedMesh) entry.skinned = true; else entry.rigid.push(object);
+      usage.set(material, entry);
+    }
+  });
+  let split = 0;
+  for (const [material, { skinned, rigid }] of usage) {
+    if (!skinned || !rigid.length) continue;
+    const copy = material.clone();
+    for (const object of rigid) {
+      object.material = Array.isArray(object.material)
+        ? object.material.map(m => (m === material ? copy : m)) : copy;
+    }
+    split++;
+  }
+  return split;
+}
+
 function setWorldQ(bone, quaternion) {
   if (!bone?.parent || !finiteQ(quaternion) || quaternion.lengthSq() < 1e-12) return;
   const local = bone.parent.getWorldQuaternion(Q()).invert().multiply(quaternion).normalize();
@@ -167,6 +196,7 @@ export class UnrealRider {
       }
       if (object.isBone) this.rest.set(object, object.quaternion.clone());
     });
+    separateSkinnedMaterials(this.model);
     this.bones = resolveHumanoidBones([...this.rest.keys()]);
     const missing = Object.entries(SEMANTIC).filter(([, name]) => !this.bones[name]).map(([key]) => key);
     this.rigAudit = {

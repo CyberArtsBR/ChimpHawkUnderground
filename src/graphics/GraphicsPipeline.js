@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { WheelContactShadows } from './WheelContactShadows.js';
 import { createBloomOccluderMaterial } from './BloomOccluderMaterial.js';
+import { renderFloorReflections } from './FloorReflections.js';
 import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { SSRPass } from 'three/addons/postprocessing/SSRPass.js';
@@ -528,7 +529,7 @@ export class GraphicsPipeline {
       for (const object of this.bloomSceneMeshes) {
         if (object.visible === false || allowed.has(object)) continue;
         replaced.push(object, object.material);
-        object.material = this.blackoutMaterial;
+        object.material = this.occluderFor(object);
       }
       this.bloomComposer.render();
       // UnrealBloomPass adds its glow over the low-resolution source buffer.
@@ -548,6 +549,24 @@ export class GraphicsPipeline {
       if (this.effectsRoot) this.effectsRoot.visible = effectsVisible;
       if (this.reflectionRoot) this.reflectionRoot.visible = reflectionsVisible;
     }
+  }
+
+  /**
+   * The black glow-mask material for one mesh. Skinned, instanced, batched and
+   * morphing meshes each need a different shader variant; sharing a single
+   * material made three re-resolve its program on every switch (~8 per frame).
+   * One identical black copy per variant keeps each program bound.
+   */
+  occluderFor(object) {
+    const morphs = object.morphTargetInfluences?.length || 0;
+    const kind = object.isSkinnedMesh ? 'skinned' : object.isInstancedMesh ? 'instanced'
+      : object.isBatchedMesh ? 'batched' : '';
+    if (!kind && !morphs) return this.blackoutMaterial;
+    const key = kind + morphs;
+    this.blackoutVariants ||= new Map();
+    let material = this.blackoutVariants.get(key);
+    if (!material) this.blackoutVariants.set(key, material = this.blackoutMaterial.clone());
+    return material;
   }
 
   updateMaterials() {
@@ -753,6 +772,7 @@ export class GraphicsPipeline {
   render({ contactSource = null, warmup = false } = {}) {
     this.wheelContactShadows?.update(contactSource);
     if (!this.settings || this.faulted) {
+      renderFloorReflections(this.reflectionRoot, this.renderer, this.scene, this.camera);
       this.renderer.render(this.scene, this.camera);
       return;
     }
@@ -769,6 +789,7 @@ export class GraphicsPipeline {
       // Nothing moves between this frame's passes: update world matrices once
       // instead of once per scene render (glow, contact shading, main, reflection).
       if (matrixAuto !== false && scene.updateMatrixWorld) { scene.updateMatrixWorld(); scene.matrixWorldAutoUpdate = false; }
+      renderFloorReflections(this.reflectionRoot, this.renderer, scene, this.camera);
       // Performance and 144 FPS with glow disabled use one scene pass. The
       // canvas retains hardware AA, ACES tone mapping and output conversion.
       if (!this.settings.postProcessing) {
@@ -804,6 +825,7 @@ export class GraphicsPipeline {
     this.bloomComposite.dispose();
     this.bloomComposer.dispose();
     this.blackoutMaterial.dispose();
+    for (const material of this.blackoutVariants?.values() || []) material.dispose();
     this.cas.dispose();
     this.composer.dispose();
   }

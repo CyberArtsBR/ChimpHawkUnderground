@@ -118,7 +118,11 @@ export function createWarehouseVisualPass(world,{practicalAnchors=[]}={}){
     geometry.setAttribute('uv',new THREE.Float32BufferAttribute(uv,2));geometry.computeBoundingSphere();
     const material=new THREE.MeshStandardMaterial({name:`Grand Warehouse / projected ${style?'floor maintenance':'wheel rub'}`,
       map:makeWearTexture(style),color:finish.color,opacity:finish.opacity,transparent:true,roughness:.95,metalness:0,
-      side:THREE.DoubleSide,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-1,polygonOffsetUnits:-1});
+      side:THREE.DoubleSide,
+      // A floor decal shows one face per pixel. Three draws transparent
+      // double-sided materials twice (back, then front) and re-resolves the
+      // shader each time; one pass draws the same pixels.
+      forceSinglePass:true,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-1,polygonOffsetUnits:-1});
     const mesh=new THREE.Mesh(geometry,material);mesh.name=material.name;mesh.renderOrder=1;
     mesh.userData.streetSkateRole='decoration';mesh.userData.castShadow=false;mesh.castShadow=false;mesh.receiveShadow=true;
     root.add(mesh);batches.push({mesh,ends});stats.triangles+=positions.length/9;stats.drawCalls++;

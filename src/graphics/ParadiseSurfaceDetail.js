@@ -142,7 +142,11 @@ export function createParadiseSurfaceDetail(world,{seed=851,maxPatches=48}={}) {
     geometry.computeBoundingSphere();
     const material=new THREE.MeshStandardMaterial({name:`Paradise / projected ${kind.style}`,map:createParadiseWearMask(kind.style,seed+kindIndex),
       color:kind.color,transparent:true,opacity:kind.opacity,roughness:.97,metalness:0,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-1,polygonOffsetUnits:-1,
-      side:THREE.DoubleSide});
+      side:THREE.DoubleSide,
+      // A floor decal shows one face per pixel. Three draws transparent
+      // double-sided materials twice (back, then front) and re-resolves the
+      // shader each time; one pass draws the same pixels.
+      forceSinglePass:true});
     const mesh=new THREE.Mesh(geometry,material);mesh.name=material.name;mesh.castShadow=false;mesh.receiveShadow=true;
     mesh.userData.castShadow=false;mesh.userData.streetSkateRole='decoration';mesh.renderOrder=1;root.add(mesh);
     batches.push({mesh,ends});stats.triangles+=positions.length/9;stats.drawCalls++;
