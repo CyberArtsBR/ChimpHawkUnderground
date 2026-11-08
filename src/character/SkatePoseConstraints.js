@@ -19,7 +19,16 @@ export function ensurePelvisDeckClearance(model, pelvis, board, minimum = 0.405)
   const surfaceY=(board.contactRig?.deckTopY ?? board.deckHeight ?? 0)-(board.deckHeight??0);
   const clearance=pelvisInBoard.y-surfaceY;
   if(!Number.isFinite(clearance) || clearance>=minimum) return 0;
-  const correction=C(minimum-clearance,0,0.2);
+  // Height above the deck only means something while the deck lies under
+  // the rider. Mid-flip the deck rolls on edge or upside down, and its "up"
+  // axis read the pelvis as buried, lifting it up to 20 cm and straightening
+  // both legs. Fade the guard out as the deck turns away (full while within
+  // ~25 degrees, as in manuals, grinds and banks; none past 60 degrees).
+  const deckUp=new THREE.Vector3(0,1,0).applyQuaternion(board.root.getWorldQuaternion(new THREE.Quaternion()));
+  const riderUp=new THREE.Vector3(0,1,0).applyQuaternion((model.parent||model).getWorldQuaternion(new THREE.Quaternion()));
+  const facing=THREE.MathUtils.smoothstep(deckUp.dot(riderUp),.5,.9);
+  if(facing<=0) return 0;
+  const correction=C(minimum-clearance,0,0.2)*facing;
   // Since the rider model is oriented relative to its root but translates
   // directly on local Y, this correction does not rotate the board physics.
   model.position.y+=correction;

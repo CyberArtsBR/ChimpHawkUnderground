@@ -3,6 +3,7 @@ import { WHEELS, graphicTexture, normalizeBoardStyle, readBoardStyle, saveBoardS
 import { FlipWind } from './FlipWind.js';
 import { installHalfPipeFinish } from './HalfPipeFinish.js';
 import * as THREE from 'three';
+const IDENTITY_Q = new THREE.Quaternion();
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { PRODUCTION_BOARD_CONTACT_RIG } from '../game/SkateboardContactRig.js';
 import { flipTurns, impossibleMotion, popMotion, GRAB_POSES } from '../character/TrickMotion.js';
@@ -249,6 +250,8 @@ export class StreetBoard {
     this._wasFlipping = false;
     this._lastFlipYaw = 0;
     this._lastFlipProgress = 0;
+    this._flipEntryPending = false;
+    this._flipEntry?.identity();
   }
 
   catchFlip(flip) {
@@ -297,15 +300,17 @@ export class StreetBoard {
 
     if (flipState) {
       const turns = flipTurns(flipState);
+      if (!this._wasFlipping && this.poseReady && !bail) this._flipEntryPending = true;
       this._wasFlipping = true;
       this._lastFlipYaw = turns.yaw * Math.PI * 2;
       this._lastFlipProgress = flipState.progress ?? 0;
       x += turns.pitch * Math.PI * 2;
       y += turns.yaw * Math.PI * 2;
       z += turns.roll * Math.PI * 2;
-    } else if (airborne && !grabState && !bail) {
-      x += popMotion(presentation?.popProgress ?? 1);
     }
+    // The ollie's tail-pop tilt keeps easing out when a flip starts during it.
+    // Dropping it on the flip's first frame snapped the deck ~14 degrees.
+    if (airborne && !grabState && !bail) x += popMotion(presentation?.popProgress ?? 1);
     // Keep the approved flatland support angle while raising the plain manual.
     const flatlandWeight = Object.values(this.flatlandMotion.weights).reduce((sum, weight) => sum + weight, 0);
     if (manual === 'manual') x -= 0.30 - 0.14 * flatlandWeight + clamp(manualBalance, -1, 1) * 0.035;
@@ -344,8 +349,20 @@ export class StreetBoard {
     this._poseQuaternion.setFromEuler(this._rotation);
     // Flips follow their complete rotation trajectory exactly. Ordinary pose
     // changes crossfade so manuals/grinds don't snap to a different deck angle.
-    if (flipState || bail || !this.poseReady) this.root.quaternion.copy(this._poseQuaternion);
+    if (flipState && !bail && this.poseReady) {
+      // The deck was still easing toward its ollie pose when the flip began.
+      // Carry that small lag into the flip and ease it out at the same rate,
+      // instead of snapping (up to ~13 degrees) on the flip's first frame.
+      this._flipEntry ||= new THREE.Quaternion();
+      if (this._flipEntryPending) {
+        this._flipEntry.copy(this._poseQuaternion).invert().premultiply(this.root.quaternion);
+        this._flipEntryPending = false;
+      }
+      this._flipEntry.slerp(IDENTITY_Q, 1 - Math.exp(-22 * Math.max(0, dt)));
+      this.root.quaternion.copy(this._flipEntry).multiply(this._poseQuaternion);
+    } else if (flipState || bail || !this.poseReady) this.root.quaternion.copy(this._poseQuaternion);
     else this.root.quaternion.slerp(this._poseQuaternion, 1 - Math.exp(-22 * Math.max(0, dt)));
+    if (!flipState) this._flipEntry?.identity();
     const wrap = impossibleMotion(flipState, stance);
     if (wrap && !bail) {
       const y = (this.contactRig.deckTopY || this.deckHeight) - this.deckHeight;

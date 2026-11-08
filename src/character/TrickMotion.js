@@ -26,7 +26,9 @@ export function flipMotion(progress = 0) {
   // the spinning deck and return only after its rotation is complete.
   const rearLift = MathUtils.smoothstep(p, .04, .25) * (1 - catchWeight) * .23;
   const frontLift = lift * (1 - catchWeight) * .27;
-  return { rotation, clearance, footLift: clearance * 0.22, frontLift, rearLift, flick, catchWeight };
+  // Feet are on the deck at the pop and fully off it once the flick begins.
+  const release = MathUtils.smoothstep(p, 0, FLIP_TIMING.pop);
+  return { rotation, clearance, footLift: clearance * 0.22, frontLift, rearLift, flick, catchWeight, release };
 }
 
 export function flipTurns(flipState) {

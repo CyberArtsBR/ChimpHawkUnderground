@@ -5,7 +5,7 @@ import { calibrateRiderMaterials } from './RiderMaterialPresentation.js';
 import { applyGhostRiderPresentation, shouldApplyGhostRiderPresentation } from './GhostRiderMaterials.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { flipMotion, flipFlickOffset, impossibleMotion, grindWeightShift, pushMotion } from './TrickMotion.js';
-import { safeLimbReach, anatomicalKneeDirection, preserveFootOrder, smoothHandDestination, neutralArmIKTargets, skatingArmIKTargets, safeArmGoal } from './AnimationDynamics.js';
+import { safeLimbReach, anatomicalKneeDirection, preserveFootOrder, smoothHandDestination, neutralArmIKTargets, skatingArmIKTargets, safeArmGoal, blendedSafeArmGoal } from './AnimationDynamics.js';
 import { PRESENTATION_STATES, springStep, transitionFrequency } from './PresentationState.js';
 import { resolveHumanoidBones, humanoidIKAudit } from './RigMapping.js';
 import { ensurePelvisDeckClearance, boundedHandReach, boundedNeutralHandTarget, avatarPoseCalibration } from './SkatePoseConstraints.js';
@@ -107,7 +107,12 @@ function aim(bone, child, target) {
     .multiply(bone.getWorldQuaternion(Q())));
 }
 
-function limb(upper, lower, end, target, pole, maximumFlex = 2.55) {
+/**
+ * Two-bone IK. `swivel` (optional) limits how fast the bend plane may turn
+ * about the hip-ankle axis: { side: last unit side in `frame` space or null,
+ * frame: Quaternion (world <- frame), maxStep: radians this frame }.
+ */
+function limb(upper, lower, end, target, pole, maximumFlex = 2.55, swivel = null) {
   if (!upper || !lower || !end || !finiteV(target) || !finiteV(pole)) return;
   const origin = upper.getWorldPosition(V());
   const joint = lower.getWorldPosition(V());
@@ -125,6 +130,19 @@ function limb(upper, lower, end, target, pole, maximumFlex = 2.55) {
   if (side.lengthSq() < 1e-8) side.set(0, 0, 1).projectOnPlane(axis);
   if (side.lengthSq() < 1e-8) side.set(1, 0, 0).projectOnPlane(axis);
   side.normalize();
+  if (swivel) {
+    // A lifted foot can sweep past the knee's preferred direction, where the
+    // projected pole flips sides within a frame or two (an 11 cm knee pop in
+    // Japan). Turn from last frame's bend plane at a bounded rate instead.
+    const toWorld = swivel.frame, last = swivel.side && swivel.side.clone().applyQuaternion(toWorld).projectOnPlane(axis);
+    if (last && last.lengthSq() > 1e-8) {
+      last.normalize();
+      const angle = Math.atan2(last.clone().cross(side).dot(axis), C(last.dot(side), -1, 1));
+      if (Math.abs(angle) > swivel.maxStep)
+        side.copy(last).applyAxisAngle(axis, Math.sign(angle) * swivel.maxStep).normalize();
+    }
+    swivel.side = side.clone().applyQuaternion(toWorld.clone().invert());
+  }
   const wantedJoint = origin.clone().addScaledVector(axis, along)
     .addScaledVector(side, Math.sqrt(Math.max(0, a * a - along * along)));
   aim(upper, lower, wantedJoint);
@@ -147,7 +165,10 @@ export class UnrealRider {
     this.channels = new Map(Object.values(PRESENTATION_STATES)
       .map(state => [state, { value: state === 'IDLE' ? 1 : 0, velocity: 0 }]));
     this.scalar = { compression: { value: 0, velocity: 0 }, balance: { value: 0, velocity: 0 },
-      airBalance: { value: 0, velocity: 0 }, grabGather: { value: 0, velocity: 0 } };
+      airBalance: { value: 0, velocity: 0 }, grabGather: { value: 0, velocity: 0 },
+      torsoLean: { value: 0, velocity: 0 }, stanceYaw: { value: 0, velocity: 0 } };
+    this.leanReady = false;
+    this.kneeSwivel = { l: null, r: null };
     this.grabReachName = null;
     this.grabReachDirection = 1;
     this.gestureState = null;
@@ -304,6 +325,8 @@ export class UnrealRider {
     this.grabReachDirection = 1;
     for (const [name, channel] of this.channels) Object.assign(channel, { value: name === 'IDLE' ? 1 : 0, velocity: 0 });
     for (const channel of Object.values(this.scalar)) Object.assign(channel, { value: 0, velocity: 0 });
+    this.leanReady = false;
+    this.kneeSwivel = { l: null, r: null };
     for (const [bone, quaternion] of this.rest) bone.quaternion.copy(quaternion);
     if (this.model) {
       this.model.position.copy(this.basePos);
@@ -437,6 +460,7 @@ export class UnrealRider {
     airborne = null, bailPhysics = null, plantExtend = 0,
     bail = false, bailProgress = 0, stance = 1, flatland = null, landingSeverity = 0, time = 0, dt = 1 / 60 }) {
     if (!this.model) return;
+    this.poseFrame = (this.poseFrame || 0) + 1;
     if (bail && bailPhysics && (this.ragdoll.active || this.ragdoll.start(this, bailPhysics))) {
       this.ragdoll.update(dt, bailPhysics);
       this.ragdoll.apply(this, setWorldQ, limb);
@@ -477,6 +501,18 @@ export class UnrealRider {
     if (plantExtend > 0) halfPipe.compression = THREE.MathUtils.lerp(halfPipe.compression, .42, C(plantExtend, 0, 1));
     const compTarget = C(halfPipe.compression + grindShift.compression + manualW * 0.04 + supportShift * .08, 0, 1);
     const compression = C(springStep(this.scalar.compression, compTarget, halfPipe.response, dt), 0, 1);
+    // The chest lean and the stance-facing twist follow their targets on the
+    // same springs as the crouch. Driving the lean from the raw target snapped
+    // the head ~6 cm/16 deg on the takeoff frame (charge drops to 0 at once),
+    // and the stance twist turned the head 51 deg in one frame on a switch.
+    // Resting poses are unchanged: each spring settles on the old value.
+    if (!this.leanReady) {
+      Object.assign(this.scalar.torsoLean, { value: halfPipe.torsoLean, velocity: 0 });
+      Object.assign(this.scalar.stanceYaw, { value: stance, velocity: 0 });
+      this.leanReady = true;
+    }
+    const torsoLean = springStep(this.scalar.torsoLean, halfPipe.torsoLean, halfPipe.response, dt);
+    const stanceFacing = C(springStep(this.scalar.stanceYaw, stance, 3.2, dt), -1, 1);
     const inAir = airborne ?? ['AIR', 'VERT_AIR', 'OLLIE_POP'].includes(presentation?.state);
     const calibratedGrab = this.calibratedGrabReach;
     const requestedSides = grab > 0 && inAir && !bail && !flipState && !flatland && board
@@ -542,11 +578,11 @@ export class UnrealRider {
       shoulderBendAxis = V(0, 1, 0).cross(reachingOutward).normalize();
     }
     for (const name of ['spine_01', 'spine_02', 'spine_03']) {
-      this.rotate(name, V(0, 1, 0), (.075 * stance + balance * .07
+      this.rotate(name, V(0, 1, 0), (.075 * stanceFacing + balance * .07
         + (push?.armSwing || 0) * pushAmount * .065) / 3, rootQ);
       const reachLean = calibratedGrab && grabPose?.weight > 0
-        ? (halfPipe.torsoLean + grab * .24) * (1 - grabPose.weight) + grabPose.spineCurl
-        : halfPipe.torsoLean + grab * .24 + (grabPose?.spineCurl || 0);
+        ? (torsoLean + grab * .24) * (1 - grabPose.weight) + grabPose.spineCurl
+        : torsoLean + grab * .24 + (grabPose?.spineCurl || 0);
       this.rotate(name, pitchAxis, -(reachLean + pump * .025 + supportShift * .10) / 3, rootQ);
       this.rotate(name, this.kneeForward, (-balance * .14 + brake * .04 - wall * .05 + apex * .03) / 3, rootQ);
       if (shoulderBendAxis && shoulderBendAxis.lengthSq() > .5)
@@ -580,9 +616,9 @@ export class UnrealRider {
     if (gKind === 'switch') this.rotate('head', V(0, 1, 0), -stance * .5 * gw, rootQ);
     if (style) this.rotate('head', pitchAxis, style.arch * .5 * grab, rootQ);
     this.rotate('pelvis', V(0, 0, 1), manualBalance * manualW * 0.08 - grindBalance * grind * 0.06, rootQ);
-    this.rotate('neck_01', V(0, 1, 0), .12 * stance + balance * .04, rootQ);
-    this.rotate('head', V(0, 1, 0), .25 * stance + balance * .08, rootQ);
-    this.rotate('head', this.kneeForward.clone().cross(V(0, 1, 0)), halfPipe.torsoLean * .28, rootQ);
+    this.rotate('neck_01', V(0, 1, 0), .12 * stanceFacing + balance * .04, rootQ);
+    this.rotate('head', V(0, 1, 0), .25 * stanceFacing + balance * .08, rootQ);
+    this.rotate('head', this.kneeForward.clone().cross(V(0, 1, 0)), torsoLean * .28, rootQ);
     this.rotate('head', V(0, 0, 1), wall * -0.08 + (bail ? 0.13 : 0), rootQ);
     // Parent-bone adjustments precede IK so they cannot move solved feet/hands.
     if (grindType === 'Smith' || grindType === 'Feeble') this.rotate('pelvis', V(1, 0, 0), -0.08 * grind, rootQ);
@@ -616,7 +652,14 @@ export class UnrealRider {
         const catchYaw = (board._yawHold || 0) + (flipState?.yaw || 0) * Math.PI * 2;
         const planted = this.root.worldToLocal(plantedFootWorldPoint(board,x,y,z,V(),catchYaw));
         if (deckLocked) this.ft[side].copy(planted);
-        else this.ft[side].set(x, y, z).lerp(planted, motion?.catchWeight || 0);
+        else {
+          this.ft[side].set(x, y, z).lerp(planted, motion?.catchWeight || 0);
+          // On the first frames of a flip both feet still stand on the deck
+          // (tilted by the pop) and peel off it, instead of jumping to the
+          // flat rider frame. The deck has not rotated yet before 0.12.
+          const stay = motion ? 1 - motion.release : 0;
+          if (stay > 0) this.ft[side].lerp(this.root.worldToLocal(plantedFootWorldPoint(board, x, y, z, V())), stay);
+        }
       }
     }
     // Ollie/vert tuck lowers the pelvis with the feet on the deck. Only a flip
@@ -747,13 +790,25 @@ export class UnrealRider {
       const releasedFoot = (push && side === rear) || (grab > 0.01 && (
         (['Japan', 'Madonna', 'Judo'].includes(grabState?.name) && side === rear)
         || (grabState?.name === 'Benihana' && side === front) || ['Airwalk', 'Christ Air'].includes(grabState?.name)));
+      // Knee bend plane turns at most ~14 rad/s (stored in the rider frame;
+      // only last frame's plane is used, so resets never leave a stale one).
+      const kept = this.kneeSwivel[side];
+      const swivel = { frame: rootQ, maxStep: 14 * C(dt, 1 / 1000, .05),
+        side: kept && kept.frame === this.poseFrame - 1 ? kept.side : null };
       limb(upper, lower, foot, this.root.localToWorld(this.ft[side].clone()), kneePole,
-        calibratedGrab && grabState?.name === 'Airwalk' ? 2.8 : calibratedGrab && grabState?.name === 'Japan' && releasedFoot ? 2.55 + .25 * gather : 2.55);
+        calibratedGrab && grabState?.name === 'Airwalk' ? 2.8 : calibratedGrab && grabState?.name === 'Japan' && releasedFoot ? 2.55 + .25 * gather : 2.55,
+        swivel);
+      this.kneeSwivel[side] = { side: swivel.side, frame: this.poseFrame };
       // The board may have spun 180 degrees while the skater stayed facing
       // forward. Preserve the skater's ankle yaw and only align deck tilt.
-      setWorldQ(foot, footWorldOrientation(
-        this.root, board, this.feet[side].q, (deckLocked || motion?.catchWeight > .99) && !releasedFoot,
-      ));
+      // Ankles tilt with the deck while standing on it and blend to the rider
+      // frame as the feet leave it (and back during the catch), not in one frame.
+      const footPlant = releasedFoot ? 0 : deckLocked ? 1
+        : motion ? Math.max(motion.catchWeight, 1 - motion.release) : 0;
+      const footQ = footWorldOrientation(this.root, board, this.feet[side].q, footPlant > 0);
+      if (footPlant > 0 && footPlant < 1)
+        footQ.slerp(footWorldOrientation(this.root, board, this.feet[side].q, false), 1 - footPlant);
+      setWorldQ(foot, footQ);
       if (push && side === rear) this.rotate('foot_' + side, V(1, 0, 0),
         -travelSign * push.anklePitch * pushAmount, rootQ);
       if (wrap && side === rear) this.rotate('foot_' + side, V(1, 0, 0), wrap.anklePitch, rootQ);
@@ -837,12 +892,15 @@ export class UnrealRider {
       // Stop wrists traversing the body or the head during ground, vert,
       // landing, turn and grab blends. Cross-body deck grabs retain their
       // intent but never pass through the face.
-      const crossBody = (grab > .12 && !!reach) || !!flatland;
+      // The modes ease across narrow bands around the old switch points
+      // (grab .12, reach .01, skating .98) rather than flipping in one frame.
+      const crossWeight = flatland ? 1 : reach ? THREE.MathUtils.smoothstep(grab, .08, .16) : 0;
       // Keep the requested A-pose nearly extended through both safety passes.
       // Shortening its wrist goal forces the elbow to fold against the torso.
-      const neutralArms = skatingWeight > .98 && (!reach || reachWeight < .01);
-      world.copy(safeArmGoal(shoulderWorld, world, outwardWorld, headWorld,
-        armLength, { crossBody, neutral: neutralArms }));
+      const neutralWeight = THREE.MathUtils.smoothstep(skatingWeight, .96, .99)
+        * (reach ? 1 - THREE.MathUtils.smoothstep(reachWeight, .004, .03) : 1);
+      world.copy(blendedSafeArmGoal(shoulderWorld, world, outwardWorld, headWorld,
+        armLength, crossWeight, neutralWeight));
       // Pole offsets must also scale to the actual chain, or short-rig elbows
       // swing across the body even when their wrist target is reachable.
       const elbowPoleReach = Math.max(.075, Math.min(.24, armLength * .42));
@@ -870,8 +928,8 @@ export class UnrealRider {
       // Critically, safety must be checked AFTER interpolation too: a prior
       // frame's grab/air destination can otherwise cut straight through the
       // head even when both animation endpoints are safe.
-      const safeWorld = safeArmGoal(shoulderWorld, smoothedWorld, outwardWorld,
-        headWorld, armLength, { crossBody, neutral: neutralArms });
+      const safeWorld = blendedSafeArmGoal(shoulderWorld, smoothedWorld, outwardWorld,
+        headWorld, armLength, crossWeight, neutralWeight);
       this.smoothedHands[side] = this.root.worldToLocal(safeWorld.clone()).sub(shoulder);
       limb(upper, lower, hand, safeWorld, elbowPole, 2.10);
       if (headWorld) {
