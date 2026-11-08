@@ -178,6 +178,23 @@ export function safeArmGoal(shoulder, requested, outward, head, armLength,
   return goal;
 }
 
+/**
+ * safeArmGoal with its two modes blended instead of switched. crossWeight
+ * (0..1) is the named cross-body grab allowance, neutralWeight (0..1) the open
+ * A-pose. At 0 or 1 this equals the single-mode call; in between it eases, so
+ * a grab release no longer jumps the elbow ~4 cm in one frame.
+ */
+export function blendedSafeArmGoal(shoulder, requested, outward, head, armLength, crossWeight = 0, neutralWeight = 0) {
+  const cross = C(Number(crossWeight) || 0, 0, 1), neutral = C(Number(neutralWeight) || 0, 0, 1);
+  const call = (crossBody, isNeutral) => safeArmGoal(shoulder, requested, outward, head, armLength, { crossBody, neutral: isNeutral });
+  let goal = cross >= 1 ? call(true, false) : call(false, false);
+  if (!goal) return goal;
+  if (cross > 0 && cross < 1) goal.lerp(call(true, false), cross);
+  if (neutral >= 1) return call(cross >= .5, true);
+  if (neutral > 0) goal.lerp(call(cross >= .5, true), neutral);
+  return goal;
+}
+
 /** Smooth wrist destinations, not the solved ankles. This avoids grab target
  * snapping without sacrificing deterministic planted-foot IK. */
 export function smoothHandDestination(previous, target, dt, responsiveness = 26) {

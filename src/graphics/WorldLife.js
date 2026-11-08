@@ -326,7 +326,7 @@ export class WorldLife {
       gain.gain.setValueAtTime(0, t);
       gain.gain.linearRampToValueAtTime(.09, t + .006);
       gain.gain.exponentialRampToValueAtTime(.0005, t + .09);
-      source.connect(filter).connect(gain).connect(this.audio.master);
+      source.connect(filter).connect(gain).connect(this.audio.extras || this.audio.master);
       source.start(t, Math.random(), .1);
     }
     for (let i = 0; i < 6; i++) {
@@ -339,7 +339,7 @@ export class WorldLife {
       gain.gain.setValueAtTime(0, at);
       gain.gain.linearRampToValueAtTime(lead ? .05 : .03, at + .01);
       gain.gain.exponentialRampToValueAtTime(.0005, at + .06);
-      source.connect(filter).connect(gain).connect(this.audio.master);
+      source.connect(filter).connect(gain).connect(this.audio.extras || this.audio.master);
       source.start(at, Math.random(), .08);
     }
   }
@@ -376,7 +376,7 @@ export class WorldLife {
       pan.pan.linearRampToValueAtTime(.8 * side, t + length);
       node = node.connect(pan);
     }
-    node.connect(this.audio.master);
+    node.connect(this.audio.extras || this.audio.master);
     source.start(t);
     source.stop(t + length + .1);
   }

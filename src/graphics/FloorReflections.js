@@ -61,6 +61,26 @@ function floorGeometry(mesh) {
   return geometry;
 }
 
+const _frustum = new THREE.Frustum(), _viewProjection = new THREE.Matrix4();
+
+/** Refresh visible floor mirrors as top-level renders, every other frame. */
+export function renderFloorReflections(root, renderer, scene, camera) {
+  if (!root?.children.length) return 0;
+  for (let o = root; o; o = o.parent) if (!o.visible) return 0;
+  camera.updateMatrixWorld();
+  _frustum.setFromProjectionMatrix(_viewProjection.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse));
+  let rendered = 0;
+  for (const reflector of root.children) {
+    const refresh = reflector.userData.refreshReflection;
+    if (!refresh || !reflector.visible || !camera.layers.test(reflector.layers)) continue;
+    if (reflector.frustumCulled && !_frustum.intersectsObject(reflector)) continue;
+    if ((reflector.userData.reflectionFrame++ & 1) !== 0) continue;
+    refresh.call(reflector, renderer, scene, camera);
+    rendered++;
+  }
+  return rendered;
+}
+
 export class FloorReflections {
   constructor(scene) {
     this.scene = scene;
@@ -112,9 +132,15 @@ export class FloorReflections {
       // The mirrored scene is a full extra render of the park (~3 ms on ORBIT).
       // At 34% opacity a reflection one frame old cannot be seen, so refresh it
       // every other frame and reuse the previous image in between.
+      // The mirror is drawn by renderFloorReflections() before the frame's
+      // passes, never from inside the main scene render. Three keeps separate
+      // light state for nested renders, so a mirror refreshed mid-pass made
+      // every lit material re-resolve its shader twice (~50 lookups/frame on
+      // ORBIT). The image is the same: same camera, same half-rate refresh.
       const refresh = reflector.onBeforeRender;
-      let frame = 0;
-      reflector.onBeforeRender = function (...args) { if ((frame++ & 1) === 0) refresh.apply(this, args); };
+      reflector.onBeforeRender = () => {};
+      reflector.userData.refreshReflection = refresh;
+      reflector.userData.reflectionFrame = 0;
       this.root.add(reflector);
     }
   }

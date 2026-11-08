@@ -368,10 +368,11 @@ export class StreetSkater extends HandplantSkillStreetPhysics {
     const supportOffset=this.normal.dot(this._smoothedVisualPosition)-this.normal.dot(this.position);
     const grindBalance = Number.isFinite(this.grind?.balance) ? this.grind.balance : Number.isFinite(this.grindBalance) ? this.grindBalance : 0;
     const bailProgress = this.bailTime > 0 ? clamp(1 - this.bailTime / this.bailDuration, 0, 1) : 0;
+    const flipState = this.presentedFlip();
     const common = {
       supportPlane:{normal:this._supportPlaneNormal,offset:supportOffset},
       presentation: this.presentation,
-      flipState: this.flipState,
+      flipState,
       flipPhase: this.presentation.flipPhase,
       grabState: p.grabPose,
       grabWeight: p.grabWeight,
@@ -424,6 +425,23 @@ export class StreetSkater extends HandplantSkillStreetPhysics {
     this.balanceHud?.update(this.balanceMode(), this.balanceValue());
     this.updateDebugViewer();
     return { speedRatio: present.speedRatio };
+  }
+
+  /**
+   * The flip as drawn this frame. Physics advances flips at 120 Hz; on faster
+   * displays some frames have no physics step, so the deck stalled and then
+   * jumped (half the frames at 240 FPS). Flip progress is linear in time, so
+   * advance it by the unsimulated remainder of the frame. Physics is untouched.
+   */
+  presentedFlip() {
+    const flip = this.flipState;
+    if (!flip || !(flip.duration > 0)) return flip;
+    const ahead = clamp(this.accumulator, 0, this.config.step) / flip.duration;
+    const shown = this._presentedFlip ||= {};
+    for (const key in shown) if (!(key in flip)) delete shown[key];
+    Object.assign(shown, flip);
+    shown.progress = Math.min(1, flip.progress + ahead);
+    return shown;
   }
 
   /**

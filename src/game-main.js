@@ -64,6 +64,7 @@ import './graphics-glow.css';
 import './round-flow.css';
 import './menu-skin.css';
 import './hud-skin.css';
+import './ui-polish.css';
 
 const container = document.querySelector('#viewport');
 installModuleLoadRecovery();
@@ -1122,7 +1123,18 @@ renderer.domElement.addEventListener('webglcontextlost', event => {
 setExploreView('overview', true);
 loadGame();
 
-renderer.setAnimationLoop(() => {
+// One frame of the game. Called through the guarded loop below: three.js
+// schedules the next frame only after this returns, so an uncaught exception
+// in any subsystem used to freeze the game until reload.
+let frameErrors = 0;
+function reportFrameError(error) {
+  frameErrors++;
+  if (frameErrors <= 5 || frameErrors % 600 === 0)
+    console.error(`[StreetSkate] frame error #${frameErrors}; the loop keeps running.`, error);
+  try { frameMetrics.suspend(); } catch {}
+}
+renderer.setAnimationLoop(() => { try { gameFrame(); } catch (error) { reportFrameError(error); } });
+function gameFrame() {
   const realDelta = clock.getDelta();
   const dt = Math.min(realDelta, 0.1);
   const elapsed = clock.elapsedTime;
@@ -1256,6 +1268,9 @@ renderer.setAnimationLoop(() => {
   // Session menus use the supplied sunset artwork and need no hidden park render.
   // Menus show a static park frame. Redraw on settings/screen/viewport changes,
   // rather than running HDR and bloom behind an opaque title/options screen.
+  // Every frame, including pause/results/menus, so the music never stays
+  // muffled or boosted from the last moment of play.
+  reactiveMusic.update(Math.min(realDelta, .1), { music: gameShell.music, audio: skateAudio, skater, active: gameShell.active && !paused });
   if(gameShell.phase!=='select'&&(gameShell.active||(gameShell.phase==='highlights'&&document.hasFocus())||mode==='explore'||sceneNeedsRender)){
     if(gameShell.simulating)frameMetrics.begin();
     skyLife.update(realDelta, camera);
@@ -1267,7 +1282,6 @@ renderer.setAnimationLoop(() => {
       graphicsPipeline.setCinematic(replaying, focus);
     }
     updateFloorFinishTime(elapsed);
-    reactiveMusic.update(Math.min(realDelta, .1), { music: gameShell.music, audio: skateAudio, skater, active: gameShell.active });
     mapDressing.update(realDelta, skater, camera);
     if (!shadersWarming) { graphicsPipeline.render({ contactSource: gameShell.phase === 'highlights' ? null : skater });sceneNeedsRender=false; }
     if(gameShell.simulating)frameMetrics.end();else frameMetrics.suspend();
@@ -1280,4 +1294,4 @@ renderer.setAnimationLoop(() => {
       document.body.append(image);
     }
   }
-});
+}

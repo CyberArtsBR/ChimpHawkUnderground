@@ -560,7 +560,7 @@ export class GameShell {
   renderLeaderboard(run){
     const board=run?.leaderboard;
     if(!board?.entries?.length)return '';
-    const date=value=>{try{return new Date(value).toLocaleDateString(undefined,{day:'numeric',month:'short'});}catch{return '';}};
+    const date=value=>{try{return new Date(value).toLocaleDateString('en-GB',{day:'numeric',month:'short'});}catch{return '';}};
     const rows=board.entries.map((e,i)=>`<li class="${e.current?'is-current':''}"><span class="lb-rank">${i+1}</span><strong>${Math.round(e.score).toLocaleString('en-US')}</strong><span class="lb-rider">${safe(e.rider)}</span><span class="lb-deck">${safe(e.deck)}</span><span class="lb-date">${safe(date(e.date))}</span></li>`).join('');
     return `<section class="run-leaderboard"><h3>TOP 10 · ${safe(run.mapName||'')}</h3>${board.rank?`<p class="lb-placed">YOU PLACED #${board.rank}</p>`:''}<ol>${rows}</ol></section>`;
   }
