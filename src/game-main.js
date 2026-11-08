@@ -39,6 +39,7 @@ import { SkyLife } from './graphics/SkyLife.js';
 import { MapDressing } from './graphics/MapDressing.js';
 import { MapAmbience } from './graphics/MapAmbience.js';
 import { LifeDirector } from './graphics/life/LifeDirector.js';
+import { GlobalLife } from './graphics/life/GlobalLife.js';
 import { Rumble } from './game/Rumble.js';
 import { applyWorldFinishes, updateFloorFinishTime } from './graphics/FloorFinish.js';
 import { FloorReflections } from './graphics/FloorReflections.js';
@@ -191,6 +192,7 @@ const mapDressing = new MapDressing(scene);
 const mapAmbience = new MapAmbience(scene);
 // World Life: per-park cosmetic life modules register on this director.
 const lifeDirector = new LifeDirector(scene, { skateAudio, mapDressing });
+lifeDirector.register(new GlobalLife());
 const floorReflections = new FloorReflections(scene);
 graphicsPipeline.reflectionRoot = floorReflections.root;
 window.addEventListener('pointerdown', () => skateAudio.unlock(), { passive: true });
