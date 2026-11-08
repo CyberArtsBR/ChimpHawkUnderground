@@ -71,11 +71,11 @@ test('preset storage is versioned and resistant to disabled local storage', () =
   assert.doesNotThrow(()=>storeGraphicsPreset(forbidden,'ultra'));
 });
 
-test('144 FPS is the new default while subsequent explicit quality choices persist', () => {
-  const values = new Map([['streetskate.graphicsPreset.v1','cinematic']]);
+test('Cinematic is the new-player default while saved quality choices persist', () => {
+  const values = new Map([['streetskate.graphicsPreset.v1','performance']]);
   const storage = {getItem:k=>values.get(k),setItem:(k,v)=>values.set(k,v)};
-  assert.equal(DEFAULT_GRAPHICS_PRESET,'high-refresh');
-  assert.equal(loadGraphicsPreset(storage),'high-refresh');
+  assert.equal(DEFAULT_GRAPHICS_PRESET,'cinematic');
+  assert.equal(loadGraphicsPreset(storage),'cinematic');
   storeGraphicsPreset(storage,'high');
   assert.equal(loadGraphicsPreset(storage),'high');
 });

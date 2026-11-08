@@ -47,7 +47,7 @@ test('crowd and voice settings persist independently and muted reactions never r
   globalThis.localStorage={getItem:key=>storage.get(key)??null,setItem:(key,value)=>storage.set(key,value)};
   try {
     saveAudioVolume('crowd',0);saveAudioVolume('voice',.6);
-    assert.equal(readAudioVolume('effects'),.35);assert.equal(readAudioVolume('crowd'),0);assert.equal(readAudioVolume('voice'),.6);
+    assert.equal(readAudioVolume('effects'),.45);assert.equal(readAudioVolume('crowd'),0);assert.equal(readAudioVolume('voice'),.6);
     const audio=new SkateAudio();audio.context={state:'running',currentTime:1};audio.crowd={gain:{setTargetAtTime(){}}};audio.banks.crowdExceptional=[{duration:2}];
     assert.equal(audio.onComboSettled({id:'accepted',points:4000}),false);assert.equal(audio.voices.size,0);
     audio.setCrowdVolume(.5);assert.equal(readAudioVolume('voice'),.6);

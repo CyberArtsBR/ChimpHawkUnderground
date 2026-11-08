@@ -64,10 +64,10 @@ test('music and effects have independent louder defaults, mute and persisted lev
   try {
     env.storage.set('streetskate.masterVolume', '0.5');
     const music = new MusicPlayer(), fx = new SkateAudio();
-    assert.equal(music.audio.volume, 0.5);
-    assert.equal(fx.effectsVolume, 0.35);
+    assert.equal(music.audio.volume, 0.2);
+    assert.equal(fx.effectsVolume, 0.45);
     music.setMusicVolume(0);
-    assert.equal(fx.effectsVolume, 0.35, 'music mute must preserve effects');
+    assert.equal(fx.effectsVolume, 0.45, 'music mute must preserve effects');
     fx.setEffectsVolume(0.4);
     assert.equal(music.audio.volume, 0, 'effects change must preserve music mute');
     const restoredMusic = new MusicPlayer(), restoredFx = new SkateAudio();
@@ -300,7 +300,7 @@ test('hidden sound cues are suppressed and announcer mute is independent from sk
     audio.context={state:'running',currentTime:1,
       createOscillator(){voices++;return{frequency:param,connect(){},start(){},stop(){}};},
       createGain:()=>({gain:param,connect(){}})};
-    audio.setAnnouncerVolume(0);assert.equal(audio.effectsVolume,.35);
+    audio.setAnnouncerVolume(0);assert.equal(audio.effectsVolume,.45);
     audio.setEffectsVolume(.7);assert.equal(audio.announcerVolume,0);
     document.hidden=true;audio.cue('go');assert.equal(voices,0);
     audio.setBackgroundAudio(true);audio.cue('go');assert.equal(voices,1);
