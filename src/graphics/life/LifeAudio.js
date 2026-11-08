@@ -12,6 +12,7 @@ export const LIFE_AUDIO = Object.freeze({
   maxVoices: 8,
   refDistance: 4,
   maxDistance: 60,
+  maxLoopSeconds: 30,
   // Subtle: life sounds sit well under the rider's own foley.
   level: .3,
 });
@@ -143,6 +144,7 @@ export class LifeAudio {
     this.voiceSources = new Array(LIFE_AUDIO.maxVoices).fill(null);
     this.voiceGains = new Array(LIFE_AUDIO.maxVoices).fill(null);
     this.voiceEnds = new Float64Array(LIFE_AUDIO.maxVoices);
+    this.voiceKinds = new Array(LIFE_AUDIO.maxVoices).fill(null);
   }
 
   /** The running AudioContext, or null when sound is off/locked/suspended. */
@@ -190,8 +192,11 @@ export class LifeAudio {
    * Play one synthesised kind at a world position. Returns false (and does
    * nothing) without a running context, for an unknown kind, or when all
    * 8 life voices are busy.
+   * `loop: true` sustains the buffer (meant for 'hum') for `duration` seconds
+   * (default 2, max 30); it holds its voice slot until then. End it early with
+   * `stop(kind)`, e.g. `audio.stop('hum')`.
    */
-  play(kind, position, { gain = 1, rate = 1 } = {}) {
+  play(kind, position, { gain = 1, rate = 1, loop = false, duration: sustain } = {}) {
     const ctx = this.context();
     if (!ctx || !SYNTHS[kind]) return false;
     const now = ctx.currentTime;
@@ -202,12 +207,15 @@ export class LifeAudio {
     if (slot < 0) return false;
     const buffer = this.buffer(ctx, kind);
     const playbackRate = Math.min(4, Math.max(.25, Number(rate) || 1));
-    const duration = buffer.duration / playbackRate;
+    const duration = loop
+      ? Math.min(LIFE_AUDIO.maxLoopSeconds, Math.max(.05, Number(sustain) || 2))
+      : buffer.duration / playbackRate;
     const level = LIFE_AUDIO.level * Math.max(0, Number(gain) || 0);
 
     const source = ctx.createBufferSource();
     source.buffer = buffer;
     source.playbackRate.value = playbackRate;
+    source.loop = Boolean(loop);
     const amp = ctx.createGain();
     // Tiny attack/release so no voice (e.g. the hum loop) ever clicks.
     const fade = Math.min(.012, duration / 4);
@@ -228,29 +236,33 @@ export class LifeAudio {
     source.connect(amp); amp.connect(panner); panner.connect(this.skateAudio.extras);
     source.onended = () => {
       try { source.disconnect(); amp.disconnect(); panner.disconnect(); } catch {}
-      if (this.voiceSources[slot] === source) { this.voiceSources[slot] = null; this.voiceGains[slot] = null; }
+      if (this.voiceSources[slot] === source) { this.voiceSources[slot] = null; this.voiceGains[slot] = null; this.voiceKinds[slot] = null; }
     };
     source.start(now);
     source.stop(now + duration + .02);
     this.voiceSources[slot] = source;
     this.voiceGains[slot] = amp;
+    this.voiceKinds[slot] = kind;
     this.voiceEnds[slot] = now + duration + .03;
     return true;
   }
 
-  /** Fade out and stop every live voice (quality switched off, park change, reset). */
-  stop() {
+  /**
+   * Fade out (20 ms) and stop live voices: every voice (quality switched off,
+   * park change, reset), or only those of one kind, e.g. stop('hum').
+   */
+  stop(kind = null) {
     const now = this.skateAudio?.context?.currentTime ?? 0;
     for (let i = 0; i < LIFE_AUDIO.maxVoices; i++) {
       const source = this.voiceSources[i], amp = this.voiceGains[i];
-      if (!source) continue;
+      if (!source || (kind && this.voiceKinds[i] !== kind)) continue;
       try {
         amp?.gain.cancelScheduledValues?.(now);
         amp?.gain.setValueAtTime?.(amp.gain.value, now);
         amp?.gain.linearRampToValueAtTime?.(0, now + .02);
         source.stop(now + .03);
       } catch {}
-      this.voiceSources[i] = null; this.voiceGains[i] = null; this.voiceEnds[i] = 0;
+      this.voiceSources[i] = null; this.voiceGains[i] = null; this.voiceEnds[i] = 0; this.voiceKinds[i] = null;
     }
   }
 }

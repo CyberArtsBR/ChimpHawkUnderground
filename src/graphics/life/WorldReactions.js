@@ -17,6 +17,8 @@ import { surfaceTagFor } from '../../game/SurfaceAudio.js';
  * Nothing fires on the first update after construction/reset, on a frame where
  * `respawnSerial` changes, or when the rider jumps more than 2 m in one frame
  * (any teleport). While `skater.bailTime > 0` only the 'bail' edge fires.
+ * Exception: every 'grindStart' gets exactly one 'grindEnd', also when a bail,
+ * respawn, teleport or reset() ends the grind (it fires on the next update).
  */
 export const REACTION_KINDS = Object.freeze(['landing', 'pop', 'grindStart', 'grindEnd', 'bail']);
 const TELEPORT_DISTANCE_SQ = 4;
@@ -34,6 +36,7 @@ export class WorldReactions {
     this.primed = false;
     this.grounded = true;
     this.grind = false;
+    this.openGrind = false; // a grindStart was emitted and its grindEnd not yet
     this.pop = false;
     this.impact = null;
     this.respawn = 0;
@@ -67,16 +70,23 @@ export class WorldReactions {
     const teleported = !this.primed || respawn !== this.respawn ||
       this.lastPosition.distanceToSquared(skater.position) > TELEPORT_DISTANCE_SQ;
 
+    const p = skater.position;
+    const bailing = skater.bailTime > 0;
+    // An open grind always closes, whatever ended it (grind off, bail, respawn,
+    // teleport, reset): no listener is ever left mid-grind.
+    if (this.openGrind && (teleported || bailing || !grind)) {
+      this.openGrind = false;
+      this.payloads.grindEnd.point.copy(p);
+      this.emit('grindEnd');
+    }
     if (!teleported) {
-      const p = skater.position;
       if (impact && impact !== this.impact) {
         const bail = this.payloads.bail;
         bail.point.copy(impact.point?.isVector3 ? impact.point : p);
         bail.speed = Math.max(0, Number(impact.speed) || 0);
         this.emit('bail');
       }
-      if (!(skater.bailTime > 0)) {
-        if (this.grind && !grind) { this.payloads.grindEnd.point.copy(p); this.emit('grindEnd'); }
+      if (!bailing) {
         if (grounded && !this.grounded && !grind) {
           const landing = this.payloads.landing;
           landing.point.copy(p);
@@ -89,6 +99,7 @@ export class WorldReactions {
           const start = this.payloads.grindStart;
           start.point.copy(p);
           start.material = surfaceTagFor(skater);
+          this.openGrind = true;
           this.emit('grindStart');
         }
       }

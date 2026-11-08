@@ -83,10 +83,11 @@ export class LifeDirector {
     this.world = world || null;
     this.reactions.reset();
     this.audio.stop();
+    // Every previously active module drops its mid-flight state, including
+    // modules that stay active ('*'), before it sees the new park.
     for (const module of this.active) {
-      if (this.matches(module)) continue;
       module.reset?.();
-      module.root?.removeFromParent();
+      if (!this.matches(module)) module.root?.removeFromParent();
     }
     this.active = [];
     for (const module of this.modules) if (this.matches(module)) this.activate(module);

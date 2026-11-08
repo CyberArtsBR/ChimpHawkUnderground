@@ -447,3 +447,73 @@ test('MapDressing records pole and string anchors and clears them with the park'
   assert.deepEqual(dressing.anchors, { poles: [], lamps: [], strings: [] });
   assert.equal(dressing.scan, null, 'no stale scan from the previous park');
 });
+
+// ---------------------------------------------------------------- fix round 1
+
+test('a bail mid-grind closes the grind with exactly one grindEnd', () => {
+  const reactions = new WorldReactions(), events = record(reactions), s = fakeSkater();
+  reactions.update(s);
+  s.grind = { rail: { audioSurfaceTag: 'metal' } }; s.grounded = false;
+  reactions.update(s);
+  // Bail starts while the grind state is still set, then the grind drops.
+  s.bailTime = 1.5; s.position.set(.4, 0, 0);
+  reactions.update(s);
+  s.grind = null; reactions.update(s);
+  s.rider.ragdoll.groundImpact = { point: new THREE.Vector3(1, 0, 0), speed: 5 };
+  reactions.update(s); reactions.update(s);
+  assert.deepEqual(events.map(e => e.kind), ['grindStart', 'grindEnd', 'bail']);
+  assert.ok(events[1].point.equals(new THREE.Vector3(.4, 0, 0)));
+});
+
+test('a respawn mid-grind emits exactly one grindEnd and no landing/pop/grindStart', () => {
+  const reactions = new WorldReactions(), events = record(reactions), s = fakeSkater();
+  reactions.update(s);
+  s.grind = { rail: { audioSurfaceTag: 'metal' } }; s.grounded = false;
+  reactions.update(s);
+  // R reset: teleported to spawn, grounded, grind cleared, serial bumped.
+  s.respawnSerial++; s.grind = null; s.grounded = true; s.presentation.popTime = .2; s.position.set(40, 0, 0);
+  reactions.update(s);
+  reactions.update(s); reactions.update(s);
+  assert.deepEqual(events.map(e => e.kind), ['grindStart', 'grindEnd']);
+  // reset() mid-grind (director park switch / new session) also closes it once.
+  const r2 = new WorldReactions(), e2 = record(r2), s2 = fakeSkater();
+  r2.update(s2); s2.grind = { rail: {} }; r2.update(s2);
+  r2.reset(); r2.update(s2); r2.update(s2);
+  assert.deepEqual(e2.map(e => e.kind), ['grindStart', 'grindEnd']);
+});
+
+test('director setWorld resets every previously active module, including ones that stay active', () => {
+  const director = new LifeDirector(null, {});
+  const everywhere = fakeModule('*'), orbit = fakeModule(['orbit']), paradise = fakeModule(['skate-paradise']);
+  for (const m of [everywhere, orbit, paradise]) director.register(m);
+  director.setWorld({ id: 'orbit' });
+  assert.equal(everywhere.count('reset'), 0, 'nothing to reset on first activation');
+  director.setWorld({ id: 'skate-paradise' });
+  assert.equal(everywhere.count('reset'), 1);
+  assert.equal(orbit.count('reset'), 1);
+  assert.equal(paradise.count('reset'), 0, 'was not active before');
+  // Reset happens before the module sees the new park.
+  const i = everywhere.calls.findIndex(c => c[0] === 'reset');
+  assert.deepEqual(everywhere.calls[i + 1], ['setWorld', 'skate-paradise']);
+});
+
+test('LifeAudio loops a hum for a set duration and stop(kind) ends just that kind', () => {
+  const skateAudio = fakeSkateAudio(), audio = new LifeAudio(skateAudio), at = new THREE.Vector3();
+  assert.equal(audio.play('hum', at, { loop: true, duration: 6 }), true);
+  assert.equal(audio.play('ring', at), true);
+  const [hum, ring] = skateAudio.context.created.sources;
+  assert.equal(hum.loop, true);
+  assert.equal(ring.loop, false);
+  assert.ok(Math.abs(hum.stopped - 6.02) < 1e-9, 'stops after the requested duration');
+  skateAudio.context.currentTime = .5;
+  // Hum and ring both still hold their slots: 6 more voices fit, not 7.
+  for (let i = 0; i < 6; i++) assert.equal(audio.play('thud', at), true);
+  assert.equal(audio.play('thud', at), false);
+  audio.stop('hum');
+  assert.ok(hum.stopped <= .55, 'hum stopped early');
+  assert.ok(Math.abs(ring.stopped - (ring.buffer.duration + .02)) < 1e-9, 'other kinds untouched');
+  assert.equal(audio.play('thud', at), true, 'hum slot freed');
+  assert.equal(LIFE_AUDIO.maxLoopSeconds, 30);
+  audio.play('hum', at, { loop: true, duration: 999 });
+  assert.ok(skateAudio.context.created.sources.at(-1).stopped <= .5 + 30 + .05, 'loop length capped');
+});
