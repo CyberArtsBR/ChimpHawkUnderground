@@ -471,7 +471,7 @@ export class Pigeon {
     this.root.visible = true;
     this.state = 'idle';
     this.flightBlend = 0;
-    this.legs.forEach(l => { l.visible = true; l.rotation.set(0, 0, 0); });
+    for (let i = 0; i < this.legs.length; i++) { this.legs[i].visible = true; this.legs[i].rotation.set(0, 0, 0); }
     this.body.rotation.set(0, 0, 0);
     this.body.position.set(0, BODY_Y, 0);
     Object.assign(this.pose, FOLDED);
@@ -497,7 +497,8 @@ export class Pigeon {
    * above the ground; no new hop for `cooldown` s after it lands.
    */
   hop(target, length, height, cooldown = 0) {
-    if (this.state !== 'idle' || this.action === 'hop') return false;
+    // A flinching bird stays frozen: no hop until the flinch is over.
+    if (this.state !== 'idle' || this.action === 'hop' || this.flinchTime > 0) return false;
     this.hopFrom.copy(this.root.position);
     this.hopTo.copy(target);
     this.hopLength = Math.max(.05, length); this.hopHeight = height;
@@ -517,17 +518,18 @@ export class Pigeon {
   /**
    * Leave the perch (or the floor) and fly a curved loop to `end`, landing
    * there after `length` s. `delay` s of stillness first (staggered flocks);
-   * `swing` is how far out the loop bulges.
+   * `swing` is how far out the loop bulges, `depth` scales how far it dips.
+   * Positional parameters: reaction handlers call this, so no option objects.
    */
-  flyToPerch(end, length, { delay = 0, swing = 4, yaw = rand(0, TAU) } = {}) {
+  flyToPerch(end, length, delay = 0, swing = 4, depth = 1, yaw = rand(0, TAU)) {
     if (this.state === 'hidden' || this.state === 'flee' || this.state === 'alert') return false;
     const s = this.pathStart.copy(this.root.position);
     this.pathEnd.copy(end);
     const rise = end.y - s.y, climb = rise > 2;
     const a = rand(0, TAU), b = a + (Math.random() < .5 ? -1 : 1) * rand(.9, 1.6);
     // Control points never above the start/end heights, so the loop stays under the roof.
-    this.pathC1.set(s.x + Math.sin(a) * swing, s.y + (climb ? rise * .55 : -.9), s.z + Math.cos(a) * swing);
-    this.pathC2.set(end.x + Math.sin(b) * swing * .8, end.y - (climb ? 1.2 : .5), end.z + Math.cos(b) * swing * .8);
+    this.pathC1.set(s.x + Math.sin(a) * swing, s.y + (climb ? rise * .55 : -.9 * depth), s.z + Math.cos(a) * swing);
+    this.pathC2.set(end.x + Math.sin(b) * swing * .8, end.y - (climb ? 1.2 : .5 * depth), end.z + Math.cos(b) * swing * .8);
     this.state = 'roost';
     this.pathLength = Math.max(.5, length);
     this.flightTime = -Math.max(0, delay);
@@ -756,7 +758,7 @@ export class Pigeon {
     v.y += (targetVy - v.y) * Math.min(1, dt * 2.2);
     this.root.position.addScaledVector(v, dt);
 
-    this.animateFlight(dt, t, hs, v.y, heading, this.turnRate, smooth(0, 1, this.flightBlend));
+    this.animateFlight(dt, t, hs, v.y, heading, this.turnRate, smooth(0, 1, this.flightBlend), false, 1);
 
     if (t > 6.5) { this.hide(); return false; }
     return true;
@@ -780,7 +782,7 @@ export class Pigeon {
     const turnRate = dt > 0 ? wrapAngle(heading - this.yaw) / dt : 0;
     // Wings open over the first 0.12 s and fold over the last 0.3 s (the landing flare).
     const fb = smooth(0, .12, t) * (1 - smooth(length - .3, length, t));
-    this.animateFlight(dt, t, hs, v.y, heading, turnRate, fb, { braking: length - t < .6, tilt: fb });
+    this.animateFlight(dt, t, hs, v.y, heading, turnRate, fb, length - t < .6, fb);
     return true;
   }
 
@@ -788,7 +790,7 @@ export class Pigeon {
    * Wingbeats, glides, banking and body/tail/head posture for a flying bird.
    * fb blends folded (0) to flying (1); tilt scales pitch and bank.
    */
-  animateFlight(dt, t, hs, vy, heading, turnRate, fb, { braking = false, tilt = 1 } = {}) {
+  animateFlight(dt, t, hs, vy, heading, turnRate, fb, braking = false, tilt = 1) {
     // Flap bursts and glides, like a real pigeon leaving a plaza.
     this.glideTimer -= dt;
     if (this.glideTimer <= 0) {
@@ -827,7 +829,7 @@ export class Pigeon {
     this.body.position.y = BODY_Y + sn * .01 * fw * fb;
     this.body.rotation.set(lerp(-.2, 0, fb), 0, 0, 'YXZ');
     this.body.scale.setScalar(1);
-    for (const leg of this.legs) { leg.rotation.x = lerp(0, 1.25, fb); leg.visible = fb < .7; }
+    for (let i = 0; i < this.legs.length; i++) { const leg = this.legs[i]; leg.rotation.x = lerp(0, 1.25, fb); leg.visible = fb < .7; }
     this.tail.rotation.set(lerp(.08, -.05 + (1 - fw) * .06, fb), 0, 0);
     this.tail.scale.set(lerp(1, lerp(1.25, 1.75, smooth(1, 0, t)), fb), 1, 1);
     this.look *= .9;

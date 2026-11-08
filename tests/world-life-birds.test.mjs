@@ -299,3 +299,80 @@ test('dispose unsubscribes from reactions', () => {
   assert.doesNotThrow(() => emit(reactions, 'bail', { point: new THREE.Vector3(), speed: 5 }));
   assert.equal(reactions.listeners.get('bail').length, 0);
 });
+
+test('a bail beside a standing rider: birds freeze for the flinch (no hop), then flee', () => {
+  const { life, reactions } = rig();
+  const birds = flock(life, new THREE.Vector3(0, 0, -2.6), 3, .45);
+  const s = rider(0, 0, 0);
+  emit(reactions, 'bail', { point: new THREE.Vector3(0, 0, 0), speed: 5 });
+  assert.ok(birds.every(b => b.flinchTime > 0), 'all flinch');
+  const start = birds.map(b => b.root.position.clone());
+  for (let t = 0; t < .35; t += 1 / 60) {
+    life.update(1 / 60, s);
+    assert.ok(birds.every(b => b.action !== 'hop'), 'no hop during the flinch');
+    assert.equal(flying(life).length, 0, 'no take-off during the flinch');
+  }
+  birds.forEach((b, i) => assert.ok(b.root.position.distanceTo(start[i]) < .01, 'frozen in place'));
+  for (let t = 0; t < .15; t += 1 / 60) life.update(1 / 60, s);
+  assert.ok(birds.every(b => b.state === 'alert' || b.state === 'flee'), 'then they flee (within 6 m)');
+  life.dispose();
+});
+
+test('reduced motion: the roost loop is half as wide and deep, flown in the same 3-5 s', () => {
+  const lamps = [lamp(0, 0), lamp(22, 0), lamp(0, 22)];
+  const reach = { false: [], true: [] };
+  for (let run = 0; run < 12; run++) for (const reducedMotion of [false, true]) {
+    const { life, reactions } = rig({ world: 'grand-warehouse', lamps, reducedMotion });
+    const s = rider(40, 40, 0);
+    life.update(1 / 30, s);
+    const bird = perched(life)[0];
+    const p = bird.root.position;
+    emit(reactions, 'landing', { point: new THREE.Vector3(p.x + 2, 0, p.z), severity: 1, surface: 'concrete' });
+    assert.equal(bird.state, 'roost');
+    assert.ok(bird.pathLength - bird.flightTime <= 5 + 1e-6 && bird.pathLength >= 2.7, 'still resettles in 3-5 s');
+    reach[reducedMotion].push(Math.hypot(bird.pathC1.x - bird.pathStart.x, bird.pathC1.z - bird.pathStart.z));
+    reach[reducedMotion].push(bird.pathStart.y - bird.pathC1.y);
+    life.dispose();
+  }
+  const [normal, reduced] = [reach.false, reach.true];
+  // Pairs: [horizontal swing, dip]. Normal swing 4-6 m, dip 0.9 m; reduced 2-3 m, 0.45 m.
+  for (let i = 0; i < normal.length; i += 2) {
+    assert.ok(normal[i] >= 4 - 1e-6 && normal[i] <= 6 + 1e-6, `normal swing ${normal[i]}`);
+    assert.ok(Math.abs(normal[i + 1] - .9) < 1e-6, `normal dip ${normal[i + 1]}`);
+    assert.ok(reduced[i] >= 2 - 1e-6 && reduced[i] <= 3 + 1e-6, `reduced swing ${reduced[i]}`);
+    assert.ok(Math.abs(reduced[i + 1] - .45) < 1e-6, `reduced dip ${reduced[i + 1]}`);
+  }
+});
+
+test('reduced motion: motes part with half the push and still keep 0.8 m clear', () => {
+  const maxOffset = {}, meanOffset = {};
+  for (const reducedMotion of [false, true]) {
+    const { life } = rig({ reducedMotion });
+    const s = rider(0, 0, 12, 0, -12);
+    const a = life.motes.geometry.attributes.position.array, base = life.moteBase;
+    for (let i = 0; i < WORLD_LIFE.moteCount; i++) {
+      base[i * 3] = (Math.random() - .5) * 2; base[i * 3 + 1] = .4 + Math.random(); base[i * 3 + 2] = -Math.random() * 14;
+    }
+    life.moteCenter.set(0, 0, -6);
+    let closest = Infinity, biggest = 0, sum = 0, count = 0;
+    for (let frame = 0; frame < 30; frame++) {
+      s.position.z -= 12 / 30;
+      life.updateMotes(1 / 30, s.position, s);
+      for (let i = 0; i < WORLD_LIFE.moteCount; i++) {
+        const o = life.moteOffset;
+        const m = Math.hypot(o[i * 3], o[i * 3 + 1], o[i * 3 + 2]);
+        biggest = Math.max(biggest, m);
+        if (m > .05) { sum += m; count++; }
+        closest = Math.min(closest, Math.hypot(a[i * 3] - s.position.x, a[i * 3 + 1] - s.position.y - WORLD_LIFE.moteRiderHeight, a[i * 3 + 2] - s.position.z));
+      }
+    }
+    assert.ok(closest >= .8 - 1e-4, `clear of the rider (${closest.toFixed(3)})`);
+    maxOffset[reducedMotion] = biggest; meanOffset[reducedMotion] = sum / count;
+    life.dispose();
+  }
+  assert.ok(maxOffset.false > 1.2, `full push reaches ~1.6 m (${maxOffset.false.toFixed(2)})`);
+  // Half of the 1.6 m push is 0.8 m (a mote whose drift carried it across the line keeps
+  // going the way it was pushed, so it can need ~0.2 m more).
+  assert.ok(maxOffset.true <= 1.05, `reduced push stays near half (${maxOffset.true.toFixed(2)})`);
+  assert.ok(meanOffset.true <= meanOffset.false * .65, `reduced push is about half on average (${meanOffset.true.toFixed(2)} vs ${meanOffset.false.toFixed(2)})`);
+});

@@ -124,6 +124,7 @@ export class WorldLife {
     this._birdCtx = { surface: null, indoor: false };
     this._threatened = [];
     this._scared = [];
+    this._flock = [];
     this._heading = new THREE.Vector3(0, 0, -1);
     this._rel = new THREE.Vector3();
     this._side = new THREE.Vector3();
@@ -256,8 +257,9 @@ export class WorldLife {
    * Warehouse has no roof: the rods end in open air at their (static) top
    * anchor, so a bird stands on the very tip. A second bird on the same rod
    * (only when there are too few rods) squeezes in beside the first.
+   * Positional parameters: reaction handlers call this, so no option objects.
    */
-  settle(bird, lamps, { fly = false, length = 0, delay = 0, swing = 4 } = {}) {
+  settle(bird, lamps, fly = false, length = 0, delay = 0, swing = 4, depth = 1) {
     const index = this.pickPerch(lamps, bird);
     const anchor = lamps[index];
     let angle = rand(0, TAU), shared = false;
@@ -270,7 +272,7 @@ export class WorldLife {
     const spot = this._perch.set(a.x + Math.sin(angle) * r, a.y, a.z + Math.cos(angle) * r);
     bird.perchAnchor = anchor; bird.perchIndex = index; bird.perchAngle = angle;
     // Default flight time: about 5 m/s along the way, 3-6 s.
-    if (fly) return bird.flyToPerch(spot, length || THREE.MathUtils.clamp(bird.root.position.distanceTo(spot) / 5, 3, 6), { delay, swing });
+    if (fly) return bird.flyToPerch(spot, length || THREE.MathUtils.clamp(bird.root.position.distanceTo(spot) / 5, 3, 6), delay, swing, depth);
     bird.perch(spot, rand(0, TAU));
     return true;
   }
@@ -304,15 +306,20 @@ export class WorldLife {
       if (bird.state === 'hidden') this.settle(bird, lamps);
       else if (bird.state === 'idle' && bird.action !== 'hop') {
         // Was waiting on the floor for the anchors: fly up to a rod tip.
-        if (this.settle(bird, lamps, { fly: true, delay: rand(0, .4), swing: 3 }) && this.life?.audio) bird.clapGain = .6;
+        if (this.settle(bird, lamps, true, 0, rand(0, .4), 3) && this.life?.audio) bird.clapGain = .6;
       } else if (bird.state === 'perch' && lamps[bird.perchIndex] !== bird.perchAnchor) this.settle(bird, lamps);
     }
   }
 
-  /** A hard landing or bail near the roost: they flutter round a loop and resettle. */
+  /**
+   * A hard landing or bail near the roost: they flutter round a loop and
+   * resettle. Reduced motion: the loop is half as wide and deep, flown in the
+   * same time (half speed, half amplitude).
+   */
   disturbRoost(point) {
     const lamps = this.enabled && point ? this.perches() : null;
     if (!lamps) return;
+    const scale = this.life?.reducedMotion ? .5 : 1, loop = WORLD_LIFE.roostLoop;
     let n = 0, first = null;
     for (const bird of this.birds) {
       if (bird.state !== 'perch') continue;
@@ -321,7 +328,7 @@ export class WorldLife {
       if (Math.hypot(p.x - point.x, p.z - point.z) > WORLD_LIFE.roostDisturbRadius) continue;
       const delay = n === 0 ? 0 : rand(.06, .3);
       if (n === 0) first = this._featherAt.copy(p);
-      if (!this.settle(bird, lamps, { fly: true, length: rand(...WORLD_LIFE.roostLoop) - delay, delay, swing: rand(4, 6) })) continue;
+      if (!this.settle(bird, lamps, true, rand(loop[0], loop[1]) - delay, delay, rand(4, 6) * scale, scale)) continue;
       if (this.life?.audio) bird.clapGain = n === 0 ? .8 : n === 1 ? .5 : 0;
       n++;
     }
@@ -332,24 +339,38 @@ export class WorldLife {
 
   /** Scare birds near a point (e.g. a landing). */
   disturb(point, radius) {
-    const scared = this.birds.filter(bird => bird.state === 'idle' && bird.root.position.distanceTo(point) < radius);
+    const scared = this._flock;
+    scared.length = 0;
+    for (let i = 0; i < this.birds.length; i++) {
+      const bird = this.birds[i];
+      if (bird.state === 'idle' && bird.root.position.distanceTo(point) < radius) scared.push(bird);
+    }
     this.scatter(scared, point);
   }
 
-  /** The nearest bird bolts at once; the rest follow a beat later, like a real flock. */
+  /**
+   * The nearest bird bolts at once; the rest follow a beat later, like a real
+   * flock. Sorts `birds` in place (nearest first) without allocating.
+   */
   scatter(birds, from) {
     if (!birds.length) return;
-    birds.sort((a, b) => a.root.position.distanceToSquared(from) - b.root.position.distanceToSquared(from));
-    birds.forEach((bird, i) => {
+    for (let i = 1; i < birds.length; i++) {
+      const bird = birds[i], d = bird.root.position.distanceToSquared(from);
+      let j = i - 1;
+      while (j >= 0 && birds[j].root.position.distanceToSquared(from) > d) { birds[j + 1] = birds[j]; j--; }
+      birds[j + 1] = bird;
+    }
+    for (let i = 0; i < birds.length; i++) {
+      const bird = birds[i];
       const delay = i === 0 ? 0 : rand(.04, .1) + i * rand(.03, .07);
-      if (!bird.scare(from, delay)) return;
+      if (!bird.scare(from, delay)) continue;
       if (this.life?.audio) {
         // 3D wing claps, each when that bird actually leaves (keeps the stagger).
         // Only the first three sound, so a flock never floods the life voices.
         bird.clapGain = i === 0 ? 1 : i < 3 ? .55 : 0;
         if (bird.tookOff) this.clap(bird);
       } else this.flapSound(delay, i === 0);
-    });
+    }
     // Now and then a feather comes loose in the scramble.
     if (Math.random() < .55) this.dropFeather(birds[0].root.position);
     if (birds.length > 3 && Math.random() < .35) this.dropFeather(birds[Math.floor(birds.length / 2)].root.position);
@@ -370,7 +391,8 @@ export class WorldLife {
    * path (or straight away from a standing rider), onto flat ground only.
    */
   hopAside(bird, rider, heading, moving, near, surface, reduced) {
-    if (bird.action === 'hop' || !surface?.ground) return;
+    // A flinching bird stays frozen for the flinch (then flees if it was close).
+    if (bird.action === 'hop' || bird.flinchTime > 0 || !surface?.ground) return;
     const position = bird.root.position;
     const rel = this._rel.subVectors(position, rider).setY(0);
     const along = rel.dot(heading);
@@ -386,8 +408,9 @@ export class WorldLife {
       if (lateral < .05) side.set(heading.z * bird.hopSide, 0, -heading.x * bird.hopSide);
       side.normalize().addScaledVector(rel, .35).normalize();
     }
-    const distance = rand(...WORLD_LIFE.hopDistance);
-    const length = rand(...WORLD_LIFE.hopTime) * (reduced ? 2 : 1);
+    const hd = WORLD_LIFE.hopDistance, ht = WORLD_LIFE.hopTime, hc = WORLD_LIFE.hopCooldown;
+    const distance = rand(hd[0], hd[1]);
+    const length = rand(ht[0], ht[1]) * (reduced ? 2 : 1);
     const height = WORLD_LIFE.hopHeight * (reduced ? .5 : 1);
     for (const turn of HOP_TURNS) {
       const target = this._target.copy(side).applyAxisAngle(UP, turn).multiplyScalar(distance).add(position);
@@ -395,14 +418,15 @@ export class WorldLife {
       if (!hit || hit.normal.y < .97 || Math.abs(hit.point.y - position.y) > .06) continue;
       target.y = hit.point.y;
       if (target.distanceTo(rider) < 1.2) continue;
-      bird.hop(target, length, height, rand(...WORLD_LIFE.hopCooldown));
+      bird.hop(target, length, height, rand(hc[0], hc[1]));
       return;
     }
     bird.hopCooldown = .4; // boxed in: try again shortly (it still flies if the rider comes right up)
   }
 
   dropFeather(at) {
-    const feather = this.feathers.find(f => f.life <= 0);
+    let feather = null;
+    for (let i = 0; i < this.feathers.length && !feather; i++) if (this.feathers[i].life <= 0) feather = this.feathers[i];
     if (!feather) return;
     feather.life = rand(3.2, 4.5);
     feather.seed = Math.random() * 10;
@@ -503,14 +527,21 @@ export class WorldLife {
     }
     if (threatened.length) {
       // Their flock-mates react too, a moment later.
-      const flock = this.birds.filter(b => b.state === 'idle' && (threatened.includes(b) ||
-        threatened.some(t => t.root.position.distanceTo(b.root.position) < WORLD_LIFE.flockRadius * 2.5)));
+      const flock = this._flock, reach = WORLD_LIFE.flockRadius * 2.5;
+      flock.length = 0;
+      for (let i = 0; i < this.birds.length; i++) {
+        const b = this.birds[i];
+        if (b.state !== 'idle') continue;
+        for (let k = 0; k < threatened.length; k++) {
+          if (threatened[k] === b || threatened[k].root.position.distanceTo(b.root.position) < reach) { flock.push(b); break; }
+        }
+      }
       this.scatter(flock, p);
     }
     this.updateFeathers(dt);
     if (alive === 0) {
       this.flockTimer -= dt;
-      if (this.flockTimer <= 0) { this.spawnFlock(skater); this.flockTimer = rand(...WORLD_LIFE.respawnDelay); }
+      if (this.flockTimer <= 0) { this.spawnFlock(skater); this.flockTimer = rand(WORLD_LIFE.respawnDelay[0], WORLD_LIFE.respawnDelay[1]); }
     }
 
     this.updateMotes(dt, camera?.position || p, skater);
@@ -550,7 +581,9 @@ export class WorldLife {
   partMotes(dt, skater, out) {
     const base = this.moteBase, off = this.moteOffset, n = WORLD_LIFE.moteCount;
     const R = WORLD_LIFE.motePartRadius, min = WORLD_LIFE.motePartMin;
-    const kIn = 1 - Math.exp(-dt / WORLD_LIFE.motePartEase), kOut = 1 - Math.exp(-dt / WORLD_LIFE.moteReturnEase);
+    // Reduced motion: half the push, eased in at half the speed.
+    const reduced = Boolean(this.life?.reducedMotion), amplitude = reduced ? .5 : 1;
+    const kIn = 1 - Math.exp(-dt / (WORLD_LIFE.motePartEase * (reduced ? 2 : 1))), kOut = 1 - Math.exp(-dt / WORLD_LIFE.moteReturnEase);
     const speed = Math.abs(Number(skater?.speed) || 0);
     const parting = speed > WORLD_LIFE.motePartSpeed && skater?.position;
     let rx = 0, ry = 0, rz = 0, hx = 0, hy = 0, hz = -1, reach = 0;
@@ -587,7 +620,7 @@ export class WorldLife {
             const s = this.moteSeeds[i];
             qx = side.x * Math.cos(s) + up.x * Math.sin(s); qy = side.y * Math.cos(s) + up.y * Math.sin(s); qz = side.z * Math.cos(s) + up.z * Math.sin(s);
           } else { qx /= q; qy /= q; qz /= q; }
-          const push = Math.max(0, R - (dx * qx + dy * qy + dz * qz));
+          const push = Math.max(0, R - (dx * qx + dy * qy + dz * qz)) * amplitude;
           tx = qx * push; ty = qy * push; tz = qz * push;
         }
       }
@@ -624,7 +657,7 @@ export class WorldLife {
     }
     this.flickerTimer -= dt;
     if (this.flickerTimer > 0) return;
-    this.flickerTimer = rand(...WORLD_LIFE.flickerEvery);
+    this.flickerTimer = rand(WORLD_LIFE.flickerEvery[0], WORLD_LIFE.flickerEvery[1]);
     const material = this.flicker[Math.floor(Math.random() * this.flicker.length)];
     const patterns = [[.2, 1, .25, 1], [.35, .8, .15, 1, .5, 1], [.1, 1]];
     this.activeFlicker = { material, base: material.emissiveIntensity, pattern: patterns[Math.floor(Math.random() * patterns.length)], t: 0 };
@@ -688,7 +721,7 @@ export class WorldLife {
     if (!this.outdoor) return;
     this.carTimer -= dt;
     if (this.carTimer > 0) return;
-    this.carTimer = rand(...WORLD_LIFE.carEvery);
+    this.carTimer = rand(WORLD_LIFE.carEvery[0], WORLD_LIFE.carEvery[1]);
     const ctx = this.audioContext();
     if (!ctx) return;
     // A distant car: filtered rumble that swells and fades while panning across.
