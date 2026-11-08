@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as THREE from 'three';
 import { TransitionController } from '../src/game/transitions/TransitionController.js';
-import { HANDPLANT, HandplantSkillStreetPhysics } from '../src/game/HandplantSkillStreetPhysics.js';
+import { HANDPLANT, HandplantSkillStreetPhysics, handplantHoldBonus } from '../src/game/HandplantSkillStreetPhysics.js';
 import { handplantFor, HANDPLANT_TRICKS } from '../src/game/TrickCatalog.js';
 
 const DT = 1 / 120;
@@ -115,6 +115,33 @@ test('releasing Grab pushes off with a 180 into a guided return flight', () => {
   assert.ok(Math.abs(Math.abs(s.heading) - Math.PI) < 1e-6);
   assert.ok(s.handplantRejoin > 0, 'feet are still finding the board');
   assert.ok(log.events.includes('handplantRelease'));
+});
+
+test('ignoring the meter falls fast; the plant gets harder the longer it is held', () => {
+  const lazy = rider();
+  lazy.s.beginHandplant();
+  let t = 0;
+  for (; t < HANDPLANT.maxHold && lazy.s.handplant; t += DT) lazy.s.stepHandplant(DT, { grabHeld: true });
+  assert.ok(t < 1.8, `no correction should fall within ~1.5 s, took ${t.toFixed(2)} s`);
+});
+
+test('a clean release after a long balance pays a growing hold bonus', () => {
+  assert.equal(handplantHoldBonus(0.6), 0, 'quick taps earn no bonus');
+  assert.ok(handplantHoldBonus(2) > handplantHoldBonus(1) && handplantHoldBonus(3) > handplantHoldBonus(2) * 1.5, 'longer holds pay more than linearly');
+  assert.ok(handplantHoldBonus(3) < 400, 'a little bonus, not a jackpot');
+  const { s, log } = rider();
+  s.beginHandplant();
+  hold(s, HANDPLANT.plantTime + 2, balanced);
+  assert.ok(s.handplant, 'steady correction holds 2 s');
+  const before = log.duration;
+  s.stepHandplant(DT, { grabHeld: false });
+  assert.ok(log.duration - before >= handplantHoldBonus(2) - 1, 'bonus added to the plant on release');
+  assert.match(s.feedback, /HOLD \+\d+/);
+  const failed = rider();
+  failed.s.beginHandplant();
+  failed.s.handplant.holdTime = 3;
+  failed.s.failHandplant();
+  assert.equal(failed.s.feedback, undefined, 'a bail earns no hold bonus');
 });
 
 test('touching down before the feet are back on the board bails', () => {

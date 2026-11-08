@@ -16,13 +16,23 @@ export const HANDPLANT = Object.freeze({
   maxHold: 6,
   lean: 0.5,           // body lean (rad) at the edge of the balance meter
   bodyAngle: Math.PI / 2 + 0.26, // balanced: head hangs a little over the ramp side
-  difficulty: 1.1,
+  difficulty: 1.7,
+  difficultyGrowth: 0.2, // per second held: long plants get harder
+  wobble: 0.35,          // a shove to the balance about once a second
+  bonusFrom: 1,          // clean releases after this many seconds earn a hold bonus
+  bonusScale: 40,        // bonus = scale × seconds^1.7 (≈130 at 2 s, 260 at 3 s)
   exitHeight: 0.4,     // where the board is when the rider lets go
   exitInward: 0.36,
   exitUp: 2.3,         // small pop off the coping: the trick window
   exitIn: 0.55,
   rejoin: 0.16,        // feet still finding the board: touching down now bails
 });
+
+/** Bonus points for a clean release after holding `seconds` upside down. */
+export function handplantHoldBonus(seconds) {
+  if (!(seconds >= HANDPLANT.bonusFrom)) return 0;
+  return Math.round(HANDPLANT.bonusScale * seconds ** 1.7);
+}
 
 const smooth = t => { t = clamp(t, 0, 1); return t * t * (3 - 2 * t); };
 const stripAirTricks = events => ({ ...events, flip: null, flipUpgrade: null, grab: null, grind: null, grindChange: null, manual: null, flatland: null });
@@ -109,7 +119,7 @@ export class HandplantSkillStreetPhysics extends StatefulSkillStreetPhysics {
     // A fast entry swings over harder and starts shakier.
     disturbBalance(balanceState, clamp((swing - 5) / 6, 0, 0.6));
     this.handplant = {
-      phase: 'plant', time: 0, holdTime: 0, air, frame, variant,
+      phase: 'plant', time: 0, holdTime: 0, nextWobble: 0.7, air, frame, variant,
       inward,
       axis: inward.clone().cross(DOWN).normalize(),
       hand: frame.lipPoint.clone().addScaledVector(UP, 0.09),
@@ -144,9 +154,13 @@ export class HandplantSkillStreetPhysics extends StatefulSkillStreetPhysics {
       if (hp.phase === 'plant' && hp.time >= HANDPLANT.plantTime) hp.phase = 'hold';
       if (hp.phase === 'hold') {
         hp.holdTime += dt;
+        if (hp.holdTime >= hp.nextWobble) {
+          disturbBalance(hp.balanceState, HANDPLANT.wobble);
+          hp.nextWobble += 0.85 + ((hp.holdTime * 7.31) % 1) * 0.5;
+        }
         const result = stepBalance(hp.balanceState, {
           dt, duration: hp.holdTime, rail: true,
-          difficulty: HANDPLANT.difficulty,
+          difficulty: HANDPLANT.difficulty * (1 + hp.holdTime * HANDPLANT.difficultyGrowth),
           correction: clamp(input.drive || 0, -1, 1),
         });
         hp.balance = result.value;
@@ -169,6 +183,14 @@ export class HandplantSkillStreetPhysics extends StatefulSkillStreetPhysics {
     hp.releaseAngle = hp.angle;
     hp.releaseFrom = this.position.clone();
     hp.exit = hp.hand.clone().addScaledVector(hp.inward, HANDPLANT.exitInward).addScaledVector(UP, HANDPLANT.exitHeight);
+    // A clean release after a long balance earns a hold bonus on the plant.
+    const bonus = handplantHoldBonus(hp.holdTime);
+    if (bonus > 0 && this.tricks) {
+      this.tricks.addDuration(bonus, hp.scoreEntry);
+      hp.bonus = bonus;
+      this.feedback = `${hp.variant.name} · ${hp.holdTime.toFixed(1)}s HOLD +${bonus}`;
+      this.feedbackTime = 2.2;
+    }
     this.emitGameplayEvent('handplantRelease', { name: hp.variant.name, held: hp.holdTime });
   }
 
