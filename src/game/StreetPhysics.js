@@ -650,8 +650,12 @@ export class StreetPhysics {
     const finite = Number.isFinite(this.position.lengthSq()) && Number.isFinite(this.velocity.lengthSq()) && Number.isFinite(this.heading);
     if (this.position.y >= -6 && finite) return false;
     const score = Number.isFinite(this.score) ? this.score : 0;
+    const respawnSerial = this.respawnSerial || 0;
     this.reset();
     this.score = score;
+    // Announce the respawn like every other respawn path, so the camera snaps
+    // to the new spot and drills/audio/highlights treat it as a new life.
+    this.respawnSerial = respawnSerial + 1;
     return true;
   }
 

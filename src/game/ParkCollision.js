@@ -25,6 +25,12 @@ export class ParkCollision {
     this._cameraHits = [];
     this._cameraRay = new THREE.Raycaster();
     this._cameraRay.firstHitOnly = true;
+    // Broad phase for camera probes: world bounds per camera mesh, refreshed
+    // only when that mesh's world matrix changes.
+    this.cameraBroadphase = true;
+    this._cameraBounds = new Map();
+    this._cameraCandidates = [];
+    this._cameraSweep = new THREE.Box3();
     this._direction = new THREE.Vector3();
     this._motion = new THREE.Vector3();
     this._origin = new THREE.Vector3();
@@ -383,9 +389,36 @@ export class ParkCollision {
     return null;
   }
 
+  /**
+   * Camera meshes whose world bounds touch the swept probe volume (both ends
+   * grown by the probe radius). A mesh outside it cannot be hit by any of the
+   * five probe rays within their length, so nearest hits are unchanged. The
+   * camera search can run ~90 probes in a blocked frame; testing all park
+   * meshes per ray (each inverting its matrix) cost up to ~18 ms on Paradise.
+   */
+  cameraCandidates(from, desired, radius) {
+    if (!this.cameraBroadphase) return this.cameraMeshes;
+    const sweep = this._cameraSweep.makeEmpty().expandByPoint(from).expandByPoint(desired).expandByScalar(radius + 1e-3);
+    const out = this._cameraCandidates; out.length = 0;
+    for (const mesh of this.cameraMeshes) {
+      let entry = this._cameraBounds.get(mesh);
+      if (!entry || !entry.matrix.equals(mesh.matrixWorld)) {
+        const geometry = mesh.geometry;
+        if (!geometry.boundingBox) geometry.computeBoundingBox();
+        entry ||= { box: new THREE.Box3(), matrix: new THREE.Matrix4() };
+        entry.box.copy(geometry.boundingBox).applyMatrix4(mesh.matrixWorld);
+        entry.matrix.copy(mesh.matrixWorld);
+        this._cameraBounds.set(mesh, entry);
+      }
+      if (entry.box.intersectsBox(sweep)) out.push(mesh);
+    }
+    return out;
+  }
+
   camera(from, desired, radius = 0.28) {
     const d = desired.clone().sub(from);
     if (d.lengthSq() < 1e-8) return desired;
+    const meshes = this.cameraCandidates(from, desired, radius);
     const length = d.length(), direction = d.clone().normalize();
     const right = new THREE.Vector3().crossVectors(direction, UP);
     if (right.lengthSq() < 1e-8) right.set(1, 0, 0);
@@ -399,7 +432,7 @@ export class ParkCollision {
       up.clone().multiplyScalar(-radius)]) {
       this._cameraRay.set(from.clone().add(offset), direction); this._cameraRay.far = length;
       this._cameraHits.length = 0;
-      let hit = this._cameraRay.intersectObjects(this.cameraMeshes, false, this._cameraHits)[0];
+      let hit = meshes.length ? this._cameraRay.intersectObjects(meshes, false, this._cameraHits)[0] : undefined;
       // During a ramp-wall landing the camera anchor can begin *inside*
       // a thin solid. The very first ray hit is then an EXIT face, not an
       // occluder between the rider and the chase eye. Ignoring only a nearby
@@ -409,7 +442,7 @@ export class ParkCollision {
       if (hit && hit.distance < nearExit && this.normal(hit, this._normal).dot(direction) > 0.45) {
         this._cameraRay.firstHitOnly = false;
         this._cameraHits.length = 0;
-        const hits = this._cameraRay.intersectObjects(this.cameraMeshes, false, this._cameraHits);
+        const hits = this._cameraRay.intersectObjects(meshes, false, this._cameraHits);
         hit = hits.find(candidate => !(candidate.distance < nearExit
           && this.normal(candidate, this._normal).dot(direction) > 0.45));
         this._cameraRay.firstHitOnly = true;

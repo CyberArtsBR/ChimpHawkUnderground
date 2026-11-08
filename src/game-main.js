@@ -1083,7 +1083,18 @@ renderer.domElement.addEventListener('webglcontextlost', event => {
 setExploreView('overview', true);
 loadGame();
 
-renderer.setAnimationLoop(() => {
+// One frame of the game. Called through the guarded loop below: three.js
+// schedules the next frame only after this returns, so an uncaught exception
+// in any subsystem used to freeze the game until reload.
+let frameErrors = 0;
+function reportFrameError(error) {
+  frameErrors++;
+  if (frameErrors <= 5 || frameErrors % 600 === 0)
+    console.error(`[StreetSkate] frame error #${frameErrors}; the loop keeps running.`, error);
+  try { frameMetrics.suspend(); } catch {}
+}
+renderer.setAnimationLoop(() => { try { gameFrame(); } catch (error) { reportFrameError(error); } });
+function gameFrame() {
   const realDelta = clock.getDelta();
   const dt = Math.min(realDelta, 0.1);
   const elapsed = clock.elapsedTime;
@@ -1231,4 +1242,4 @@ renderer.setAnimationLoop(() => {
       document.body.append(image);
     }
   }
-});
+}
