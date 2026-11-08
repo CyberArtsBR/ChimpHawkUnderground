@@ -72,6 +72,8 @@
   mask: repeating-linear-gradient(90deg, #000 0 9px, transparent 9px 12px);
   filter: drop-shadow(0 0 4px rgba(126, 220, 255, .5));
   transition: background-size .12s linear;
+  /* Own layer: gauge updates repaint only this strip, not the whole panel. */
+  will-change: transform;
 }
 .skate-hud.speed-hot {
   border-color: rgba(255, 90, 160, .75) !important;

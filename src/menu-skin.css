@@ -5,7 +5,10 @@
    spot selection cards keep their own look. */
 
 :root {
-  --skin-grip: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.1' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 .55 0'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)'/%3E%3C/svg%3E");
+  /* Grip noise, pre-rendered from the original feTurbulence SVG (2026-11
+     performance pass): the live SVG filter was re-rasterized on every HUD
+     repaint and caused 30-60 ms hitches. Same look at 1x and 2x. */
+  --skin-grip: image-set(url('./ui/grip-noise@2x.webp') 2x);
   --skin-ink: #120a1c;
   --skin-deck: linear-gradient(180deg, #33264a 0%, #221933 55%, #1a1328 100%);
   --skin-deck-edge: #0b0712;

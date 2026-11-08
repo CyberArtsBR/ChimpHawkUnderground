@@ -11,7 +11,10 @@ import { BokehPass } from 'three/addons/postprocessing/BokehPass.js';
 import { AfterimagePass } from 'three/addons/postprocessing/AfterimagePass.js';
 import { resolveGraphicsSettings, resolveRenderPixelRatio, validateRenderAllocation } from './GraphicsSettings.js';
 import { normalizeGlowOverrides, resolveGlowTuning } from './GlowTuning.js';
-import { MapContactDepthPass } from './MapContactDepthPass.js';
+import { MapContactDepthPass, contactDepthExcludes } from './MapContactDepthPass.js';
+import { StaticPassProxy } from './StaticPassProxy.js';
+import { Pass, FullScreenQuad } from 'three/addons/postprocessing/Pass.js';
+import { CopyShader } from 'three/addons/shaders/CopyShader.js';
 
 // Five-tap contrast-adaptive sharpening: edge-adaptive, avoids amplifying
 // flat-area noise, and is deliberately cheaper than a full extra AA algorithm.
@@ -107,6 +110,76 @@ const SELECTIVE_BLOOM_COMPOSITE = {
   `,
 };
 
+/** Map LEDs and grind lights keep their own material in the glow mask. */
+export function isEnvironmentGlowMesh(object) {
+  if (!object?.isMesh) return false;
+  const materials = Array.isArray(object.material) ? object.material : [object.material];
+  return materials.some(material => /^(LED|Grind) \/ /.test(material?.name || '') && material.emissive?.getHex?.() > 0);
+}
+
+/**
+ * Fog that keeps its shader variant but adds nothing: the glow mask must not be
+ * fogged, and switching scene.fog off made three.js re-pick every material's
+ * shader twice per frame.
+ */
+export function neutralizeFog(fog) {
+  if (!fog?.isFog && !fog?.isFogExp2) return null;
+  const saved = fog.isFogExp2 ? { density: fog.density } : { near: fog.near, far: fog.far };
+  if (fog.isFogExp2) fog.density = 0;
+  else { fog.near = 1e9; fog.far = 2e9; }
+  return () => Object.assign(fog, saved);
+}
+
+/**
+ * Main scene pass with its own anti-aliased target (2026-11 performance pass).
+ * Only the 3D scene needs MSAA; the full-screen effects after it run on plain
+ * targets instead of resolving four samples per pixel each time.
+ */
+export class MsaaRenderPass extends Pass {
+  constructor(scene, camera) {
+    super();
+    this.inner = new RenderPass(scene, camera);
+    this.needsSwap = false;
+    this.samples = 0;
+    this.target = null;
+    this.width = 1; this.height = 1;
+    this.copyMaterial = new THREE.ShaderMaterial({
+      uniforms: THREE.UniformsUtils.clone(CopyShader.uniforms),
+      vertexShader: CopyShader.vertexShader, fragmentShader: CopyShader.fragmentShader,
+      blending: THREE.NoBlending, depthTest: false, depthWrite: false,
+    });
+    this.quad = new FullScreenQuad(this.copyMaterial);
+  }
+  get scene() { return this.inner.scene; }
+  get camera() { return this.inner.camera; }
+  setSamples(samples) {
+    samples = Math.max(0, samples | 0);
+    if (samples === this.samples) return;
+    this.samples = samples;
+    this.target?.dispose();
+    this.target = samples > 0 ? new THREE.WebGLRenderTarget(this.width, this.height, {
+      type: THREE.HalfFloatType, depthBuffer: true, stencilBuffer: false, samples,
+    }) : null;
+  }
+  setSize(width, height) {
+    this.width = width; this.height = height;
+    this.target?.setSize(width, height);
+  }
+  render(renderer, writeBuffer, readBuffer, deltaTime, maskActive) {
+    if (!this.target) {
+      this.inner.renderToScreen = this.renderToScreen;
+      this.inner.render(renderer, writeBuffer, readBuffer, deltaTime, maskActive);
+      return;
+    }
+    this.inner.renderToScreen = false;
+    this.inner.render(renderer, writeBuffer, this.target, deltaTime, maskActive);
+    this.copyMaterial.uniforms.tDiffuse.value = this.target.texture;
+    renderer.setRenderTarget(this.renderToScreen ? null : readBuffer);
+    this.quad.render(renderer);
+  }
+  dispose() { this.target?.dispose(); this.copyMaterial.dispose(); this.quad.dispose(); }
+}
+
 export class GraphicsPipeline {
   constructor(renderer, scene, camera) {
     this.renderer = renderer;
@@ -126,7 +199,8 @@ export class GraphicsPipeline {
       stencilBuffer: false,
     });
     this.composer = new EffectComposer(renderer, target);
-    this.composer.addPass(new RenderPass(scene, camera));
+    this.scenePass = new MsaaRenderPass(scene, camera);
+    this.composer.addPass(this.scenePass);
     this.ssr = null; // Heavy pass is allocated only on an SSR-enabled preset.
     this.contactDepth = null;
 
@@ -153,6 +227,10 @@ export class GraphicsPipeline {
     this.shadowWorldPosition = new THREE.Vector3();
     this.wheelContactShadows = new WheelContactShadows();
     scene.add(this.wheelContactShadows.mesh);
+    // Merged park copies for the glow mask, shadows and contact shading.
+    this.passProxy = new StaticPassProxy(scene);
+    this.passProxyDirty = true;
+    this.wrapShadowMap();
 
     this.bloomComposite = new ShaderPass(SELECTIVE_BLOOM_COMPOSITE);
     this.bloomComposite.enabled = false;
@@ -164,6 +242,37 @@ export class GraphicsPipeline {
     this.composer.addPass(this.grade);
     this.world = null;
     this.settings = null;
+  }
+
+  /**
+   * The shadow map draws the merged park copy instead of every park mesh.
+   * Only a real shadow update is swapped; skipped updates cost nothing.
+   */
+  wrapShadowMap() {
+    const shadowMap = this.renderer?.shadowMap;
+    if (!shadowMap?.render || shadowMap.render.passProxyWrapped) return;
+    const original = shadowMap.render;
+    const pipeline = this;
+    const render = function (lights, scene, camera) {
+      const proxy = pipeline.passProxy;
+      const swap = Boolean(proxy && !proxy.active && scene === pipeline.scene && this.enabled &&
+        (this.autoUpdate || this.needsUpdate) && lights?.length && proxy.begin('shadow'));
+      try { return original.call(this, lights, scene, camera); }
+      finally { if (swap) proxy.end(); }
+    };
+    render.passProxyWrapped = true;
+    shadowMap.render = render;
+  }
+
+  rebuildPassProxy() {
+    this.passProxyDirty = false;
+    if (!this.passProxy) return;
+    this.passProxy.build(this.world, {
+      occluderMaterial: this.blackoutMaterial,
+      glowMesh: object => Boolean(this.world?.userData?.environmentBloom) && isEnvironmentGlowMesh(object),
+      normalExcluded: contactDepthExcludes,
+      clipping: Boolean(this.renderer?.localClippingEnabled),
+    });
   }
 
   /**
@@ -232,6 +341,7 @@ export class GraphicsPipeline {
 
   setWorld(world) {
     this.world = world;
+    this.passProxyDirty = true;
     this.bloomSceneMeshes = null;
     this.shadowAnchor = null;
     this.configureContactDepth();
@@ -261,6 +371,7 @@ export class GraphicsPipeline {
       this.composer.removePass(this.contactDepth);this.contactDepth.dispose();this.contactDepth=null;
     } else if(enabled&&!this.contactDepth) {
       this.contactDepth=new MapContactDepthPass(this.scene,this.camera);
+      this.contactDepth.passProxy=this.passProxy;
       this.composer.insertPass(this.contactDepth,1);
     }
     if(this.contactDepth) {
@@ -280,20 +391,20 @@ export class GraphicsPipeline {
     if (!this.glowRoot?.parent || !this.renderer?.compileAsync || !this.bloomComposer) return Promise.resolve();
     this.refreshBloomSceneCache();
     const roots = [this.glowRoot, ...this.bloomEnvironmentEmissives];
-    const fog = this.scene.fog, previous = this.renderer.getRenderTarget();
-    // Mirror renderSelectiveBloom exactly: fog off and the effects (with the
-    // grind spark light), reflections and contact patch hidden. Light count and
-    // fog are part of the shader variant.
+    const previous = this.renderer.getRenderTarget();
+    // Mirror renderSelectiveBloom exactly: fog neutralized (same variant) and
+    // the effects (with the grind spark light), reflections and contact patch
+    // hidden. Light count is part of the shader variant.
     const hidden = [this.effectsRoot, this.reflectionRoot, this.wheelContactShadows?.mesh].filter(o => o?.visible);
     const pending = [];
+    const restoreFog = neutralizeFog(this.scene.fog);
     try {
-      this.scene.fog = null;
       for (const object of hidden) object.visible = false;
       this.renderer.setRenderTarget(this.bloomComposer.readBuffer);
       // compile() runs synchronously here; only completion is awaited later.
       for (const root of roots) pending.push(this.renderer.compileAsync(root, this.camera, this.scene));
     } finally {
-      this.scene.fog = fog;
+      restoreFog?.();
       for (const object of hidden) object.visible = true;
       this.renderer.setRenderTarget(previous);
     }
@@ -305,12 +416,7 @@ export class GraphicsPipeline {
     this.scene.traverse(object => { if (object.isMesh) meshes.push(object); });
     const environmentEmissives = [];
     if (this.world?.userData.environmentBloom) {
-      this.world.traverse(object => {
-        if (!object.isMesh) return;
-        const materials = Array.isArray(object.material) ? object.material : [object.material];
-        if (materials.some(material => /^(LED|Grind) \/ /.test(material?.name || '') &&
-          material.emissive?.getHex?.() > 0)) environmentEmissives.push(object);
-      });
+      this.world.traverse(object => { if (isEnvironmentGlowMesh(object)) environmentEmissives.push(object); });
     }
     this.bloomSceneMeshes = meshes;
     this.bloomEnvironmentEmissives = environmentEmissives;
@@ -394,7 +500,7 @@ export class GraphicsPipeline {
     // allocating one [mesh, material] pair per mesh at 144 Hz creates needless GC.
     const replaced = this.bloomReplacements ??= [];
     const originalBackground = this.scene.background;
-    const originalFog = this.scene.fog;
+    let restoreFog = null, proxied = false;
     const originalOverride = this.scene.overrideMaterial;
     const shadowAutoUpdate = this.renderer.shadowMap.autoUpdate;
     const contactMesh = this.wheelContactShadows?.mesh;
@@ -406,7 +512,7 @@ export class GraphicsPipeline {
       // per frame merely to produce a small actor-only glow mask.
       this.renderer.shadowMap.autoUpdate = false;
       this.scene.background = null;
-      this.scene.fog = null;
+      restoreFog = neutralizeFog(this.scene.fog);
       this.scene.overrideMaterial = null;
       // Contact patches darken receivers only. Their quad must not become an
       // opaque depth-writing square when the bloom mask blacks out the scene.
@@ -417,8 +523,10 @@ export class GraphicsPipeline {
       // Planar reflections re-render the scene; never inside the glow mask pass.
       if (this.reflectionRoot) this.reflectionRoot.visible = false;
       // Dark geometry still writes depth: rider bloom cannot appear through walls.
+      // Static park meshes are drawn as a few merged black cells instead.
+      proxied = Boolean(this.passProxy?.begin('occluder'));
       for (const object of this.bloomSceneMeshes) {
-        if (allowed.has(object)) continue;
+        if (object.visible === false || allowed.has(object)) continue;
         replaced.push(object, object.material);
         object.material = this.blackoutMaterial;
       }
@@ -431,8 +539,9 @@ export class GraphicsPipeline {
     } finally {
       for (let i = 0; i < replaced.length; i += 2) replaced[i].material = replaced[i + 1];
       replaced.length = 0;
+      if (proxied) this.passProxy.end();
       this.scene.background = originalBackground;
-      this.scene.fog = originalFog;
+      restoreFog?.();
       this.scene.overrideMaterial = originalOverride;
       this.renderer.shadowMap.autoUpdate = shadowAutoUpdate;
       if (contactMesh) contactMesh.visible = contactVisible;
@@ -547,6 +656,7 @@ export class GraphicsPipeline {
     this.cas.uniforms.strength.value = settings.sharpen;
     this.shadowAnchor = null;
     this.updateMaterials();
+    this.passProxyDirty = true;
     if(this.resize(this.width, this.height)===false)throw new Error('Render target allocation failed');
     return settings;
   }
@@ -625,9 +735,13 @@ export class GraphicsPipeline {
     const sw = Math.max(1, Math.round(this.width * this.settings.pixelRatio));
     const sh = Math.max(1, Math.round(this.height * this.settings.pixelRatio));
     const samples = this.settings.msaaSamples;
+    // MSAA belongs to the scene pass alone; effect targets stay single-sample.
+    const sceneMsaa = Boolean(this.scenePass?.setSamples);
+    if (sceneMsaa) this.scenePass.setSamples(samples);
+    const effectSamples = sceneMsaa ? 0 : samples;
     for(const target of [this.composer.renderTarget1,this.composer.renderTarget2]) {
-      if(target.samples!==samples) {
-        target.samples=samples;
+      if(target.samples!==effectSamples) {
+        target.samples=effectSamples;
         // Existing framebuffer storage must be rebuilt when sample count
         // changes, even if a 1× DPR display keeps the same dimensions.
         target.dispose();
@@ -647,8 +761,14 @@ export class GraphicsPipeline {
     // or actual emission. Ordinary frames allocate no extra collection here.
     const warmupMaterials=warmup&&contactSource?.board?.wheelGlow?.length
       ? new Set(contactSource.board.wheelGlow.map(entry=>entry.material)) : null;
+    const scene = this.scene, matrixAuto = scene.matrixWorldAutoUpdate;
     try {
       this.updateContactShadows();
+      if (this.passProxyDirty && this.world) this.rebuildPassProxy();
+      this.passProxy?.update();
+      // Nothing moves between this frame's passes: update world matrices once
+      // instead of once per scene render (glow, contact shading, main, reflection).
+      if (matrixAuto !== false && scene.updateMatrixWorld) { scene.updateMatrixWorld(); scene.matrixWorldAutoUpdate = false; }
       // Performance and 144 FPS with glow disabled use one scene pass. The
       // canvas retains hardware AA, ACES tone mapping and output conversion.
       if (!this.settings.postProcessing) {
@@ -665,12 +785,18 @@ export class GraphicsPipeline {
     } catch (error) {
       console.warn('Post-processing failed; disabling it for stable skating.', error);
       this.faulted = true;
+      this.passProxy?.end();
+      scene.matrixWorldAutoUpdate = matrixAuto;
       this.renderer.setRenderTarget(null);
       this.renderer.render(this.scene, this.camera);
+    } finally {
+      scene.matrixWorldAutoUpdate = matrixAuto;
     }
   }
 
   dispose() {
+    this.passProxy?.dispose();
+    this.scenePass?.dispose?.();
     this.wheelContactShadows?.dispose();
     this.ssr?.dispose();
     this.contactDepth?.dispose();

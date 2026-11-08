@@ -6,6 +6,7 @@ import { Reflector } from 'three/addons/objects/Reflector.js';
  * (not the Grand Warehouse: too heavy there). The reflector copies only the floor mesh's
  * flat, level triangles (so bowls and floor holes stay open), sits a hair
  * above it and blends in faintly, stronger at grazing angles. High+ presets.
+ * It refreshes every other frame without MSAA (performance pass, 2026-11).
  */
 const REFLECTIONS = {
   orbit: { match: name => name === 'Ceramic / silver riding concrete', opacity: .34, tint: '#bcd4ff' },
@@ -99,6 +100,8 @@ export class FloorReflections {
       const reflector = new Reflector(geometry, {
         textureWidth: Math.max(256, Math.round(this.size.x * .5)), textureHeight: Math.max(256, Math.round(this.size.y * .5)),
         color: new THREE.Color(spec.tint), clipBias: .003, shader: ReflectionShader,
+        // Faint (34%) and fresnel-blended: 4x MSAA here cost ~1 ms and could not be seen.
+        multisample: 0,
       });
       reflector.rotation.x = -Math.PI / 2;
       reflector.material.transparent = true;
@@ -106,6 +109,12 @@ export class FloorReflections {
       reflector.material.uniforms.opacity.value = spec.opacity;
       reflector.renderOrder = 1;
       reflector.name = 'Floor reflection';
+      // The mirrored scene is a full extra render of the park (~3 ms on ORBIT).
+      // At 34% opacity a reflection one frame old cannot be seen, so refresh it
+      // every other frame and reuse the previous image in between.
+      const refresh = reflector.onBeforeRender;
+      let frame = 0;
+      reflector.onBeforeRender = function (...args) { if ((frame++ & 1) === 0) refresh.apply(this, args); };
       this.root.add(reflector);
     }
   }

@@ -4,5 +4,5 @@ import * as THREE from 'three';
 // from both sides, just as their double-sided visible materials do.
 export function createBloomOccluderMaterial() {
   return new THREE.MeshBasicMaterial({ color:0x000000, side:THREE.DoubleSide,
-    depthTest:true, depthWrite:true, toneMapped:false });
+    depthTest:true, depthWrite:true, toneMapped:false, fog:false });
 }

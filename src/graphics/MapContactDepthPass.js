@@ -7,6 +7,15 @@ export function contactDepthResolution(width,height,scale=.6) {
   return [Math.max(1,Math.round(w*ratio)),Math.max(1,Math.round(h*ratio))];
 }
 
+/** Objects the contact-shading G-buffer leaves out (skies, decals, alpha effects). */
+export function contactDepthExcludes(object) {
+  if(object.userData?.skateEffects)return true;
+  if(!object.isMesh)return false;
+  const list=Array.isArray(object.material)?object.material:[object.material];
+  return object.userData?.streetSkateRole==='sky'||list.some(m=>m&&
+    (!m.depthWrite||(m.transparent&&m.opacity<1)||m.isMeshBasicMaterial));
+}
+
 /** Local contact shading, without temporal accumulation or reflection history.
  * The capped G-buffer deliberately excludes skies, decals and alpha effects.
  */
@@ -32,13 +41,7 @@ export class MapContactDepthPass extends GTAOPass {
     this.dynamicRoots=next;this.exclusions.length=0;this.exclusionsAge=120;
   }
 
-  excludes(object) {
-    if(object.userData?.skateEffects)return true;
-    if(!object.isMesh)return false;
-    const list=Array.isArray(object.material)?object.material:[object.material];
-    return object.userData?.streetSkateRole==='sky'||list.some(m=>m&&
-      (!m.depthWrite||(m.transparent&&m.opacity<1)||m.isMeshBasicMaterial));
-  }
+  excludes(object) { return contactDepthExcludes(object); }
 
   setSize(width,height) {
     const [w,h]=contactDepthResolution(width,height,this.resolutionScale??.6);
@@ -63,10 +66,12 @@ export class MapContactDepthPass extends GTAOPass {
     for(const object of this.exclusions)if(object.visible){object.visible=false;this.excluded.push(object);}
     for(const root of this.dynamicRoots)root.traverse(object=>{
       if(object.visible&&this.excludes(object)){object.visible=false;this.excluded.push(object);}
-    });
+    });    // Static park meshes render as a few merged cells with the same normals.
+    this.proxyActive=Boolean(this.passProxy?.begin('normal'));
   }
 
   _restoreVisibility() {
+    if(this.proxyActive){this.passProxy.end();this.proxyActive=false;}
     super._restoreVisibility();
     for(const object of this.excluded)object.visible=true;
     this.excluded.length=0;
