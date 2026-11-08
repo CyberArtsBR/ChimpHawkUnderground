@@ -30,7 +30,7 @@ export function ensureBalanceHud() {
     label: root.querySelector('.balance-label'),
     marker: root.querySelector('.balance-marker'),
     update(mode, value = 0) {
-      const active = mode === 'MANUAL' || mode === 'NOSE MANUAL' || mode === 'GRIND';
+      const active = mode === 'MANUAL' || mode === 'NOSE MANUAL' || mode === 'GRIND' || mode === 'HANDPLANT';
       root.classList.toggle('active', active);
       if (!active) {
         root.classList.remove('danger');

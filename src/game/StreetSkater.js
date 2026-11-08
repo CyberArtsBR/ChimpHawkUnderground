@@ -1,6 +1,6 @@
 import { gameAssetUrl } from './AssetPaths.js';
 import * as THREE from 'three';
-import { StatefulSkillStreetPhysics } from './StatefulSkillStreetPhysics.js';
+import { HandplantSkillStreetPhysics, HANDPLANT } from './HandplantSkillStreetPhysics.js';
 import { UnrealRider } from '../character/UnrealRider.js';
 import { warmGrabDeckSurface } from '../character/GrabReachPose.js';
 import { StreetBoard } from '../skateboard/StreetBoard.js';
@@ -13,7 +13,7 @@ import { GROUND_MOTOR, groundControlIntent } from './core/GroundMotor.js';
 
 const clamp = THREE.MathUtils.clamp;
 
-export class StreetSkater extends StatefulSkillStreetPhysics {
+export class StreetSkater extends HandplantSkillStreetPhysics {
   constructor(options) {
     super(options);
     this.root = new THREE.Group();
@@ -350,10 +350,12 @@ export class StreetSkater extends StatefulSkillStreetPhysics {
     }else{
       this.visual.quaternion.slerp(this._targetVisualRotation,1-Math.exp(-23*delta));
     }
+    const plantVisual = this.applyHandplantVisual();
 
-    const grabActive = Boolean(this.grabState && !this.flipState && !this.grounded && this.bailTime <= 0);
+    const plantGrab = plantVisual?.grab ? this.handplant?.variant?.grab : null;
+    const grabActive = Boolean((this.grabState || plantGrab) && !this.flipState && !this.grounded && this.bailTime <= 0);
     const p = this.presentation;
-    if (grabActive) p.grabPose = { name: this.grabState.name };
+    if (grabActive) p.grabPose = { name: plantGrab || this.grabState.name };
     p.grabWeight = THREE.MathUtils.lerp(p.grabWeight, grabActive ? 1 : 0,
       1 - Math.exp(-28 * Math.max(0, delta)));
     if (this.bailTime > 0) p.grabWeight = 0;
@@ -408,8 +410,10 @@ export class StreetSkater extends StatefulSkillStreetPhysics {
       pushPhase: 0,
       landingSeverity: p.landingSeverity * landingMotion(1 - p.landingTime / p.landingDuration),
       pumpState: this.presentation.pumpState,
+      plantExtend: plantVisual ? plantVisual.weight * plantVisual.weight : 0,
     });
     if (this.bailTime <= 0) this.applyWallImpactPose(this.wallImpactPoseWeight());
+    if (plantVisual) this.placeHandplantArm(plantVisual);
     const flashing = this.respawnTimer > 0 && Math.floor((1.8 - this.respawnTimer) / 0.3) % 2 === 0;
     for (const saved of this.flashMaterials || []) {
       const transparent = flashing || saved.transparent;
@@ -420,6 +424,82 @@ export class StreetSkater extends StatefulSkillStreetPhysics {
     this.balanceHud?.update(this.balanceMode(), this.balanceValue());
     this.updateDebugViewer();
     return { speedRatio: present.speedRatio };
+  }
+
+  /**
+   * Hand plant pose (2026-11): the whole skater (board and rider together)
+   * turns about the coping line, so the board ends up overhead. Returns the
+   * blend weight for anchoring the planted hand, or null when not planting.
+   */
+  applyHandplantVisual() {
+    const hp = this.handplant;
+    if (!hp) { this._plantVisual = null; return null; }
+    let pv = this._plantVisual;
+    if (!pv || pv.hp !== hp) {
+      // Ideal "riding up the wall" orientation: body up into the ramp, nose up or down the wall.
+      const up = hp.inward.clone(), back = new THREE.Vector3(0, -hp.noseUp, 0);
+      const right = up.clone().cross(back).normalize();
+      pv = this._plantVisual = {
+        hp, start: this.visual.quaternion.clone(), releaseQ: null,
+        wall: new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().makeBasis(right, up, back)),
+        turn: new THREE.Quaternion(), spin: new THREE.Quaternion(), q: new THREE.Quaternion(),
+      };
+    }
+    let weight, grab;
+    if (hp.phase !== 'release') {
+      weight = THREE.MathUtils.smoothstep(hp.time / HANDPLANT.plantTime, 0, 1);
+      pv.turn.setFromAxisAngle(hp.axis, hp.angle);
+      pv.q.copy(pv.turn).multiply(pv.wall);
+      this.visual.quaternion.copy(pv.start).slerp(pv.q, weight);
+      pv.releaseQ = this.visual.quaternion.clone();
+      grab = true;
+    } else {
+      const e = THREE.MathUtils.smoothstep(hp.time / HANDPLANT.releaseTime, 0, 1);
+      pv.turn.setFromAxisAngle(hp.axis, -hp.releaseAngle * e);
+      pv.spin.setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI * e);
+      this.visual.quaternion.copy(pv.turn).multiply(pv.spin).multiply(pv.releaseQ);
+      weight = 1 - e;
+      grab = e < 0.55;
+    }
+    // Hold the skater at the physics anchor; the arm placement shifts it after posing.
+    this.visual.position.set(0, 0, 0);
+    this._smoothedVisualPosition?.copy(this.position);
+    return { weight, grab };
+  }
+
+  /** Put the planting shoulder one arm-length above the coping, then reach the hand onto it. */
+  placeHandplantArm({ weight }) {
+    const hp = this.handplant, rider = this.rider;
+    if (!hp || !rider?.bones || weight <= 0.001) return;
+    const front = this.stance < 0 ? 'r' : 'l', rear = front === 'l' ? 'r' : 'l';
+    const side = hp.variant.hand === 'front' ? front : rear;
+    const upper = rider.bones['upperarm_' + side], lower = rider.bones['lowerarm_' + side], hand = rider.bones['hand_' + side];
+    if (!upper || !lower || !hand) return;
+    this.root.updateMatrixWorld(true);
+    const shoulder = upper.getWorldPosition(new THREE.Vector3());
+    const reach = (shoulder.distanceTo(lower.getWorldPosition(new THREE.Vector3()))
+      + lower.getWorldPosition(new THREE.Vector3()).distanceTo(hand.getWorldPosition(new THREE.Vector3()))) * 0.96;
+    // The arm runs up from the coping, a little more upright than the body.
+    const armUp = new THREE.Vector3(0, -1, 0).applyQuaternion(this.visual.quaternion)
+      .lerp(new THREE.Vector3(0, 1, 0), 0.45).normalize();
+    const wanted = hp.hand.clone().addScaledVector(armUp, reach);
+    this.visual.position.addScaledVector(wanted.sub(shoulder), weight);
+    this.root.updateMatrixWorld(true);
+    const back = new THREE.Vector3(0, 0, 1).applyQuaternion(this.visual.quaternion);
+    rider.reachArm?.(side, hp.hand, upper.getWorldPosition(new THREE.Vector3()).addScaledVector(back, 0.4), weight);
+    if (hp.variant.legOut) {
+      // Sad Plant: the front leg leaves the board and points straight out past the nose.
+      const thigh = rider.bones['thigh_' + front], calf = rider.bones['calf_' + front], foot = rider.bones['foot_' + front];
+      if (thigh && calf && foot) {
+        const hip = thigh.getWorldPosition(new THREE.Vector3());
+        const legLength = hip.distanceTo(calf.getWorldPosition(new THREE.Vector3()))
+          + calf.getWorldPosition(new THREE.Vector3()).distanceTo(foot.getWorldPosition(new THREE.Vector3()));
+        const feetward = new THREE.Vector3(0, 1, 0).applyQuaternion(this.visual.quaternion).negate();
+        const nose = back.clone().negate();
+        const target = hip.clone().addScaledVector(feetward.multiplyScalar(.75).addScaledVector(nose, .45).normalize(), legLength * .97);
+        rider.reachLeg?.(front, target, hip.clone().addScaledVector(nose, .5), weight);
+      }
+    }
   }
 
   getPresentationDebug() {

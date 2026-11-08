@@ -321,6 +321,7 @@ export class TransitionController {
       transferring: exitRequested,
       age: 0,
       copingName: edge.name,
+      supportsVert: edge.supportsVert,
       returnError: horizontal(returnTarget.clone().sub(position)).length(),
     };
 

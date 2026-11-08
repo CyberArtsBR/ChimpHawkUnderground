@@ -117,6 +117,7 @@
 }
 #balance-hud[data-axis="vertical"] .balance-track {
   width: 14px !important;
+  height: 150px !important; /* the shared 14px height above flattened the vertical meter */
   background:
     var(--skin-grip),
     linear-gradient(0deg, #ff2e6c 0%, #ff8a3d 14%, #2a2236 26%, #2a2236 74%, #ff8a3d 86%, #ff2e6c 100%) !important;

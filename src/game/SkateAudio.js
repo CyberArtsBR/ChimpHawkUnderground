@@ -304,6 +304,7 @@ export class SkateAudio {
     const state = { grounded: Boolean(player.grounded), grind: Boolean(player.grind), bail: player.bailTime > 0,
       speed, pop: p.popTime > 0, flipPhase: p.flipPhase, pushPhase: p.pushPhase || 0,
       pushWeight: p.pushWeight || 0, respawn: player.respawnSerial,
+      plant: Boolean(player.handplant && player.handplant.phase !== 'release'),
       impactSpeed: Math.max(0, -(player.velocity?.dot?.(player.normal) || 0)) };
     if (this.context) {
       const now = this.context.currentTime, audible = this.enabled && active && !this.isBackgroundMuted() && this.context.state === 'running';
@@ -363,6 +364,12 @@ export class SkateAudio {
             this.playBank('grindClack', this.master, this.surfaceTag === 'metal' ? .2 : .09);
           }
           if (state.flipPhase === 'CATCH' && this.previous.flipPhase !== 'CATCH') this.impact(0.32, false, 'catch');
+          // Hand plant: palm slap and board knock on the coping, then a push-off pop.
+          if (state.plant && !this.previous.plant) {
+            this.impact(0.42, false, 'catch');
+            this.playBank('grindClack', this.master, .06);
+          }
+          if (!state.plant && this.previous.plant) this.impact(0.5, false, 'pop');
           if (rolling && state.pushWeight > 0.4 && state.pushPhase >= 0.26
             && (this.previous.pushPhase < 0.26 || state.pushPhase < this.previous.pushPhase)) this.impact(0.22, false, 'push');
         }

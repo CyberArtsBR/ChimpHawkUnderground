@@ -28,6 +28,7 @@ export function tutorialPages(bindings=readBindings()) {
     {title:'Build your first line',subtitle:'90 seconds. Build a line. Land your combos.',html:table(['Action','Keyboard','Xbox'],[
       ['Steer / trick direction',keyboardDirections,`Left stick / ${['up','down','left','right'].map(pad).join(' / ')}`],['Ollie',`Hold ${key('ollie')}, then release`,`Hold ${pad('ollie')}, then release`],
       ['Flip / Grab / Grind',['flip','grab','grind'].map(key).join(' / '),['flip','grab','grind'].map(pad).join(' / ')],['Air rotation',['spinLeft','spinRight'].map(key).join(' / '),['spinLeft','spinRight'].map(pad).join(' / ')],
+      ['Hand plant (vert coping)',`Hold ${key('grab')} up the wall · ${key('up')} / ${key('down')} balance · release`,`Hold ${pad('grab')} up the wall · stick Up / Down balance · release`],
       ['Vert exit / switch stance',['vertExit','switchStance'].map(key).join(' / '),['vertExit','switchStance'].map(pad).join(' / ')],['Cycle cameras',key('cameraMode'),pad('cameraMode')],
       ['Skip song','Backspace','View / Select'],['Pause','Esc','Menu / Start'],
       ['Practice marker: save / return',['practiceMark','practiceReturn'].map(key).join(' / '),`${markerPad('up','practiceMark')} / ${markerPad('down','practiceReturn')}`],

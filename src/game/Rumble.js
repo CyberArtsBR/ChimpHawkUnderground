@@ -10,6 +10,7 @@ export const RUMBLE = Object.freeze({
   grind: { duration: 170, weakMagnitude: .45, strongMagnitude: .42 },
   grindHum: { duration: 120, weakMagnitude: .14, strongMagnitude: .06 },
   bail: { duration: 340, weakMagnitude: .7, strongMagnitude: .8 },
+  handplant: { duration: 110, weakMagnitude: .42, strongMagnitude: .2 },
 });
 
 function activePad() {
@@ -48,6 +49,7 @@ export class Rumble {
     const grounded = Boolean(skater.grounded), grinding = Boolean(skater.grind), bailing = Number(skater.bailTime) > 0;
     if (bailing && !this.wasBailing) this.play(RUMBLE.bail);
     else if (!bailing) {
+      if (skater.handplant && skater.handplant !== this.lastPlant) this.play(RUMBLE.handplant);
       if (grinding && !this.wasGrinding) { this.play(RUMBLE.grind); this.humTimer = .2; }
       else if (grinding) {
         this.humTimer -= dt;
@@ -58,5 +60,6 @@ export class Rumble {
     }
     this.airTime = grounded || grinding ? 0 : this.airTime + dt;
     this.wasGrounded = grounded; this.wasGrinding = grinding; this.wasBailing = bailing;
+    this.lastPlant = skater.handplant || null;
   }
 }

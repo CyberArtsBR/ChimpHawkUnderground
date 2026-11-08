@@ -215,6 +215,15 @@ export class SkateEffects {
     for(const key in pool.points.geometry.attributes)pool.points.geometry.attributes[key].needsUpdate=true;
   }
 
+  plantPuff(at) {
+    const count=Math.round(10*this.scale*(this.performance?.45:1));
+    for(let i=0;i<count;i++) {
+      const angle=Math.random()*Math.PI*2,spread=.18+Math.random()*.35;
+      this.emit(this.dust,at.x,at.y+.02,at.z,Math.cos(angle)*spread,.25+Math.random()*.3,Math.sin(angle)*spread,
+        .16+Math.random()*.1,.5+Math.random()*.35,.32,.82,.78,.7,0,-.1);
+    }
+  }
+
   landing(skater,impact,tag=surfaceTagFor(skater)) {
     const n=this.normal;const p=this.origin;const f=this.forward;
     const severity=clamp(impact/9,.15,1),profile=SURFACE_PARTICLES[validatedSurfaceTag(tag)];
@@ -310,6 +319,10 @@ export class SkateEffects {
       this.bailLiquid.spawn(impactEvent,this.performance,skater.surface);
       this.bailDust(impactEvent);
     }
+    // Hand plant: a small puff of coping dust where the hand slaps down.
+    const plant=skater.handplant;
+    if(plant&&plant!==this.lastPlant&&finite(plant.hand))this.plantPuff(plant.hand);
+    this.lastPlant=plant||null;
     if(skater.bailTime>0){this.airDuration=0;this.grindBudget=0;this.traceBudget=0;this.updateTrail(dt,skater,false);this.remember(skater);return;}
     this.origin.copy(skater.position);
     this.normal.copy(finite(skater.normal)?skater.normal:THREE.Object3D.DEFAULT_UP);
