@@ -96,6 +96,11 @@ export class MapDressing {
     this.windUniforms = { uWindTime: { value: 0 } };
     this.glow = glowTexture();
     this.generation = 0;
+    // World Life anchors: { position (world space), height }. Poles and string
+    // ends give the pole top; lamps give the ceiling rod attachment point and
+    // the hanging length. Filled as the dressing builds, cleared with the park.
+    this.anchors = { poles: [], lamps: [], strings: [] };
+    this.scan = null;
   }
 
   setQuality(settings) { this.enabled = settings?.name !== 'performance'; this.root.visible = this.enabled; }
@@ -115,6 +120,8 @@ export class MapDressing {
     });
     this.root.clear();
     this.signs = []; this.strings = []; this.flags = [];
+    this.anchors = { poles: [], lamps: [], strings: [] };
+    this.scan = null;
   }
 
   async build(world) {
@@ -200,6 +207,8 @@ export class MapDressing {
     }
     if (!spots.length) return;
     const hang = 11, n = spots.length;
+    // Rod: 6 m long, centred at hang + 3.6, so it meets the ceiling at hang + 6.6.
+    for (const p of spots) this.anchors.lamps.push({ position: p.clone().setY(p.y + hang + 6.6), height: 6.6 });
     const coneTexture = (() => {
       const c = document.createElement('canvas'); c.width = 8; c.height = 128;
       const ctx = c.getContext('2d'), g = ctx.createLinearGradient(0, 0, 0, 128);
@@ -256,6 +265,7 @@ export class MapDressing {
     group.rotation.y = Math.atan2(spot.facing.x, spot.facing.z) + Math.PI / 2 + (rand() - .5) * .6;
     this.root.add(group);
     this.flags.push(group);
+    this.anchors.poles.push({ position: spot.point.clone().setY(spot.point.y + 3.4), height: 3.4 });
   }
 
   buildStrings(spots, rand, indoor) {
@@ -278,6 +288,7 @@ export class MapDressing {
         const pole = new THREE.Mesh(new THREE.CylinderGeometry(.045, .06, height, 8), poleMat);
         pole.position.copy(spot.point); pole.position.y += height / 2; pole.castShadow = true;
         this.root.add(pole);
+        this.anchors.strings.push({ position: spot.point.clone().setY(spot.point.y + height), height });
         return spot.point.clone().setY(spot.point.y + height - .1);
       });
       const span = ends[0].distanceTo(ends[1]);

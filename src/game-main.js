@@ -38,6 +38,7 @@ import { ComboCallouts } from './game/ComboCallouts.js';
 import { SkyLife } from './graphics/SkyLife.js';
 import { MapDressing } from './graphics/MapDressing.js';
 import { MapAmbience } from './graphics/MapAmbience.js';
+import { LifeDirector } from './graphics/life/LifeDirector.js';
 import { Rumble } from './game/Rumble.js';
 import { applyWorldFinishes, updateFloorFinishTime } from './graphics/FloorFinish.js';
 import { FloorReflections } from './graphics/FloorReflections.js';
@@ -188,6 +189,8 @@ const comboCallouts = new ComboCallouts({ audio: skateAudio });
 const skyLife = new SkyLife(scene);
 const mapDressing = new MapDressing(scene);
 const mapAmbience = new MapAmbience(scene);
+// World Life: per-park cosmetic life modules register on this director.
+const lifeDirector = new LifeDirector(scene, { skateAudio, mapDressing });
 const floorReflections = new FloorReflections(scene);
 graphicsPipeline.reflectionRoot = floorReflections.root;
 window.addEventListener('pointerdown', () => skateAudio.unlock(), { passive: true });
@@ -267,6 +270,7 @@ const gameShell = new GameShell({
     highlightPlayback.stop();
     skater.spawn.set(...manifest.spawn); skater.spawnHeading = Number(manifest.spawnHeading) || 0;
     skater.reset(skater.spawn, skater.spawnHeading);
+    lifeDirector.reset();
     setMode('skate'); input.read(); input.clear(); followCamera.snap(skater);
     runSummary.begin({ practice, riderName: gameShell.heroes[gameShell.heroIndex]?.name,
       deckName: gameShell.boardLabel(), mapName: gameShell.locationName() }, skater);
@@ -402,6 +406,7 @@ function applyGraphicsPreset(name) {
   skyLife.setQuality(graphicsPipeline.settings);
   mapDressing.setQuality(graphicsPipeline.settings);
   mapAmbience.setQuality(graphicsPipeline.settings);
+  lifeDirector.setQuality(graphicsPipeline.settings);
   floorReflections.setSize(innerWidth * renderer.getPixelRatio(), innerHeight * renderer.getPixelRatio());
   floorReflections.setQuality(graphicsPipeline.settings);
   skateEffects.setSize(innerHeight,renderer.getPixelRatio());
@@ -815,6 +820,7 @@ function commitWorld(world, runtime) {
     skyLife.setWorld(world);
     mapDressing.setWorld(world);
     mapAmbience.setWorld(world);
+    lifeDirector.setWorld(world, skater);
     floorReflections.setWorld(world);
     ({ park, collision, manifest } = world);
     scene.add(park);
@@ -846,7 +852,7 @@ let shadersWarming = false;
 /** Compile every program the real frame will use, without blocking the page. */
 async function warmAllPrograms() {
   if(mapDressing.pending&&mapDressing.world){mapDressing.pending=false;await mapDressing.build(mapDressing.world).catch(error=>console.warn('Map dressing skipped',error));}
-  await warmScenePrograms(renderer,scene,camera,{target:warmupTarget(),reveal:[skateEffects.root,worldLife.root]});
+  await warmScenePrograms(renderer,scene,camera,{target:warmupTarget(),reveal:[skateEffects.root,worldLife.root,lifeDirector.root]});
   await graphicsPipeline.compileBloomVariants?.().catch(()=>{});
   await warmFlashPrograms(renderer,camera,scene,{skater,target:warmupTarget(),reveal:[skateEffects.root],alsoCompile:()=>graphicsPipeline.compileBloomVariants()});
 }
@@ -892,7 +898,7 @@ async function selectLocation(id, { hero, finish, file, onProgress } = {}) {
       }
     }
     await warmScenePrograms(renderer,scene,camera,{
-      isCurrent:()=>request===loadoutRequest,target:warmupTarget(),reveal:[skateEffects.root,worldLife.root],
+      isCurrent:()=>request===loadoutRequest,target:warmupTarget(),reveal:[skateEffects.root,worldLife.root,lifeDirector.root],
     });
     if(request!==loadoutRequest){if(nextWorld)disposeParkWorld(nextWorld,currentWorld);return false;}
     // One synchronous commit boundary: Back cannot interleave halfway through.
@@ -904,7 +910,7 @@ async function selectLocation(id, { hero, finish, file, onProgress } = {}) {
     progress('PREPARING SHADERS…');
     await warmAllPrograms();
     followCamera.snap(skater);
-    try{renderGameplayWarmup({skater,effects:skateEffects,extraRoots:[worldLife.root],
+    try{renderGameplayWarmup({skater,effects:skateEffects,extraRoots:[worldLife.root,lifeDirector.root],
       render:()=>graphicsPipeline.render({contactSource:skater,warmup:true})});}catch(error){console.warn('Presentation warmup skipped',error);}
     return { locationId: currentWorld.id, manifest };
   } catch (error) {
@@ -941,6 +947,7 @@ async function loadGame() {
     skyLife.setWorld(initialWorld);
     mapDressing.setWorld(initialWorld);
     mapAmbience.setWorld(initialWorld);
+    lifeDirector.setWorld(initialWorld, skater);
     floorReflections.setWorld(initialWorld);
     ({ park, collision, manifest } = initialWorld);
     scene.add(park, sun.target);
@@ -991,6 +998,7 @@ async function loadGame() {
       captureTransitionDebug: () => transitionDebugSummary(skater.transitions),
     };
     if(import.meta.env.DEV)skater.copingTrace=new CopingTrace();
+    if(import.meta.env.DEV)window.streetSkate.lifeDirector=lifeDirector;
     if(import.meta.env.DEV)window.streetSkate.audioStatus=()=>({
       recorded:[...skateAudio.recordedFoley],enabled:skateAudio.enabled,
       effectsVolume:skateAudio.effectsVolume,announcerVolume:skateAudio.announcerVolume,
@@ -1183,6 +1191,7 @@ function gameFrame() {
       if (skater.respawnSerial !== respawn) followCamera.snap(skater);
       skateEffects.update(dt,skater);
       worldLife.update(dt,skater,camera);
+      lifeDirector.update(dt,skater,camera);
       followCamera.update(skater, dt, state, skater._smoothedVisualPosition);
       mapAmbience.update(dt, skater, camera);
       rumble.update(dt, skater, gameShell.active);
