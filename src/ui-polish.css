@@ -1,0 +1,118 @@
+/*
+ * Readability and focus polish (2026-11), loaded last. Same menus, same
+ * layout and art; only measured defects are corrected:
+ * - HUD and menu labels as small as 6-10 px at 1080p, which also ignored the
+ *   Text size setting (--ui-scale). Labels now have a readable floor and scale.
+ * - Keyboard/controller focus vanished on an already chosen loadout card.
+ * - Mouse hover used the same full fill as the keyboard selection.
+ * - Settings steppers drew an ~8 px glyph in a 62 px button.
+ * - Near-invisible scrollbars hid content in the 720p loadout panels.
+ * - Low-contrast small text on the pink selected fill.
+ */
+
+/* ---- In-game HUD labels: readable floor, honour the Text size setting ---- */
+.hud-total>small,
+#run-timer::before,
+.skate-hud .speed>small::before,
+.skate-hud .session-score small {
+  font-size: max(11px, calc(11px * var(--ui-scale, 1))) !important;
+}
+.skate-hud .speed>small {
+  font-size: max(12px, calc(12px * var(--ui-scale, 1))) !important;
+}
+.skate-hud .ride-state>#state-value {
+  font-size: max(11px, calc(11px * var(--ui-scale, 1))) !important;
+}
+.skate-hud .ride-state>.charge-label {
+  font-size: max(10px, calc(10px * var(--ui-scale, 1))) !important;
+  white-space: nowrap;
+}
+.skate-hud .ride-state {
+  min-width: max-content !important;
+}
+body[data-screen='playing'] #now-playing .song-label,
+body[data-screen='playing'] #now-playing .song-note {
+  font-size: max(10px, calc(10px * var(--ui-scale, 1))) !important;
+  letter-spacing: .1em !important;
+}
+
+/* ---- Menu labels that were hard-coded at 8-11 px ---- */
+body:is([data-screen='select'],[data-screen='pause'],[data-screen='options'],[data-screen='graphics']) .menu-footnote,
+#game-shell.menu-screen .menu-control-group>h3,
+#game-shell.menu-screen .menu-card-heading>small,
+#game-shell.menu-screen .menu-art-kicker,
+#game-shell.menu-screen .menu-art-caption>span,
+#game-shell.menu-screen .menu-art-caption>small,
+#game-shell.menu-screen .graphics-preset span,
+#game-shell.menu-screen .graphics-details,
+#game-shell.menu-screen .graphics-advanced,
+#game-shell.loadout-screen .map-number,
+#game-shell.loadout-screen .location-stamp,
+#game-shell.loadout-screen .loadout-location small,
+#game-shell.loadout-screen .board-style-label,
+#game-shell.loadout-screen .section-number,
+#game-shell.loadout-screen .loadout-recap .complete,
+#game-shell.loadout-screen .selected-rider-copy span,
+#game-shell.menu-screen .audio-volume-control>span {
+  font-size: var(--ui-label, 12px) !important;
+}
+#game-shell.menu-screen .menu-art-stamp { font-size: max(10px, calc(10px * var(--ui-scale, 1))) !important; }
+#game-shell.menu-screen .menu-card-heading p,
+#game-shell.menu-screen .graphics-intro { font-size: max(12px, calc(12px * var(--ui-scale, 1))) !important; }
+#game-shell.loadout-screen .loadout-status { font-size: max(12px, calc(12px * var(--ui-scale, 1))) !important; }
+
+/* ---- Focus stays visible on a chosen rider / deck / spot card ---- */
+#game-shell.loadout-screen :is(.loadout-character, .loadout-deck, .loadout-location).is-chosen:is(.selected, :focus-visible) {
+  outline: 3px solid var(--ui-focus, #a4f0e7) !important;
+  outline-offset: -3px !important;
+}
+
+/* ---- Hover is a lighter tint; the full fill means "selected" ---- */
+#game-shell .menu-card button:not(.audio-volume-control button):hover:not(.selected),
+#game-shell .title-tools button:hover:not(.selected),
+#game-shell .loadout-shell footer button:hover:not(.selected):not(:disabled),
+#game-shell .loadout-heading button:hover:not(.selected),
+#game-shell .run-results-actions button:hover:not(.selected),
+#game-shell .run-results-header button:hover:not(.selected),
+#game-shell .highlights-overlay footer button:hover:not(.selected),
+#game-shell .tutorial-frame footer button:hover:not(.selected),
+#game-shell .tutorial-poster footer button:hover:not(.selected),
+#game-shell .settings-section-links button:hover:not(.selected),
+#game-shell .timeup-burst button:hover:not(.selected) {
+  /* --skin-hot is a gradient: tint the normal deck plate instead. */
+  background: var(--skin-grip), linear-gradient(#ff5fae38, #ff5fae38), var(--skin-deck) !important;
+  background-size: 120px 120px, 100% 100%, 100% 100% !important;
+}
+
+/* ---- Small text on the pink selected fill: dark ink for contrast ---- */
+#game-shell.menu-screen .menu-card .graphics-preset.selected span,
+#game-shell.menu-screen .menu-card .graphics-preset.selected small {
+  color: #2a0a1c !important;
+}
+
+/* ---- Settings / glow steppers: a real glyph, not an 8 px mark ---- */
+#game-shell [data-action='preferenceStep'],
+#game-shell [data-action='glowAdjust'] {
+  font: 700 26px/1 'DM Sans', Arial, sans-serif !important;
+}
+
+/* ---- Scrollable loadout panels: show that more content exists ---- */
+#game-shell.loadout-screen .loadout-section {
+  scrollbar-color: #9fb6c2 #0c1520 !important;
+  padding: 4px !important;
+}
+
+/* ---- Results action bar: opaque, above animated columns ---- */
+.run-results-actions {
+  background: #111b28 !important;
+  isolation: isolate;
+  z-index: 10 !important;
+}
+
+/* ---- Loadout status line no longer hides under the centred controls hint ---- */
+#game-shell.loadout-screen .loadout-status {
+  text-align: left !important;
+  padding-left: 14px;
+  max-width: calc(50% - 240px);
+  min-width: 260px;
+}

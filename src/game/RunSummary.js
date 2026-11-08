@@ -139,7 +139,7 @@ export class RunSummary {
     if (this.bestCombo) achievements.push({ title: 'Best combo', detail: `${this.bestCombo.points.toLocaleString('en-US')} points · ${this.bestCombo.trickCount} ${this.bestCombo.trickCount===1?'trick':'tricks'}`, kind: 'combo' });
     if (this._uniqueTricks.size > 1) achievements.push({ title: 'Trick variety', detail: `${this._uniqueTricks.size} different landed tricks`, kind: 'variety' });
     if (this.maxAirTime >= 0.25) achievements.push({ title: 'Longest air', detail: `${this.maxAirTime.toFixed(2)} seconds airborne`, kind: 'air' });
-    if (this.landedCombos && !this.bails) achievements.push({ title: 'Clean run', detail: `${this.landedCombos} combos landed without a bail`, kind: 'clean' });
+    if (this.landedCombos && !this.bails) achievements.push({ title: 'Clean run', detail: `${this.landedCombos} ${this.landedCombos === 1 ? 'combo' : 'combos'} landed without a bail`, kind: 'clean' });
     if (this.grindDistanceMeters >= 1) achievements.push({ title: 'Rail distance', detail: `${this.grindDistanceMeters.toFixed(1)} metres grinding`, kind: 'grind' });
     if (this.longestManualSeconds >= 0.5) achievements.push({ title: 'Longest manual', detail: `${this.longestManualSeconds.toFixed(2)} seconds balanced`, kind: 'manual' });
     this._finished = freezeDeep({

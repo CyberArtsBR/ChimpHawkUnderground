@@ -59,6 +59,7 @@ import './graphics-glow.css';
 import './round-flow.css';
 import './menu-skin.css';
 import './hud-skin.css';
+import './ui-polish.css';
 
 const container = document.querySelector('#viewport');
 installModuleLoadRecovery();

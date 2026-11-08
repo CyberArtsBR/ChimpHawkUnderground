@@ -51,3 +51,14 @@ test('camera probe broad phase returns exactly the same eye as testing every mes
   col.cameraBroadphase = true; const b = col.camera(from, to, .28).clone();
   assert.equal(a.distanceTo(b), 0, 'moved meshes refresh their cached bounds');
 });
+
+test('UI polish sheet loads last and keeps labels readable and scalable', () => {
+  const main = fs.readFileSync(new URL('../src/game-main.js', import.meta.url), 'utf8');
+  const imports = [...main.matchAll(/import '\.\/([\w-]+\.css)';/g)].map(m => m[1]);
+  assert.equal(imports.at(-1), 'ui-polish.css');
+  const css = fs.readFileSync(new URL('../src/ui-polish.css', import.meta.url), 'utf8');
+  for (const selector of ['.charge-label', '#state-value', '.hud-total>small', '.menu-footnote', '.map-number'])
+    assert.ok(css.includes(selector), selector);
+  assert.match(css, /max\(10px, calc\(10px \* var\(--ui-scale, 1\)\)\)/, 'labels have a floor and follow Text size');
+  assert.doesNotMatch(css, /color-mix\([^)]*var\(--skin-hot/, '--skin-hot is a gradient and cannot be colour-mixed');
+});
