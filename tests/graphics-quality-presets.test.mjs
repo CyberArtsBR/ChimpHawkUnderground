@@ -58,12 +58,12 @@ test('unstable SSR is disabled across all tiers while preserving high preset blo
   assert.ok(GRAPHICS_PRESETS.high.bloomStrength>0);
 });
 
-test('144 FPS is default while previously selected v2 tiers remain respected', () => {
-  assert.equal(DEFAULT_GRAPHICS_PRESET,'high-refresh');
+test('Cinematic is default while previously selected v2 tiers remain respected', () => {
+  assert.equal(DEFAULT_GRAPHICS_PRESET,'cinematic');
   const saved = { getItem() { return 'ultra'; } };
   assert.equal(loadGraphicsPreset(saved),'ultra');
   const empty = { getItem() { return null; } };
-  assert.equal(loadGraphicsPreset(empty),'high-refresh');
+  assert.equal(loadGraphicsPreset(empty),'cinematic');
 });
 
 test('preset storage is versioned and resistant to disabled local storage', () => {
