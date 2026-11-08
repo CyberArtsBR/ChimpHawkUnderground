@@ -1,7 +1,7 @@
 export const PLAYER_PREFERENCES_KEY = 'streetskate.playerPreferences.v1';
 export const PLAYER_PREFERENCE_DEFAULTS = Object.freeze({
   uiScale: 1, renderScale: 1, highContrast: false, cameraDistance: 1, cameraFov: 58,
-  speedFov: 1, liquid: true, performance: false,
+  speedFov: 1, liquid: true, performance: true,
 });
 export const PLAYER_PREFERENCE_RANGES = Object.freeze({
   uiScale: [.85, 1.5, .1], renderScale:[.6,1.25,.05], cameraDistance: [.8, 1.3, .05],
@@ -16,6 +16,18 @@ export function normalizePlayerPreferences(value = {}) {
       : typeof fallback === 'boolean' && typeof value[key] === 'boolean' ? value[key] : fallback;
   }
   return result;
+}
+// The FPS counter became visible by default (2026-11). Switch it on once for
+// players who saved it off before it was shown; their later choice is kept.
+export const FPS_COUNTER_DEFAULT_KEY = 'streetskate.fpsCounterDefault';
+export function enableFpsCounterOnce(storage) {
+  try {
+    if(storage===undefined)storage=globalThis.localStorage;
+    if(!storage||storage.getItem(FPS_COUNTER_DEFAULT_KEY))return;
+    storage.setItem(FPS_COUNTER_DEFAULT_KEY,'on');
+    const saved=storage.getItem(PLAYER_PREFERENCES_KEY);
+    if(saved)savePlayerPreferences({...JSON.parse(saved),performance:true},storage);
+  } catch {}
 }
 export function readPlayerPreferences(storage) {
   try { if(storage===undefined)storage=globalThis.localStorage;return normalizePlayerPreferences(JSON.parse(storage?.getItem(PLAYER_PREFERENCES_KEY) || '{}')); }

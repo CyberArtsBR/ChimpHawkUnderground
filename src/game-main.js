@@ -22,7 +22,7 @@ import { CopingTrace } from './game/CopingTrace.js';
 import { RunSummary } from './game/RunSummary.js';
 import { sessionAttemptState } from './game/SessionFlow.js';
 import { ScoreRecords } from './game/ScoreRecords.js';
-import { readPlayerPreferences, applyPlayerPreferences } from './game/PlayerPreferences.js';
+import { readPlayerPreferences, applyPlayerPreferences, enableFpsCounterOnce } from './game/PlayerPreferences.js';
 import { FrameMetrics } from './graphics/FrameMetrics.js';
 import { PracticeDrills } from './game/PracticeDrills.js';
 import { HighlightRecorder } from './game/HighlightRecorder.js';
@@ -139,6 +139,7 @@ scene.add(floor);
 const graphicsPipeline = new GraphicsPipeline(renderer, scene, camera);
 const performanceHud=document.createElement('div');performanceHud.className='frame-metrics';performanceHud.hidden=true;app.append(performanceHud);
 const frameMetrics=new FrameMetrics(renderer,performanceHud);
+enableFpsCounterOnce();
 let playerPreferences=applyPlayerPreferences(readPlayerPreferences());
 frameMetrics.setEnabled(playerPreferences.performance);
 const skateEffects = new SkateEffects(scene);
@@ -315,6 +316,16 @@ const gameShell = new GameShell({
   boardStyle: style => skater?.board?.setStyle?.(style),
   testMap: ({file,hero,board,onProgress}) => selectLocation('test-map', {file,hero,finish:board.finishIndex,onProgress}),
 });
+// The FPS counter sits just under the TIME box, which changes size with the screen.
+function placeFpsCounter() {
+  const box = gameShell.timer.getBoundingClientRect();
+  if (!box.height) return;
+  performanceHud.style.top = `${Math.round(box.bottom + 10)}px`;
+  performanceHud.style.right = `${Math.round(innerWidth - box.right)}px`;
+}
+new ResizeObserver(placeFpsCounter).observe(gameShell.timer);
+addEventListener('resize', placeFpsCounter);
+
 skateAudio.onMusicDuck=({durationMs,amount,releaseMs})=>gameShell.music.duck(durationMs,amount,releaseMs);
 
 // Observe the existing score banks without changing scoring or simulation rules.

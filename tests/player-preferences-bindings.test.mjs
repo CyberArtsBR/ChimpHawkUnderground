@@ -80,3 +80,21 @@ test('advanced clips ship two discrete early taps, release, upright catch and ac
     assert.match(flipLessonSteps(lesson,'playstation',bindings)[2].input,/L1 → release → L1/);
   }
 });
+
+test('the FPS counter is on by default and switched on once for players who saved it off', async () => {
+  const { enableFpsCounterOnce, FPS_COUNTER_DEFAULT_KEY, PLAYER_PREFERENCES_KEY, PLAYER_PREFERENCE_DEFAULTS, readPlayerPreferences, savePlayerPreferences } = await import('../src/game/PlayerPreferences.js');
+  assert.equal(PLAYER_PREFERENCE_DEFAULTS.performance, true);
+  const values = new Map(), store = { getItem: k => values.get(k) ?? null, setItem: (k, v) => values.set(k, String(v)) };
+  savePlayerPreferences({ performance: false, uiScale: 1.2 }, store);
+  enableFpsCounterOnce(store);
+  assert.equal(readPlayerPreferences(store).performance, true);
+  assert.equal(readPlayerPreferences(store).uiScale, 1.2, 'other saved choices are kept');
+  assert.equal(values.get(FPS_COUNTER_DEFAULT_KEY), 'on');
+  savePlayerPreferences({ ...readPlayerPreferences(store), performance: false }, store);
+  enableFpsCounterOnce(store);
+  assert.equal(readPlayerPreferences(store).performance, false, 'turning it off later sticks');
+  const fresh = new Map(), freshStore = { getItem: k => fresh.get(k) ?? null, setItem: (k, v) => fresh.set(k, String(v)) };
+  enableFpsCounterOnce(freshStore);
+  assert.equal(fresh.has(PLAYER_PREFERENCES_KEY), false, 'new players just use the default');
+  assert.equal(readPlayerPreferences(freshStore).performance, true);
+});

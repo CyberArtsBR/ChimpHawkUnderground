@@ -11,7 +11,7 @@ const options = [
   ['cameraFov','Field of view','Base camera lens; a larger angle shows more of the park.'],
   ['speedFov','Speed zoom','Amount the view opens up at speed. Zero keeps the lens steady.'],
   ['liquid','Bail liquid','Show the dark-red puddle and splash at body impact.'],
-  ['performance','Frame display','Compact measured frame rate and frame time while skating.'],
+  ['performance','FPS counter','Frame rate and frame time in the top-right corner while skating.'],
 ];
 const valueLabel=(key,value)=>typeof value==='boolean'?(value?'ON':'OFF'):key==='cameraFov'?`${value}°`:`${Math.round(value*100)}%`;
 function preferenceRow(key,label,detail,value) {
