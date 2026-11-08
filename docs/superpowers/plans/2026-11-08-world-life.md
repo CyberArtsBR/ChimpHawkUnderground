@@ -119,3 +119,11 @@
 - [ ] `feature-dev:code-reviewer` on the full diff; fix confirmed findings.
 - [ ] Write `docs/world-life-2026-11/02-results.md` (what shipped, costs, dropped items, unverified) and an infographic page.
 - [ ] Ask the owner before merging or pushing.
+
+## Rollback (owner requirement)
+
+- The live build before this work is tagged `pre-world-life-main` (main `f93f1ec`) and `pre-world-life-portals` (portals `ed7c3f5`), both pushed to GitHub.
+- World Life merges into `main` as **one** `--no-ff` merge commit, so undoing it is one command: `git revert -m 1 <merge-commit>` then push (the site redeploys the previous behaviour).
+- Full reset alternative: `git reset --hard pre-world-life-main` on main, then force-push (owner approval required).
+- Cloudflare's dashboard can also re-promote the previous deployment instantly.
+- Document the exact merge hash and these commands in `02-results.md`.
