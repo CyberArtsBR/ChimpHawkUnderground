@@ -8,7 +8,7 @@
   /* Grip noise, pre-rendered from the original feTurbulence SVG (2026-11
      performance pass): the live SVG filter was re-rasterized on every HUD
      repaint and caused 30-60 ms hitches. Same look at 1x and 2x. */
-  --skin-grip: image-set(url('./ui/grip-noise@2x.webp') 2x);
+  --skin-grip: image-set(url('./ui/grip-noise-2x.webp') 2x);
   --skin-ink: #120a1c;
   --skin-deck: linear-gradient(180deg, #33264a 0%, #221933 55%, #1a1328 100%);
   --skin-deck-edge: #0b0712;
