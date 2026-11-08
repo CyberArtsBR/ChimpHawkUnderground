@@ -105,7 +105,7 @@ export class ComboCallouts {
   stinger(level) {
     if (!this.playable()) return;
     const ctx = this.audio.context;
-    const out = this.audio.master;
+    const out = this.audio.extras || this.audio.master;
     const t = ctx.currentTime;
     // Whoosh: filtered noise sweeping up.
     const whoosh = ctx.createBufferSource();
@@ -154,7 +154,7 @@ export class ComboCallouts {
     const ctx = this.audio.context;
     const voice = ctx.createGain();
     voice.gain.value = .9;
-    voice.connect(this.audio.master);
+    voice.connect(this.audio.extras || this.audio.master);
     const pitch = .92 + Math.random() * .16;
     let at = start;
     const hoots = 7;

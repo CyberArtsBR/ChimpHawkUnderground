@@ -1218,6 +1218,9 @@ function gameFrame() {
   // Session menus use the supplied sunset artwork and need no hidden park render.
   // Menus show a static park frame. Redraw on settings/screen/viewport changes,
   // rather than running HDR and bloom behind an opaque title/options screen.
+  // Every frame, including pause/results/menus, so the music never stays
+  // muffled or boosted from the last moment of play.
+  reactiveMusic.update(Math.min(realDelta, .1), { music: gameShell.music, audio: skateAudio, skater, active: gameShell.active && !paused });
   if(gameShell.phase!=='select'&&(gameShell.active||(gameShell.phase==='highlights'&&document.hasFocus())||mode==='explore'||sceneNeedsRender)){
     if(gameShell.simulating)frameMetrics.begin();
     skyLife.update(realDelta, camera);
@@ -1229,7 +1232,6 @@ function gameFrame() {
       graphicsPipeline.setCinematic(replaying, focus);
     }
     updateFloorFinishTime(elapsed);
-    reactiveMusic.update(Math.min(realDelta, .1), { music: gameShell.music, audio: skateAudio, skater, active: gameShell.active });
     mapDressing.update(realDelta, skater, camera);
     if (!shadersWarming) { graphicsPipeline.render({ contactSource: gameShell.phase === 'highlights' ? null : skater });sceneNeedsRender=false; }
     if(gameShell.simulating)frameMetrics.end();else frameMetrics.suspend();
