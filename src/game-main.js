@@ -192,6 +192,7 @@ const mapDressing = new MapDressing(scene);
 const mapAmbience = new MapAmbience(scene);
 // World Life: per-park cosmetic life modules register on this director.
 const lifeDirector = new LifeDirector(scene, { skateAudio, mapDressing });
+worldLife.setLifeContext(lifeDirector.ctx);
 lifeDirector.register(new GlobalLife());
 const floorReflections = new FloorReflections(scene);
 graphicsPipeline.reflectionRoot = floorReflections.root;
