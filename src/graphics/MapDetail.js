@@ -229,6 +229,7 @@ function buildRollerDoor(root, wall) {
   faceWall(group, wall.normal);
   group.position.copy(wall.point).setY(wall.groundY);
   root.add(group);
+  return group;
 }
 
 function buildCrates(root, spot, rand, materials) {
@@ -250,6 +251,7 @@ function buildCrates(root, spot, rand, materials) {
   faceWall(group, spot.facing);
   group.position.copy(spot.point).addScaledVector(spot.facing, -.3);
   root.add(group);
+  return group;
 }
 
 function buildBench(root, spot, materials) {
@@ -271,14 +273,22 @@ function buildBench(root, spot, materials) {
   faceWall(group, spot.facing);
   group.position.copy(spot.point).addScaledVector(spot.facing, -.15);
   root.add(group);
+  return group;
 }
 
+/**
+ * Returns counts plus `props`: the footprint of every solid-looking prop
+ * ({ position (floor centre), radius, kind, facing (away from its wall) }), so
+ * World Life keeps clear of them.
+ */
 export function buildWarehouseProps(root, scan, rand, avoid = []) {
+  const props = [];
+  const footprint = (group, radius, kind, facing) => { if (group) props.push({ position: group.position.clone(), radius, kind, facing: facing.clone().setY(0).normalize() }); };
   const clear = p => avoid.every(q => q.distanceTo(p) > 3.5);
   // Roller door on the widest tall wall, posters on other walls.
   const tall = scan.walls.filter(w => w.tall && w.width >= 3.4);
   const doorWall = spreadPick(tall, 1, 0, rand)[0];
-  if (doorWall) buildRollerDoor(root, doorWall);
+  if (doorWall) footprint(buildRollerDoor(root, doorWall), 4, 'door', doorWall.normal);
   const posterWalls = spreadPick(scan.walls.filter(w => w !== doorWall && (!doorWall || w.point.distanceTo(doorWall.point) > 6)), 7, 7, rand);
   posterWalls.forEach((wall, i) => {
     const spec = POSTERS[i % POSTERS.length];
@@ -298,8 +308,8 @@ export function buildWarehouseProps(root, scan, rand, avoid = []) {
   };
   const spots = scan.edges.filter(e => clear(e.point) && (!doorWall || e.point.distanceTo(doorWall.point) > 7));
   const crates = spreadPick(spots, 5, 14, rand);
-  for (const spot of crates) buildCrates(root, spot, rand, materials);
+  for (const spot of crates) footprint(buildCrates(root, spot, rand, materials), .9, 'crates', spot.facing);
   const benches = spreadPick(spots.filter(s => crates.every(c => c.point.distanceTo(s.point) > 6)), 4, 15, rand);
-  for (const spot of benches) buildBench(root, spot, materials);
-  return { door: Boolean(doorWall), posters: posterWalls.length, crates: crates.length, benches: benches.length };
+  for (const spot of benches) footprint(buildBench(root, spot, materials), 1.1, 'bench', spot.facing);
+  return { door: Boolean(doorWall), posters: posterWalls.length, crates: crates.length, benches: benches.length, props };
 }

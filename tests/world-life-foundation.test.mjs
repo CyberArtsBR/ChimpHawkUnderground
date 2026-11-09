@@ -430,7 +430,7 @@ test('keepClearOfRider pushes a point out of the rider radius', () => {
 
 test('MapDressing records pole and string anchors and clears them with the park', () => {
   const dressing = new MapDressing();
-  assert.deepEqual(dressing.anchors, { poles: [], lamps: [], strings: [] });
+  assert.deepEqual(dressing.anchors, { poles: [], lamps: [], strings: [], props: [] });
   const rand = () => .5;
   dressing.buildFlag({ point: new THREE.Vector3(2, 1, 3), facing: new THREE.Vector3(0, 0, 1) }, rand);
   assert.equal(dressing.anchors.poles.length, 1);
@@ -444,7 +444,7 @@ test('MapDressing records pole and string anchors and clears them with the park'
   assert.equal(dressing.anchors.strings[0].height, 4.4);
   dressing.scan = { walls: [] };
   dressing.clear();
-  assert.deepEqual(dressing.anchors, { poles: [], lamps: [], strings: [] });
+  assert.deepEqual(dressing.anchors, { poles: [], lamps: [], strings: [], props: [] });
   assert.equal(dressing.scan, null, 'no stale scan from the previous park');
 });
 

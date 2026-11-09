@@ -18,7 +18,7 @@ import { LifeAudio } from './LifeAudio.js';
  * roots sit under `root`, and only they get setWorld/update. A module leaving
  * the active set is reset and its root removed from the tree.
  */
-const EMPTY_ANCHORS = Object.freeze({ poles: Object.freeze([]), lamps: Object.freeze([]), strings: Object.freeze([]) });
+const EMPTY_ANCHORS = Object.freeze({ poles: Object.freeze([]), lamps: Object.freeze([]), strings: Object.freeze([]), props: Object.freeze([]) });
 
 export function lifeDensity(settings) {
   if (settings?.name === 'performance') return 0;

@@ -79,6 +79,64 @@ export function glowScaleForDistance(distance) {
   return Math.min(1, (distance - 2.5) / 5);
 }
 
+const PENDANT_MATERIAL = /^Foundry_Warm_Lights/i;
+const PERCH_OFFSET = .4; // m from the pendant's centre: near the shade's rim, clear of its rod
+
+/**
+ * Perches on top of the Grand Warehouse model's pendant lamps (its 20 red
+ * pendants, material Foundry_Warm_Lights, merged in one roof batch). Each
+ * pendant is a world-space cluster of that material's triangles; the perch
+ * sits on the shade top near the rim on the side facing the middle of the
+ * hall (so a bird there shows from the floor, past the shade), measured with a
+ * downward ray against `meshes` (the scan's visual meshes). Returns [] when
+ * there are none.
+ */
+export function findPendantPerches(park, meshes = []) {
+  const clusters = [];
+  const a = new THREE.Vector3(), b = new THREE.Vector3(), c = new THREE.Vector3();
+  park?.updateMatrixWorld?.(true);
+  park?.traverse?.(mesh => {
+    if (!mesh.isMesh || mesh.isInstancedMesh || !mesh.visible) return;
+    const materials = [].concat(mesh.material);
+    if (!materials.some(m => PENDANT_MATERIAL.test(m?.name || ''))) return;
+    const position = mesh.geometry?.attributes?.position;
+    if (!position) return;
+    const index = mesh.geometry.index;
+    const groups = mesh.geometry.groups?.length ? mesh.geometry.groups : [{ start: 0, count: index ? index.count : position.count, materialIndex: 0 }];
+    for (const group of groups) {
+      const material = Array.isArray(mesh.material) ? mesh.material[group.materialIndex] : mesh.material;
+      if (!PENDANT_MATERIAL.test(material?.name || '')) continue;
+      for (let i = group.start; i + 2 < group.start + group.count; i += 3) {
+        const v = k => (index ? index.getX(i + k) : i + k);
+        a.fromBufferAttribute(position, v(0)).applyMatrix4(mesh.matrixWorld);
+        b.fromBufferAttribute(position, v(1)).applyMatrix4(mesh.matrixWorld);
+        c.fromBufferAttribute(position, v(2)).applyMatrix4(mesh.matrixWorld);
+        const x = (a.x + b.x + c.x) / 3, y = (a.y + b.y + c.y) / 3, z = (a.z + b.z + c.z) / 3;
+        let cluster = clusters.find(k => Math.hypot(k.cx - x, k.cz - z) < 1.5 && Math.abs(k.cy - y) < 1);
+        if (!cluster) clusters.push(cluster = { cx: x, cy: y, cz: z, box: new THREE.Box3() });
+        cluster.box.expandByPoint(a).expandByPoint(b).expandByPoint(c);
+      }
+    }
+  });
+  const raycaster = new THREE.Raycaster();
+  raycaster.firstHitOnly = true;
+  const down = new THREE.Vector3(0, -1, 0), from = new THREE.Vector3();
+  const pendants = clusters.filter(({ box }) => box.max.x - box.min.x <= 2.5 && box.max.z - box.min.z <= 2.5);
+  let mx = 0, mz = 0;
+  for (const { box } of pendants) { mx += (box.min.x + box.max.x) / 2 / pendants.length; mz += (box.min.z + box.max.z) / 2 / pendants.length; }
+  const perches = [];
+  for (const { box } of pendants) {
+    const cx = (box.min.x + box.max.x) / 2, cz = (box.min.z + box.max.z) / 2;
+    const dx = mx - cx, dz = mz - cz, d = Math.hypot(dx, dz);
+    const x = cx + (d > .5 ? dx / d : 1) * PERCH_OFFSET, z = cz + (d > .5 ? dz / d : 0) * PERCH_OFFSET;
+    raycaster.set(from.set(x, box.max.y + 1.2, z), down); raycaster.far = 1.5;
+    const hit = meshes.length ? raycaster.intersectObjects(meshes, false)[0] : null;
+    const top = hit && hit.point.y > box.min.y - .05 && hit.point.y < box.max.y + .6 ? hit.point.y : box.max.y + .12;
+    perches.push({ position: new THREE.Vector3(x, top, z), height: 0 });
+  }
+  return perches;
+}
+
 const mat = (color, extra = {}) => new THREE.MeshStandardMaterial({ color, roughness: .7, ...extra });
 
 export class MapDressing {
@@ -97,9 +155,11 @@ export class MapDressing {
     this.glow = glowTexture();
     this.generation = 0;
     // World Life anchors: { position (world space), height }. Poles and string
-    // ends give the pole top; lamps give the ceiling rod attachment point and
-    // the hanging length. Filled as the dressing builds, cleared with the park.
-    this.anchors = { poles: [], lamps: [], strings: [] };
+    // ends give the pole top; lamps give a perch on top of each of the
+    // Warehouse model's pendant shades (height 0). props: footprints of the
+    // Warehouse crates, benches and door ({ position, radius, kind, facing }). Filled
+    // as the dressing builds, cleared with the park.
+    this.anchors = { poles: [], lamps: [], strings: [], props: [] };
     this.scan = null;
   }
 
@@ -120,7 +180,7 @@ export class MapDressing {
     });
     this.root.clear();
     this.signs = []; this.strings = []; this.flags = [];
-    this.anchors = { poles: [], lamps: [], strings: [] };
+    this.anchors = { poles: [], lamps: [], strings: [], props: [] };
     this.scan = null;
   }
 
@@ -165,7 +225,10 @@ export class MapDressing {
     // String lights stay clear of the start area so they never block the opening view.
     const clearOfSpawn = spawn => edges.filter(e => !spawn || e.point.distanceTo(spawn) > 32);
     if (!space) this.buildStrings(clearOfSpawn(Array.isArray(world.manifest?.spawn) ? new THREE.Vector3(...world.manifest.spawn) : null), rand, indoor);
-    if (indoor) this.buildLamps(scan, rand);
+    if (indoor) {
+      this.skipRetiredLampDraws(scan, rand);
+      this.anchors.lamps.push(...findPendantPerches(world.park, scan.meshes));
+    }
     // Extra detail: Orbit trims and stencils; Warehouse props and roller door.
     const ys = scan.floor.map(f => f.point.y).sort((x, y) => x - y);
     const floorY = world.userData?.finishMask?.floorY ?? ys[Math.floor(ys.length / 2)] ?? 0;
@@ -173,6 +236,7 @@ export class MapDressing {
     if (indoor) {
       const avoid = this.strings.flatMap(s => [s.a, s.b]).map(e => e?.point || e).filter(p => p?.isVector3);
       this.detail = buildWarehouseProps(this.root, scan, rand, avoid);
+      this.anchors.props.push(...this.detail.props);
     }
     this.patchPalms(world.park);
   }
@@ -191,53 +255,20 @@ export class MapDressing {
   }
 
   /**
-   * Warehouse atmosphere: a grid of hanging industrial lamps, each with a lit
-   * bulb, a faint dusty light cone down to the floor and a warm floor pool.
+   * The Warehouse's hanging lamps are the model's own pendants (perches come
+   * from findPendantPerches). The dressing used to add a second lamp grid at
+   * the median floor height, which the roof pulled above the roof, out of
+   * sight; it is gone. Its random draws are still taken so the seeded layout
+   * of the props placed after it (crates, benches, posters, door) is unchanged.
    */
-  buildLamps(scan, rand) {
+  skipRetiredLampDraws(scan, rand) {
     const b = scan.bounds;
     if (!b || !scan.floor.length) return;
     const ys = scan.floor.map(f => f.point.y).sort((x, y) => x - y);
     const floorY = ys[Math.floor(ys.length / 2)];
-    const spots = [];
     const step = 22;
     for (let x = b.minX + step / 2; x < b.maxX; x += step) for (let z = b.minZ + step / 2; z < b.maxZ; z += step) {
-      const near = scan.floor.some(f => (f.point.x - x) ** 2 + (f.point.z - z) ** 2 < 25 && Math.abs(f.point.y - floorY) < .5);
-      if (near) spots.push(new THREE.Vector3(x + (rand() - .5) * 3, floorY, z + (rand() - .5) * 3));
-    }
-    if (!spots.length) return;
-    const hang = 11, n = spots.length;
-    // Rod: 6 m long, centred at hang + 3.6, so it meets the ceiling at hang + 6.6.
-    for (const p of spots) this.anchors.lamps.push({ position: p.clone().setY(p.y + hang + 6.6), height: 6.6 });
-    const coneTexture = (() => {
-      const c = document.createElement('canvas'); c.width = 8; c.height = 128;
-      const ctx = c.getContext('2d'), g = ctx.createLinearGradient(0, 0, 0, 128);
-      g.addColorStop(0, 'rgba(255,255,255,0)'); g.addColorStop(.25, 'rgba(255,255,255,.08)'); g.addColorStop(.9, 'rgba(255,255,255,.95)'); g.addColorStop(1, 'rgba(255,255,255,1)');
-      ctx.fillStyle = g; ctx.fillRect(0, 0, 8, 128);
-      const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t;
-    })();
-    const parts = [
-      [new THREE.ConeGeometry(.75, .6, 18, 1, true).translate(0, hang + .3, 0), mat('#2b2d33', { metalness: .6, roughness: .45, side: THREE.DoubleSide }), 'Lamp shades'],
-      [new THREE.CylinderGeometry(.02, .02, 6, 5).translate(0, hang + 3.6, 0), mat('#1d1e22', { metalness: .7 }), 'Lamp rods'],
-      [new THREE.SphereGeometry(.22, 12, 8).translate(0, hang + .05, 0), new THREE.MeshBasicMaterial({ color: '#fff1cf', toneMapped: false }), 'Lamp bulbs'],
-      [new THREE.CylinderGeometry(.65, 5.2, hang, 24, 1, true).translate(0, hang / 2, 0), new THREE.MeshBasicMaterial({
-        map: coneTexture, color: '#ffdca8', transparent: true, opacity: .07, depthWrite: false, side: THREE.DoubleSide,
-        blending: THREE.AdditiveBlending, toneMapped: false, fog: false }), 'Lamp light cones'],
-    ];
-    const m = new THREE.Matrix4(), q = new THREE.Quaternion(), one = new THREE.Vector3(1, 1, 1);
-    for (const [geometry, material, name] of parts) {
-      const mesh = new THREE.InstancedMesh(geometry, material, n);
-      mesh.name = name; mesh.castShadow = name === 'Lamp shades'; mesh.frustumCulled = false;
-      spots.forEach((p, i) => mesh.setMatrixAt(i, m.compose(p, q, one)));
-      this.root.add(mesh);
-    }
-    for (const p of spots) {
-      // A wide warm pool plus a brighter core right under the lamp.
-      for (const [size, opacity, color] of [[13, .5, '#ffcf8f'], [5, .42, '#fff0d4']]) {
-        const pool = this.lightPool(color, size, size, opacity);
-        pool.position.copy(p).setY(p.y + .03); pool.rotation.x = -Math.PI / 2;
-        this.root.add(pool);
-      }
+      if (scan.floor.some(f => (f.point.x - x) ** 2 + (f.point.z - z) ** 2 < 25 && Math.abs(f.point.y - floorY) < .5)) { rand(); rand(); }
     }
   }
 
