@@ -453,11 +453,16 @@ export class OrbitLife {
     bot.target.set(bot.home.x + Math.cos(a) * 1.5, 0, bot.home.z + Math.sin(a) * 1.5);
   }
 
-  /** Dart 3-5 m (half with reduced motion) away from the rider, over open floor. */
+  /**
+   * Dart 3-5 m (half with reduced motion) away from the rider, over open floor.
+   * No open spot at that range: try half the distance, else stay put (the
+   * rider clamp still holds) and look again shortly. Returns whether it darted.
+   */
   dart(bot, skater) {
     const p = skater.position, motion = this.motion;
     let dx = bot.position.x - p.x, dz = bot.position.z - p.z;
     let len = Math.hypot(dx, dz);
+    const before = len;
     if (len < 1e-4) { dx = 1; dz = 0; len = 1; }
     dx /= len; dz /= len;
     // A fast rider: get out of the line of travel, not just ahead of it.
@@ -470,24 +475,27 @@ export class OrbitLife {
       dx = lx + dx * .5; dz = lz + dz * .5;
       len = Math.hypot(dx, dz); dx /= len; dz /= len;
     }
-    const distance = rand(...ORBIT_LIFE.botDart) * motion;
-    const before = len;
+    const full = rand(...ORBIT_LIFE.botDart) * motion;
     let chosen = false;
-    for (const turn of DART_TURNS) {
-      const c = Math.cos(turn), s = Math.sin(turn);
-      const x = bot.position.x + (dx * c - dz * s) * distance, z = bot.position.z + (dx * s + dz * c) * distance;
-      if (Math.hypot(x - p.x, z - p.z) <= before + .5 * motion) continue;
-      this.scratch.set(x, 0, z);
-      if (!this.isOpenPath(bot.position, this.scratch)) continue;
-      bot.to.set(x, 0, z); chosen = true; break;
+    for (const distance of [full, full * .5]) {
+      for (const turn of DART_TURNS) {
+        const c = Math.cos(turn), s = Math.sin(turn);
+        const x = bot.position.x + (dx * c - dz * s) * distance, z = bot.position.z + (dx * s + dz * c) * distance;
+        if (Math.hypot(x - p.x, z - p.z) <= before + .5 * motion) continue;
+        this.scratch.set(x, 0, z);
+        if (!this.isOpenPath(bot.position, this.scratch)) continue;
+        bot.to.set(x, 0, z); chosen = true; break;
+      }
+      if (chosen) break;
     }
-    if (!chosen) bot.to.set(bot.position.x + dx * distance, 0, bot.position.z + dz * distance);
+    if (!chosen) { bot.cooldown = .3; return false; }
     bot.from.copy(bot.position);
     bot.state = 'dart'; bot.t = 0;
     if (this.time - bot.lastBeep >= ORBIT_LIFE.botBeepGap) {
       bot.lastBeep = this.time;
       this.ctx?.audio?.play?.('beep', bot.position, { gain: .5, rate: bot.index % 2 ? 1.15 : .9 });
     }
+    return true;
   }
 
   updateBots(dt, skater, camera) {
@@ -605,9 +613,13 @@ export class OrbitLife {
     return hit ? hit.point.y : -Infinity;
   }
 
+  /**
+   * LifeAudio can only stop by kind, not by owner, so Orbit's short one-shot
+   * beeps are left to finish (the director silences every voice itself on a
+   * park switch or when life turns off).
+   */
   reset() {
     this.clearAgents();
-    this.ctx?.audio?.stop?.('beep');
   }
 
   dispose() {

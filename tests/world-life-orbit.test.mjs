@@ -5,6 +5,7 @@ import { LifeDirector } from '../src/graphics/life/LifeDirector.js';
 import { OrbitLife, ORBIT_LIFE } from '../src/graphics/life/OrbitLife.js';
 import { MapAmbience, AMBIENCE } from '../src/graphics/MapAmbience.js';
 import { MeshBVH, acceleratedRaycast } from 'three-mesh-bvh';
+import { WorldReactions } from '../src/graphics/life/WorldReactions.js';
 
 // A flat Orbit-like deck at y = 0 sampled every 3 m (MapScan lattice), with a
 // raised ramp deck (y = 2) in the RAMP box and a few sky-dome hits far below.
@@ -243,6 +244,36 @@ test('hover bots: never within 1.2 m of the rider while riding straight through 
   assert.ok(min >= ORBIT_LIFE.riderClear - 1e-6, `min ${min}`);
 });
 
+test('hover bots: with no open floor at dart range the dart is shortened or skipped, never an unchecked path', () => {
+  const setup = openRadius => {
+    const r = rig();
+    r.run(.5);
+    const bot = liveBots(r.life)[0];
+    const start = bot.position.clone();
+    // Only a disc of `openRadius` round the bot counts as open floor.
+    r.life.isOpen = (x, z) => Math.hypot(x - start.x, z - start.z) <= openRadius;
+    const results = [];
+    const dart = r.life.dart.bind(r.life);
+    r.life.dart = (b, skater) => { const ok = dart(b, skater); if (b === bot) results.push(ok); return ok; };
+    r.skater.position.set(start.x + 3.5, 0, start.z);
+    return { r, bot, start, results };
+  };
+  // Nothing open beyond the bot's own spot: it stays (the rider clamp still holds), no beep.
+  const none = setup(.3);
+  let maxDart = 0;
+  none.r.run(2, 1 / 60, () => { if (none.bot.state === 'dart') maxDart = 1; });
+  assert.ok(none.results.length >= 2 && none.results.every(ok => !ok), `darts ${none.results}`);
+  assert.equal(maxDart, 0, 'never darted');
+  assert.equal(none.r.plays.filter(p => p.kind === 'beep').length, 0);
+  // Open only within 2.6 m: the dart is cut to half its 3-5 m and stays on open floor.
+  const half = setup(2.6);
+  half.r.step();
+  assert.deepEqual(half.results, [true]);
+  half.r.run(.75);
+  const moved = horizontal(half.bot.position, half.start);
+  assert.ok(moved >= 1.4 && moved <= 2.6, `half dart ${moved}`);
+});
+
 // ---------------------------------------------------------------- REC drone
 test('REC drone: opposite the camera 5-7 m out and 3-4 m up, blinking red ~1 Hz, never within 1.5 m of the camera-rider segment', () => {
   const r = rig();
@@ -317,7 +348,8 @@ test('only Orbit: setWorld twice keeps the same children; other parks get nothin
   assert.equal(r.life.tileMesh.count + r.life.rippleMesh.count, 0);
   assert.equal(liveBots(r.life).length, 0);
   assert.equal(r.life.drone.root.visible, false);
-  assert.ok(r.stops.includes(null) || r.stops.includes('beep'), 'sounds stopped');
+  assert.ok(r.stops.some(kind => kind == null), 'the director silenced every life voice');
+  assert.ok(!r.stops.includes('beep'), "reset leaves other modules' beeps alone");
   r.run(1);
   assert.equal(r.life.tileMesh.count, 0, 'no update off Orbit');
   r.director.setWorld({ id: 'grand-warehouse', manifest: { spawn: [0, 0, 0] } });
@@ -381,40 +413,81 @@ test('materials and meshes exist from construction (shader warm-up); dispose uns
 });
 
 // ------------------------------------------------------------- MapAmbience
-const ambienceSkater = (x = 0, z = 0) => ({ position: new THREE.Vector3(x, 0, z), velocity: new THREE.Vector3(), speed: 0 });
+const ambienceSkater = (x = 0, z = 0) => ({ position: new THREE.Vector3(x, 0, z), velocity: new THREE.Vector3(), speed: 0, grounded: true });
 
-test('hologram flicker: a rider within 6 m starts a 0.5 s glitch burst with a 2 s cooldown per hologram', () => {
+function hologramRig() {
   const ambience = new MapAmbience(null);
+  const reactions = new WorldReactions();
+  ambience.setLifeContext({ reactions, reducedMotion: false });
   ambience.setWorld({ id: 'orbit', collision: null });
   assert.equal(ambience.holograms.length, AMBIENCE.holograms);
   for (const h of ambience.holograms) h.next = Infinity; // no random glitches
-  const camera = new THREE.PerspectiveCamera();
-  const skater = ambienceSkater(0, 0);
-  const h = ambience.holograms[0];
-  const bursts = [];
-  let t = 0, was = false;
-  const run = seconds => {
-    for (let i = 0; i < Math.round(seconds * 60); i++) {
-      t += 1 / 60;
-      ambience.update(1 / 60, skater, camera);
-      const on = h.glitch > 0;
-      if (on && !was) bursts.push(t);
-      was = on;
-    }
-  };
-  run(2);
-  assert.equal(bursts.length, 0, 'far away: none');
   ambience.root.updateMatrixWorld(true);
-  skater.position.copy(h.mesh.localToWorld(new THREE.Vector3(0, -6.2, 7)));
-  run(1);
-  assert.equal(bursts.length, 0, '7 m from the billboard: none');
-  skater.position.copy(h.mesh.localToWorld(new THREE.Vector3(3, -6.2, 5)));
-  run(6);
-  assert.equal(bursts.length, 3, `bursts ${bursts}`);
-  for (let i = 1; i < bursts.length; i++) assert.ok(bursts[i] - bursts[i - 1] >= 2.5 - 1e-6, 'burst plus cooldown');
-  skater.position.set(0, 0, 0);
-  run(1);
-  assert.equal(h.mesh.position.x, h.baseX, 'position restored after the burst');
+  const camera = new THREE.PerspectiveCamera();
+  const skater = ambienceSkater(0, 0); // > 50 m from every billboard
+  const h = ambience.holograms[0];
+  const at = z => h.mesh.localToWorld(new THREE.Vector3(0, -6.2, z)); // z m in front of its bottom edge
+  const bursts = [];
+  let t = 0;
+  const burst = ambience.hologramBurst.bind(ambience);
+  ambience.hologramBurst = target => { const ok = burst(target); if (ok && target === h) bursts.push(+t.toFixed(3)); return ok; };
+  const run = seconds => { for (let i = 0; i < Math.round(seconds * 60); i++) { t += 1 / 60; ambience.update(1 / 60, skater, camera); } };
+  const land = point => { reactions.payloads.landing.point.copy(point); reactions.emit('landing'); };
+  return { ambience, h, skater, at, bursts, run, land, get t() { return t; } };
+}
+
+test('hologram flicker: entering 30 m of a billboard glitches it once; staying inside does not retrigger', () => {
+  const r = hologramRig();
+  r.run(2);
+  assert.deepEqual(r.bursts, [], 'far away: none');
+  r.skater.position.copy(r.at(31.5));
+  r.run(1);
+  assert.deepEqual(r.bursts, [], '31.5 m: outside');
+  r.skater.position.copy(r.at(20));
+  r.run(.1);
+  assert.equal(r.bursts.length, 1, 'entering triggers');
+  assert.ok(r.h.glitch > 0 && r.h.glitch <= AMBIENCE.hologramBurst);
+  r.run(.5);
+  assert.ok(r.h.glitch <= 0, 'a 0.5 s burst');
+  r.skater.position.copy(r.at(29.5)); // wander about inside, even near the edge
+  r.run(4);
+  r.skater.position.copy(r.at(30.6)); // inside the 1 m hysteresis band
+  r.run(.5);
+  r.skater.position.copy(r.at(25));
+  r.run(4);
+  assert.equal(r.bursts.length, 1, 'staying inside never retriggers');
+  r.skater.position.set(0, 0, 0);
+  r.run(1);
+  assert.equal(r.h.mesh.position.x, r.h.baseX, 'position restored after the burst');
+});
+
+test('hologram flicker: a landing within 30 m triggers it, with a 4 s cooldown per billboard; re-entry respects it too', () => {
+  const r = hologramRig();
+  r.run(1);
+  r.land(r.at(45));
+  assert.deepEqual(r.bursts, [], 'landing 45 m away: none');
+  r.land(r.at(10));
+  assert.equal(r.bursts.length, 1, 'landing within 30 m');
+  r.run(1);
+  r.land(r.at(10));
+  assert.equal(r.bursts.length, 1, 'within the 4 s cooldown: none');
+  r.run(3.1);
+  r.land(r.at(12));
+  assert.equal(r.bursts.length, 2, 'after the cooldown');
+  r.run(.5);
+  r.skater.position.copy(r.at(20)); // entering during the cooldown: no burst...
+  r.run(.5);
+  assert.equal(r.bursts.length, 2);
+  r.skater.position.set(0, 0, 0); // ...and leaving and re-entering after it does
+  r.run(4);
+  r.skater.position.copy(r.at(20));
+  r.run(.1);
+  assert.equal(r.bursts.length, 3);
+  for (let i = 1; i < r.bursts.length; i++) assert.ok(r.bursts[i] - r.bursts[i - 1] >= AMBIENCE.hologramCooldown - 1e-6, `cooldown ${r.bursts}`);
+  r.ambience.setQuality({ name: 'performance' });
+  r.run(4.1);
+  r.land(r.at(10));
+  assert.equal(r.bursts.length, 3, 'off in the performance preset');
 });
 
 function flatCollision() {
@@ -473,6 +546,26 @@ test('litter wake never adds pieces: with the pool busy it kicks nothing', () =>
   w.run(2, 12);
   assert.equal(w.spawned.length, 0);
   assert.ok(w.ambience.pieces.every(p => p.age > 1.9), 'no piece was recycled');
+});
+
+test('litter wake: nothing kicks up under a rider in the air, or where the ground probe misses', () => {
+  const air = wakeRig();
+  air.skater.grounded = false;
+  air.skater.position.y = 1.5;
+  air.run(4, 12);
+  assert.equal(air.spawned.length, 0, 'airborne: no wake');
+  air.skater.grounded = true;
+  air.skater.position.y = 0;
+  air.run(3, 12);
+  assert.ok(air.spawned.length >= 2, 'back on the ground: the wake resumes');
+  for (const s of air.spawned) assert.ok(Math.abs(s.pos.y) < .1, 'pieces start on the ground');
+  const noGround = new MapAmbience(null);
+  noGround.setWorld({ id: 'skate-paradise', collision: null }); // every probe misses
+  noGround.gustTimer = Infinity;
+  const skater = ambienceSkater(0, 0);
+  skater.velocity.set(12, 0, 0); skater.speed = 12;
+  for (let i = 0; i < 240; i++) { skater.position.x += .2; noGround.update(1 / 60, skater, null); }
+  assert.equal(noGround.pieces.filter(p => p.alive).length, 0, 'no ground hit: nothing kicked');
 });
 
 test('litter wake: reduced motion halves the kick', () => {

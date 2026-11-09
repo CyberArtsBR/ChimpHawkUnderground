@@ -6,13 +6,14 @@ import { glowScaleForDistance } from './MapDressing.js';
  * Moving map ambience (2026-11 enhancement pass). Presentation only.
  *  - Gusts of leaves and paper tumble across the ground near the rider and
  *    get kicked up when the rider rolls through them (outdoor + warehouse).
- *  - Litter wake: a fast rider (> 8 m/s) kicks 1-2 pieces a second up from
- *    behind the board, taken from the same pool (never extra pieces).
+ *  - Litter wake: a fast rider (> 8 m/s) on the ground kicks 1-2 pieces a
+ *    second up from behind the board, taken from the same pool (never extra
+ *    pieces).
  *  - Orbit sky show: shooting stars, a drone formation with blinking lights,
- *    and slowly turning holographic billboards that glitch when the rider
- *    comes within 6 m (0.5 s burst, then a 2 s cooldown per billboard).
- * With a World Life context (setLifeContext) reduced motion halves the wake
- * kick and the proximity glitch.
+ *    and slowly turning holographic billboards that glitch (0.5 s burst) when
+ *    the rider enters 30 m of one or lands within 30 m (4 s cooldown each).
+ * With a World Life context (setLifeContext) landings reach the holograms and
+ * reduced motion halves the wake kick and those glitches.
  */
 export const AMBIENCE = Object.freeze({
   litter: 44,
@@ -25,9 +26,10 @@ export const AMBIENCE = Object.freeze({
   wakeSpeed: 8,
   wakeEvery: [.5, 1],
   wakeLife: 3.5,
-  hologramNear: 6,
+  hologramNear: 30,
+  hologramHysteresis: 1,
   hologramBurst: .5,
-  hologramCooldown: 2,
+  hologramCooldown: 4,
 });
 
 const rand = (a, b) => a + Math.random() * (b - a);
@@ -93,6 +95,7 @@ export class MapAmbience {
     this.enabled = true;
     this.density = 1;
     this.life = null;
+    this.unsubscribe = [];
     this.wakeTimer = 0;
     this.scratch = new THREE.Vector3();
     this.rayOrigin = new THREE.Vector3();
@@ -163,8 +166,26 @@ export class MapAmbience {
     if (!this.enabled) this.reset();
   }
 
-  /** World Life context (LifeDirector.ctx): read fresh for reduced motion. */
-  setLifeContext(ctx) { this.life = ctx || null; }
+  /** World Life context (LifeDirector.ctx): landings, and reduced motion (read fresh). */
+  setLifeContext(ctx) {
+    for (const off of this.unsubscribe) off();
+    this.unsubscribe = [];
+    this.life = ctx || null;
+    if (ctx?.reactions?.on) this.unsubscribe.push(ctx.reactions.on('landing', event => this.hologramLanding(event.point)));
+  }
+
+  /** A landing within 30 m of a hologram glitches it (cooldown permitting). */
+  hologramLanding(point) {
+    if (!this.enabled || this.mode !== 'space') return;
+    for (const h of this.holograms) if (this.hologramDistance(h, point) < AMBIENCE.hologramNear) this.hologramBurst(h);
+  }
+
+  hologramBurst(h) {
+    if (h.cooldown > 0) return false;
+    h.glitch = AMBIENCE.hologramBurst; h.amp = this.motion;
+    h.cooldown = AMBIENCE.hologramCooldown; // counted from the start of the burst
+    return true;
+  }
 
   get motion() { return this.life?.reducedMotion ? .5 : 1; }
 
@@ -199,16 +220,19 @@ export class MapAmbience {
         mesh.lookAt(this.center.x, mesh.position.y, this.center.z);
         mesh.name = 'Hologram billboard';
         this.space.add(mesh);
-        this.holograms.push({ mesh, baseYaw: mesh.rotation.y, glitch: 0, amp: 1, cooldown: 0, next: rand(3, 9), baseX: mesh.position.x });
+        this.holograms.push({ mesh, baseYaw: mesh.rotation.y, glitch: 0, amp: 1, cooldown: 0, inside: false, next: rand(3, 9), baseX: mesh.position.x });
       }
     }
   }
 
-  groundAt(x, y, z) {
-    if (!this.meshes.length) return y;
+  groundAt(x, y, z) { return this.probeGround(x, y, z) ?? y; }
+
+  /** Ground height under (x, z) searching from y + 3 down 8 m, or null on a miss. */
+  probeGround(x, y, z) {
+    if (!this.meshes.length) return null;
     this.raycaster.set(this.rayOrigin.set(x, y + 3, z), this.down); this.raycaster.far = 8;
     const hit = this.raycaster.intersectObjects(this.meshes, false)[0];
-    return hit ? hit.point.y : y;
+    return hit ? hit.point.y : null;
   }
 
   gust(skater) {
@@ -289,7 +313,7 @@ export class MapAmbience {
   wake(dt, skater) {
     let vx = skater.velocity?.x || 0, vz = skater.velocity?.z || 0;
     const speed = Math.hypot(vx, vz);
-    if (speed <= AMBIENCE.wakeSpeed) { this.wakeTimer = Math.min(this.wakeTimer, rand(0, .3)); return; }
+    if (speed <= AMBIENCE.wakeSpeed || !skater.grounded) { this.wakeTimer = Math.min(this.wakeTimer, rand(0, .3)); return; }
     this.wakeTimer -= dt;
     if (this.wakeTimer > 0) return;
     this.wakeTimer = rand(...AMBIENCE.wakeEvery) / this.density;
@@ -298,9 +322,11 @@ export class MapAmbience {
     if (!p) return; // the pool is busy: never extra pieces
     vx /= speed; vz /= speed;
     const back = rand(1.5, 2.4), side = rand(-.5, .5), m = this.motion, r = skater.position;
-    p.pos.set(r.x - vx * back - vz * side, r.y, r.z - vz * back + vx * side);
-    p.ground = this.groundAt(p.pos.x, r.y + 1, p.pos.z);
-    p.pos.y = p.ground + .02;
+    const x = r.x - vx * back - vz * side, z = r.z - vz * back + vx * side;
+    const ground = this.probeGround(x, r.y + 1, z);
+    if (ground === null) return; // no ground under the wake: nothing to kick
+    p.ground = ground;
+    p.pos.set(x, ground + .02, z);
     const follow = speed * rand(.2, .35) * m, lateral = rand(-1, 1) * m;
     p.vel.set(vx * follow - vz * lateral, rand(1.8, 3.2) * m, vz * follow + vx * lateral);
     p.rot.set(rand(0, 6), rand(0, 6), rand(0, 6));
@@ -370,9 +396,12 @@ export class MapAmbience {
       h.next -= dt;
       h.cooldown -= dt;
       if (h.next <= 0) { h.glitch = .35; h.amp = 1; h.next = rand(4, 10); }
-      if (skater?.position && h.cooldown <= 0 && h.glitch <= 0 && this.hologramDistance(h, skater.position) < AMBIENCE.hologramNear) {
-        h.glitch = AMBIENCE.hologramBurst; h.amp = this.motion;
-        h.cooldown = AMBIENCE.hologramBurst + AMBIENCE.hologramCooldown;
+      // Edge-triggered: only crossing into the 30 m radius glitches it (1 m
+      // hysteresis on the way out, so the boundary cannot flap).
+      if (skater?.position) {
+        const distance = this.hologramDistance(h, skater.position);
+        if (!h.inside && distance < AMBIENCE.hologramNear) { h.inside = true; this.hologramBurst(h); }
+        else if (h.inside && distance > AMBIENCE.hologramNear + AMBIENCE.hologramHysteresis) h.inside = false;
       }
       if (h.glitch > 0) {
         h.glitch -= dt;
