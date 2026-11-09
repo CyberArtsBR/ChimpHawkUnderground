@@ -418,7 +418,7 @@ const ambienceSkater = (x = 0, z = 0) => ({ position: new THREE.Vector3(x, 0, z)
 function hologramRig() {
   const ambience = new MapAmbience(null);
   const reactions = new WorldReactions();
-  ambience.setLifeContext({ reactions, reducedMotion: false });
+  ambience.setLifeContext({ reactions, scan: null, reducedMotion: false });
   ambience.setWorld({ id: 'orbit', collision: null });
   assert.equal(ambience.holograms.length, AMBIENCE.holograms);
   for (const h of ambience.holograms) h.next = Infinity; // no random glitches
@@ -488,6 +488,45 @@ test('hologram flicker: a landing within 30 m triggers it, with a 4 s cooldown p
   r.run(4.1);
   r.land(r.at(10));
   assert.equal(r.bursts.length, 3, 'off in the performance preset');
+});
+
+test('hologram radius: closest playable floor (rider height) + 8 m, clamped to 30-60 m; reachable; 30 m without a scan', () => {
+  const r = hologramRig();
+  r.run(.1);
+  for (const h of r.ambience.holograms) assert.equal(h.radius, AMBIENCE.hologramNear, 'no scan yet: 30 m');
+  const [h0, h1] = r.ambience.holograms;
+  const local = (h, x, y, z) => { // placed against the billboard at its rest yaw (as measured)
+    const sway = h.mesh.rotation.y;
+    h.mesh.rotation.y = h.baseYaw; h.mesh.updateMatrixWorld(true);
+    const p = h.mesh.localToWorld(new THREE.Vector3(x, y, z));
+    h.mesh.rotation.y = sway; h.mesh.updateMatrixWorld(true);
+    return p;
+  };
+  const floor = [];
+  for (let x = -15; x <= 15; x += 3) for (let z = -15; z <= 15; z += 3) floor.push({ point: new THREE.Vector3(x, 0, z) });
+  floor.push({ point: local(h0, 0, -6.2, 26).setY(local(h0, 0, -6.2, 26).y - .9) }); // a deck 26 m from h0 at rider height
+  floor.push({ point: local(h1, 0, 0, 2).setY(40) });   // far above the floor level: ignored
+  floor.push({ point: new THREE.Vector3(0, -894.6, 0) }); // sky dome hit: ignored
+  r.ambience.life.scan = { floor, walls: [], edges: [] };
+  r.run(.1);
+  const playable = floor.filter(f => f.point.y > -2 && f.point.y < 12).map(f => f.point.clone().setY(f.point.y + .9));
+  for (const h of r.ambience.holograms) {
+    const sway = h.mesh.rotation.y;
+    h.mesh.rotation.y = h.baseYaw;
+    const closest = Math.min(...playable.map(p => r.ambience.hologramDistance(h, p)));
+    h.mesh.rotation.y = sway;
+    assert.ok(h.radius >= 30 && h.radius <= 60, `radius ${h.radius}`);
+    assert.ok(Math.abs(h.radius - Math.min(60, Math.max(30, closest + 8))) < 1e-6, `radius ${h.radius} for closest ${closest}`);
+    assert.ok(closest < h.radius, 'reachable from at least one floor sample');
+  }
+  assert.ok(Math.abs(h0.radius - 34) < 1e-6, `26 m from the floor keeps 34 m: ${h0.radius}`);
+  assert.ok(h1.radius > 30, 'the high sample did not count');
+  // The edge trigger uses it: 33 m from h0 is inside, 35.5 m is out.
+  r.h.cooldown = 0;
+  r.skater.position.copy(r.at(35.5)); r.run(.2);
+  const before = r.bursts.length;
+  r.skater.position.copy(r.at(33)); r.run(.1);
+  assert.equal(r.bursts.length, before + 1, 'entering the 34 m radius');
 });
 
 function flatCollision() {

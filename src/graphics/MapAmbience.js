@@ -11,7 +11,10 @@ import { glowScaleForDistance } from './MapDressing.js';
  *    pieces).
  *  - Orbit sky show: shooting stars, a drone formation with blinking lights,
  *    and slowly turning holographic billboards that glitch (0.5 s burst) when
- *    the rider enters 30 m of one or lands within 30 m (4 s cooldown each).
+ *    the rider enters its trigger radius or lands inside it (4 s cooldown
+ *    each). The radius is per billboard: its closest playable floor (rider
+ *    height, from MapDressing's scan) + 8 m, clamped to 30-60 m; 30 m until
+ *    the scan arrives.
  * With a World Life context (setLifeContext) landings reach the holograms and
  * reduced motion halves the wake kick and those glitches.
  */
@@ -26,7 +29,9 @@ export const AMBIENCE = Object.freeze({
   wakeSpeed: 8,
   wakeEvery: [.5, 1],
   wakeLife: 3.5,
-  hologramNear: 30,
+  hologramNear: 30,         // fallback radius, and the clamp's lower bound
+  hologramNearMax: 60,
+  hologramReach: 8,         // radius = closest floor + this
   hologramHysteresis: 1,
   hologramBurst: .5,
   hologramCooldown: 4,
@@ -96,8 +101,10 @@ export class MapAmbience {
     this.density = 1;
     this.life = null;
     this.unsubscribe = [];
+    this.hologramScan = null;
     this.wakeTimer = 0;
     this.scratch = new THREE.Vector3();
+    this.scratchB = new THREE.Vector3();
     this.rayOrigin = new THREE.Vector3();
     this.time = 0;
     this.meshes = [];
@@ -177,7 +184,7 @@ export class MapAmbience {
   /** A landing within 30 m of a hologram glitches it (cooldown permitting). */
   hologramLanding(point) {
     if (!this.enabled || this.mode !== 'space') return;
-    for (const h of this.holograms) if (this.hologramDistance(h, point) < AMBIENCE.hologramNear) this.hologramBurst(h);
+    for (const h of this.holograms) if (this.hologramDistance(h, point) < h.radius) this.hologramBurst(h);
   }
 
   hologramBurst(h) {
@@ -195,6 +202,7 @@ export class MapAmbience {
     this.reset();
     for (const h of this.holograms) { h.mesh.removeFromParent(); h.mesh.geometry.dispose(); h.mesh.material.map?.dispose(); h.mesh.material.dispose(); }
     this.holograms = [];
+    this.hologramScan = null; // radii are measured again from this park's scan
     const id = world?.id;
     this.mode = id === 'orbit' ? 'space' : (id === 'skate-paradise' || id === 'rooftop') ? 'outdoor' : id === 'grand-warehouse' ? 'indoor' : 'none';
     this.meshes = collisionMeshes(world?.collision);
@@ -220,7 +228,7 @@ export class MapAmbience {
         mesh.lookAt(this.center.x, mesh.position.y, this.center.z);
         mesh.name = 'Hologram billboard';
         this.space.add(mesh);
-        this.holograms.push({ mesh, baseYaw: mesh.rotation.y, glitch: 0, amp: 1, cooldown: 0, inside: false, next: rand(3, 9), baseX: mesh.position.x });
+        this.holograms.push({ mesh, baseYaw: mesh.rotation.y, glitch: 0, amp: 1, cooldown: 0, inside: false, radius: AMBIENCE.hologramNear, next: rand(3, 9), baseX: mesh.position.x });
       }
     }
   }
@@ -346,7 +354,40 @@ export class MapAmbience {
     return Math.hypot(dx, dy, local.z);
   }
 
+  /**
+   * Each hologram's trigger radius: the closest playable floor sample (at
+   * rider height, 0.9 m up) + 8 m, clamped to 30-60 m, measured with the
+   * billboard at its rest yaw. Floor samples far below the main floor level
+   * (the sky dome) or high above it are ignored.
+   */
+  measureHologramRadii(scan) {
+    const floor = scan?.floor || [];
+    const hist = new Map();
+    let level = null, best = 0;
+    for (const f of floor) {
+      const k = Math.round(f.point.y * 20), n = (hist.get(k) || 0) + 1;
+      hist.set(k, n);
+      if (n > best) { best = n; level = k / 20; }
+    }
+    for (const h of this.holograms) {
+      const sway = h.mesh.rotation.y;
+      h.mesh.rotation.y = h.baseYaw;
+      let closest = Infinity;
+      for (const f of floor) {
+        if (f.point.y < level - 2 || f.point.y > level + 12) continue;
+        this.scratchB.copy(f.point).setY(f.point.y + .9);
+        closest = Math.min(closest, this.hologramDistance(h, this.scratchB));
+      }
+      h.mesh.rotation.y = sway;
+      h.radius = Number.isFinite(closest)
+        ? Math.min(AMBIENCE.hologramNearMax, Math.max(AMBIENCE.hologramNear, closest + AMBIENCE.hologramReach))
+        : AMBIENCE.hologramNear;
+    }
+  }
+
   updateSpace(dt, camera, skater = null) {
+    const scan = this.life?.scan;
+    if (scan !== this.hologramScan && scan?.floor?.length) { this.hologramScan = scan; this.measureHologramRadii(scan); }
     // Shooting stars streak across the far sky.
     this.starTimer -= dt;
     if (this.starTimer <= 0) {
@@ -390,18 +431,18 @@ export class MapAmbience {
       for (const child of drone.group.children) if (child.geometry?.type === 'CylinderGeometry') child.rotation.y += dt * 40;
     }
     // Holograms turn gently and glitch now and then, and when the rider comes
-    // within 6 m (0.5 s burst; the next one no sooner than 2 s after it ends).
+    // into their trigger radius (0.5 s burst, 4 s cooldown).
     for (const h of this.holograms) {
       h.mesh.rotation.y = h.baseYaw + Math.sin(this.time * .2 + h.baseX) * .25;
       h.next -= dt;
       h.cooldown -= dt;
       if (h.next <= 0) { h.glitch = .35; h.amp = 1; h.next = rand(4, 10); }
-      // Edge-triggered: only crossing into the 30 m radius glitches it (1 m
+      // Edge-triggered: only crossing into the trigger radius glitches it (1 m
       // hysteresis on the way out, so the boundary cannot flap).
       if (skater?.position) {
         const distance = this.hologramDistance(h, skater.position);
-        if (!h.inside && distance < AMBIENCE.hologramNear) { h.inside = true; this.hologramBurst(h); }
-        else if (h.inside && distance > AMBIENCE.hologramNear + AMBIENCE.hologramHysteresis) h.inside = false;
+        if (!h.inside && distance < h.radius) { h.inside = true; this.hologramBurst(h); }
+        else if (h.inside && distance > h.radius + AMBIENCE.hologramHysteresis) h.inside = false;
       }
       if (h.glitch > 0) {
         h.glitch -= dt;
