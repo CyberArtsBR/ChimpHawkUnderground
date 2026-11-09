@@ -6,8 +6,17 @@ import { glowScaleForDistance } from './MapDressing.js';
  * Moving map ambience (2026-11 enhancement pass). Presentation only.
  *  - Gusts of leaves and paper tumble across the ground near the rider and
  *    get kicked up when the rider rolls through them (outdoor + warehouse).
+ *  - Litter wake: a fast rider (> 8 m/s) on the ground kicks 1-2 pieces a
+ *    second up from behind the board, taken from the same pool (never extra
+ *    pieces).
  *  - Orbit sky show: shooting stars, a drone formation with blinking lights,
- *    and slowly turning holographic billboards.
+ *    and slowly turning holographic billboards that glitch (0.5 s burst) when
+ *    the rider enters its trigger radius or lands inside it (4 s cooldown
+ *    each). The radius is per billboard: its closest playable floor (rider
+ *    height, from MapDressing's scan) + 8 m, clamped to 30-60 m; 30 m until
+ *    the scan arrives.
+ * With a World Life context (setLifeContext) landings reach the holograms and
+ * reduced motion halves the wake kick and those glitches.
  */
 export const AMBIENCE = Object.freeze({
   litter: 44,
@@ -17,6 +26,15 @@ export const AMBIENCE = Object.freeze({
   drones: 6,
   holograms: 3,
   starEvery: [1.5, 4.5],
+  wakeSpeed: 8,
+  wakeEvery: [.5, 1],
+  wakeLife: 3.5,
+  hologramNear: 30,         // fallback radius, and the clamp's lower bound
+  hologramNearMax: 60,
+  hologramReach: 8,         // radius = closest floor + this
+  hologramHysteresis: 1,
+  hologramBurst: .5,
+  hologramCooldown: 4,
 });
 
 const rand = (a, b) => a + Math.random() * (b - a);
@@ -80,6 +98,14 @@ export class MapAmbience {
     scene?.add(this.root);
     this.mode = 'none';
     this.enabled = true;
+    this.density = 1;
+    this.life = null;
+    this.unsubscribe = [];
+    this.hologramScan = null;
+    this.wakeTimer = 0;
+    this.scratch = new THREE.Vector3();
+    this.scratchB = new THREE.Vector3();
+    this.rayOrigin = new THREE.Vector3();
     this.time = 0;
     this.meshes = [];
     this.raycaster = new THREE.Raycaster(); this.raycaster.firstHitOnly = true;
@@ -141,7 +167,34 @@ export class MapAmbience {
     this.center = new THREE.Vector3(); this.radius = 40; this.baseY = 0;
   }
 
-  setQuality(settings) { this.enabled = settings?.name !== 'performance'; if (!this.enabled) this.reset(); }
+  setQuality(settings) {
+    this.enabled = settings?.name !== 'performance';
+    this.density = Number(settings?.vfxScale) < 1 ? .5 : 1;
+    if (!this.enabled) this.reset();
+  }
+
+  /** World Life context (LifeDirector.ctx): landings, and reduced motion (read fresh). */
+  setLifeContext(ctx) {
+    for (const off of this.unsubscribe) off();
+    this.unsubscribe = [];
+    this.life = ctx || null;
+    if (ctx?.reactions?.on) this.unsubscribe.push(ctx.reactions.on('landing', event => this.hologramLanding(event.point)));
+  }
+
+  /** A landing within 30 m of a hologram glitches it (cooldown permitting). */
+  hologramLanding(point) {
+    if (!this.enabled || this.mode !== 'space') return;
+    for (const h of this.holograms) if (this.hologramDistance(h, point) < h.radius) this.hologramBurst(h);
+  }
+
+  hologramBurst(h) {
+    if (h.cooldown > 0) return false;
+    h.glitch = AMBIENCE.hologramBurst; h.amp = this.motion;
+    h.cooldown = AMBIENCE.hologramCooldown; // counted from the start of the burst
+    return true;
+  }
+
+  get motion() { return this.life?.reducedMotion ? .5 : 1; }
 
   reset() { for (const p of this.pieces) p.alive = false; this.litter.count = 0; }
 
@@ -149,6 +202,7 @@ export class MapAmbience {
     this.reset();
     for (const h of this.holograms) { h.mesh.removeFromParent(); h.mesh.geometry.dispose(); h.mesh.material.map?.dispose(); h.mesh.material.dispose(); }
     this.holograms = [];
+    this.hologramScan = null; // radii are measured again from this park's scan
     const id = world?.id;
     this.mode = id === 'orbit' ? 'space' : (id === 'skate-paradise' || id === 'rooftop') ? 'outdoor' : id === 'grand-warehouse' ? 'indoor' : 'none';
     this.meshes = collisionMeshes(world?.collision);
@@ -174,16 +228,19 @@ export class MapAmbience {
         mesh.lookAt(this.center.x, mesh.position.y, this.center.z);
         mesh.name = 'Hologram billboard';
         this.space.add(mesh);
-        this.holograms.push({ mesh, baseYaw: mesh.rotation.y, glitch: 0, next: rand(3, 9), baseX: mesh.position.x });
+        this.holograms.push({ mesh, baseYaw: mesh.rotation.y, glitch: 0, amp: 1, cooldown: 0, inside: false, radius: AMBIENCE.hologramNear, next: rand(3, 9), baseX: mesh.position.x });
       }
     }
   }
 
-  groundAt(x, y, z) {
-    if (!this.meshes.length) return y;
-    this.raycaster.set(new THREE.Vector3(x, y + 3, z), this.down); this.raycaster.far = 8;
+  groundAt(x, y, z) { return this.probeGround(x, y, z) ?? y; }
+
+  /** Ground height under (x, z) searching from y + 3 down 8 m, or null on a miss. */
+  probeGround(x, y, z) {
+    if (!this.meshes.length) return null;
+    this.raycaster.set(this.rayOrigin.set(x, y + 3, z), this.down); this.raycaster.far = 8;
     const hit = this.raycaster.intersectObjects(this.meshes, false)[0];
-    return hit ? hit.point.y : y;
+    return hit ? hit.point.y : null;
   }
 
   gust(skater) {
@@ -214,12 +271,13 @@ export class MapAmbience {
     this.time += dt;
     if (!this.enabled) return;
     if ((this.mode === 'outdoor' || this.mode === 'indoor') && skater?.position) this.updateLitter(dt, skater);
-    if (this.mode === 'space' && camera) this.updateSpace(dt, camera);
+    if (this.mode === 'space' && camera) this.updateSpace(dt, camera, skater);
   }
 
   updateLitter(dt, skater) {
     this.gustTimer -= dt;
     if (this.gustTimer <= 0) { this.gust(skater); this.gustTimer = rand(...AMBIENCE.gustEvery); }
+    this.wake(dt, skater);
     // Wind slowly veers.
     const veer = Math.sin(this.time * .05) * .6;
     this.windDir.set(Math.cos(veer), 0, Math.sin(veer) + .3).normalize();
@@ -259,7 +317,77 @@ export class MapAmbience {
     tiles.needsUpdate = true;
   }
 
-  updateSpace(dt, camera) {
+  /** Kick a free pool piece up from behind a fast rider, 1-2 a second. */
+  wake(dt, skater) {
+    let vx = skater.velocity?.x || 0, vz = skater.velocity?.z || 0;
+    const speed = Math.hypot(vx, vz);
+    if (speed <= AMBIENCE.wakeSpeed || !skater.grounded) { this.wakeTimer = Math.min(this.wakeTimer, rand(0, .3)); return; }
+    this.wakeTimer -= dt;
+    if (this.wakeTimer > 0) return;
+    this.wakeTimer = rand(...AMBIENCE.wakeEvery) / this.density;
+    let p = null;
+    for (const piece of this.pieces) if (!piece.alive) { p = piece; break; }
+    if (!p) return; // the pool is busy: never extra pieces
+    vx /= speed; vz /= speed;
+    const back = rand(1.5, 2.4), side = rand(-.5, .5), m = this.motion, r = skater.position;
+    const x = r.x - vx * back - vz * side, z = r.z - vz * back + vx * side;
+    const ground = this.probeGround(x, r.y + 1, z);
+    if (ground === null) return; // no ground under the wake: nothing to kick
+    p.ground = ground;
+    p.pos.set(x, ground + .02, z);
+    const follow = speed * rand(.2, .35) * m, lateral = rand(-1, 1) * m;
+    p.vel.set(vx * follow - vz * lateral, rand(1.8, 3.2) * m, vz * follow + vx * lateral);
+    p.rot.set(rand(0, 6), rand(0, 6), rand(0, 6));
+    p.spin.set(rand(-8, 8) * m, rand(-5, 5) * m, rand(-8, 8) * m);
+    p.alive = true;
+    p.age = AMBIENCE.gustLife - AMBIENCE.wakeLife; // a short life, with the usual fade-out
+    const leaf = this.mode !== 'indoor' && Math.random() < .7;
+    p.tile = leaf ? Math.floor(Math.random() * 4) : 4 + Math.floor(Math.random() * 4);
+  }
+
+  /** Distance from `point` to a hologram billboard's rectangle. */
+  hologramDistance(h, point) {
+    const mesh = h.mesh, size = mesh.geometry.parameters;
+    mesh.updateWorldMatrix(true, false);
+    const local = mesh.worldToLocal(this.scratch.copy(point));
+    const dx = Math.max(0, Math.abs(local.x) - size.width / 2), dy = Math.max(0, Math.abs(local.y) - size.height / 2);
+    return Math.hypot(dx, dy, local.z);
+  }
+
+  /**
+   * Each hologram's trigger radius: the closest playable floor sample (at
+   * rider height, 0.9 m up) + 8 m, clamped to 30-60 m, measured with the
+   * billboard at its rest yaw. Floor samples far below the main floor level
+   * (the sky dome) or high above it are ignored.
+   */
+  measureHologramRadii(scan) {
+    const floor = scan?.floor || [];
+    const hist = new Map();
+    let level = null, best = 0;
+    for (const f of floor) {
+      const k = Math.round(f.point.y * 20), n = (hist.get(k) || 0) + 1;
+      hist.set(k, n);
+      if (n > best) { best = n; level = k / 20; }
+    }
+    for (const h of this.holograms) {
+      const sway = h.mesh.rotation.y;
+      h.mesh.rotation.y = h.baseYaw;
+      let closest = Infinity;
+      for (const f of floor) {
+        if (f.point.y < level - 2 || f.point.y > level + 12) continue;
+        this.scratchB.copy(f.point).setY(f.point.y + .9);
+        closest = Math.min(closest, this.hologramDistance(h, this.scratchB));
+      }
+      h.mesh.rotation.y = sway;
+      h.radius = Number.isFinite(closest)
+        ? Math.min(AMBIENCE.hologramNearMax, Math.max(AMBIENCE.hologramNear, closest + AMBIENCE.hologramReach))
+        : AMBIENCE.hologramNear;
+    }
+  }
+
+  updateSpace(dt, camera, skater = null) {
+    const scan = this.life?.scan;
+    if (scan !== this.hologramScan && scan?.floor?.length) { this.hologramScan = scan; this.measureHologramRadii(scan); }
     // Shooting stars streak across the far sky.
     this.starTimer -= dt;
     if (this.starTimer <= 0) {
@@ -302,15 +430,24 @@ export class MapAmbience {
       drone.light.scale.setScalar(glowScaleForDistance(drone.group.position.distanceTo(camera.position)) || .001);
       for (const child of drone.group.children) if (child.geometry?.type === 'CylinderGeometry') child.rotation.y += dt * 40;
     }
-    // Holograms turn gently and glitch now and then.
+    // Holograms turn gently and glitch now and then, and when the rider comes
+    // into their trigger radius (0.5 s burst, 4 s cooldown).
     for (const h of this.holograms) {
       h.mesh.rotation.y = h.baseYaw + Math.sin(this.time * .2 + h.baseX) * .25;
       h.next -= dt;
-      if (h.next <= 0) { h.glitch = .35; h.next = rand(4, 10); }
+      h.cooldown -= dt;
+      if (h.next <= 0) { h.glitch = .35; h.amp = 1; h.next = rand(4, 10); }
+      // Edge-triggered: only crossing into the trigger radius glitches it (1 m
+      // hysteresis on the way out, so the boundary cannot flap).
+      if (skater?.position) {
+        const distance = this.hologramDistance(h, skater.position);
+        if (!h.inside && distance < h.radius) { h.inside = true; this.hologramBurst(h); }
+        else if (h.inside && distance > h.radius + AMBIENCE.hologramHysteresis) h.inside = false;
+      }
       if (h.glitch > 0) {
         h.glitch -= dt;
-        h.mesh.material.opacity = Math.random() < .5 ? .25 : .9;
-        h.mesh.position.x = h.baseX + (Math.random() - .5) * .8;
+        h.mesh.material.opacity = .7 + ((Math.random() < .5 ? .25 : .9) - .7) * h.amp;
+        h.mesh.position.x = h.baseX + (Math.random() - .5) * .8 * h.amp;
       } else { h.mesh.material.opacity = .7 + Math.sin(this.time * 3) * .05; h.mesh.position.x = h.baseX; }
     }
   }
