@@ -402,7 +402,9 @@ class Swarm {
 
 // ------------------------------------------------------------- the module
 export class ParadiseLife {
-  constructor() {
+  /** Owner (2026-11-09): cones off by default; cans stay. */
+  constructor({ cones = false } = {}) {
+    this.features = { cones };
     this.parks = ['skate-paradise'];
     this.root = new THREE.Group();
     this.root.name = 'World life: paradise';
@@ -595,7 +597,7 @@ export class ParadiseLife {
       if (this.props.some(p => Math.hypot(p.home.x - point.x, p.home.z - point.z) < PROP_GAP)) continue;
       const hit = surface.ground(point, .3, .5);
       if (!hit || hit.normal.y <= .95 || Math.abs(hit.point.y - point.y) > .15) continue;
-      const kind = picked % 3 === 1 ? 'cone' : 'can';
+      const kind = this.features.cones && picked % 3 === 1 ? 'cone' : 'can';
       picked++;
       if (this.horizontalToRider(hit.point) < RIDER_CLEAR + .25) continue; // never appear at the rider
       const prop = {

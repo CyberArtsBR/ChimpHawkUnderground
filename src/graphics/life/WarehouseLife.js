@@ -143,7 +143,9 @@ export function findWindowPanes(park) {
 
 // ------------------------------------------------------------ the module
 export class WarehouseLife {
-  constructor() {
+  /** Owner (2026-11-09): light shafts and boxes off by default; rail rattle stays. */
+  constructor({ shafts = false, boxes = false } = {}) {
+    this.features = { shafts, boxes };
     this.parks = ['grand-warehouse'];
     this.root = new THREE.Group();
     this.root.name = 'World life: warehouse';
@@ -646,17 +648,16 @@ export class WarehouseLife {
     this.time += dt;
     this.riderFeet.copy(skater.position);
     this.riderCenter.copy(skater.position).setY(skater.position.y + .9);
-    if (!this.shaftsBuilt && this.world) this.buildShafts();
+    if (this.features.shafts && !this.shaftsBuilt && this.world) this.buildShafts();
     const anchors = ctx.anchors;
     const key = ctx.scan?.edges?.length && ctx.surface?.ground ? `${ctx.scan.edges.length}|${anchors?.props?.length || 0}|${anchors?.poles?.length || 0}` : '';
-    if (key && (key !== this.boxKey || ctx.scan !== this.boxScan)) {
+    if (this.features.boxes && key && (key !== this.boxKey || ctx.scan !== this.boxScan)) {
       this.boxKey = key; this.boxScan = ctx.scan;
       this.placeBoxes(ctx.scan, anchors, ctx.surface);
     }
     const vx = skater.velocity?.x || 0, vz = skater.velocity?.z || 0;
     const speed = Math.hypot(vx, vz);
-    this.updateShafts(camera);
-    this.updateDust(dt, speed, camera);
+    if (this.features.shafts) { this.updateShafts(camera); this.updateDust(dt, speed, camera); }
     for (let i = 0; i < this.boxes.length; i++) this.updateBox(this.boxes[i], dt, vx, vz, speed, ctx.surface);
     const wallRiding = Boolean(skater.wallRide);
     if (wallRiding && !this.wasWallRiding) this.rattleNear(skater.position);

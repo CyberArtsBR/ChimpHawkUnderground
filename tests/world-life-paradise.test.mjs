@@ -40,7 +40,7 @@ function rig({ settings = { name: 'high', vfxScale: 1 }, anchors = makeAnchors()
   const director = new LifeDirector(null, { mapDressing: dressing });
   director.audio.play = (kind, position, opts) => { plays.push({ kind, position: position.clone(), opts }); return true; };
   director.setQuality(settings);
-  const life = new ParadiseLife();
+  const life = new ParadiseLife({ cones: true });
   director.register(life);
   const skater = fakeSkater();
   director.setWorld({ id: world, manifest: { spawn: SPAWN } }, skater);
@@ -364,7 +364,7 @@ test('reduced motion halves the tumble slide', () => {
 });
 
 test('materials exist from construction (shader warm-up) and dispose unsubscribes', () => {
-  const life = new ParadiseLife();
+  const life = new ParadiseLife({ cones: true });
   const materials = new Set();
   life.root.traverse(o => { if (o.material) materials.add(o.material); });
   assert.ok(materials.size >= 4, `materials ${materials.size}`);

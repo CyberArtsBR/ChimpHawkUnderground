@@ -10,6 +10,7 @@ import { buildOrbitDetail, buildWarehouseProps } from './MapDetail.js';
  *  - Flags that wave, and the palm trees' leaves swaying in the wind.
  * (Graffiti, crew spectators and street props were tried and removed by request.)
  */
+const NO_FLAGS = new Set(['skate-paradise', 'grand-warehouse']);
 export const DRESSING = Object.freeze({
   signs: 4, strings: 3, flags: 4,
   signTexts: ['CHIMP HAWK', 'GO BANANAS', 'SKATE OR DIE', 'UNDERGROUND'],
@@ -221,7 +222,10 @@ export class MapDressing {
     // Edge spots: flags first, then string lights between the rest.
     let edges = scan.edges.slice();
     const take = (list, count, gap) => { const picked = spreadPick(list, count, gap, rand); edges = edges.filter(e => !picked.includes(e)); return picked; };
-    if (!space) for (const spot of take(edges, DRESSING.flags, 10)) this.buildFlag(spot, rand);
+    // Owner (2026-11-09): no flags on Skate Paradise or the Grand Warehouse. The
+    // spots are still drawn so string lights and props keep their places.
+    const flagSpots = space ? [] : take(edges, DRESSING.flags, 10);
+    if (!NO_FLAGS.has(world.id)) for (const spot of flagSpots) this.buildFlag(spot, rand);
     // String lights stay clear of the start area so they never block the opening view.
     const clearOfSpawn = spawn => edges.filter(e => !spawn || e.point.distanceTo(spawn) > 32);
     if (!space) this.buildStrings(clearOfSpawn(Array.isArray(world.manifest?.spawn) ? new THREE.Vector3(...world.manifest.spawn) : null), rand, indoor);

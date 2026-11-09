@@ -57,7 +57,7 @@ function rig({ settings = { name: 'high', vfxScale: 1 }, park = makePark(), anch
   director.audio.play = (kind, position, opts) => { plays.push({ kind, position: position.clone(), opts }); return true; };
   director.audio.stop = () => {};
   director.setQuality(settings);
-  const life = new WarehouseLife();
+  const life = new WarehouseLife({ shafts: true, boxes: true });
   director.register(life);
   const skater = fakeSkater();
   director.setWorld({ id: world, park, manifest: { spawn: SPAWN, rails: [RAIL] } }, skater);
@@ -344,7 +344,7 @@ test('setWorld twice, park switch and reset: nothing stale, same children; perfo
 });
 
 test('materials and meshes exist at construction (shader warm-up), one per kind', () => {
-  const life = new WarehouseLife();
+  const life = new WarehouseLife({ shafts: true, boxes: true });
   const meshes = [];
   life.root.traverse(o => { if (o.isMesh || o.isPoints) meshes.push(o); });
   assert.equal(meshes.length, 3);

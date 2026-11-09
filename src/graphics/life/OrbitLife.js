@@ -98,21 +98,45 @@ function merged(parts) {
   g.computeBoundingSphere();
   return g;
 }
-const ARM = .22;
+const ARM = .21;
+const MOTORS = [[ARM, ARM], [-ARM, ARM], [ARM, -ARM], [-ARM, -ARM]];
+/** A realistic camera quadcopter: rounded shell, tapered carbon arms, motor bells,
+ * landing skids and an underslung camera gimbal (front is +z). */
 function droneBodyGeometry() {
   const parts = [
-    colored(new THREE.BoxGeometry(.34, .1, .26), '#2b303c'),
-    colored(new THREE.BoxGeometry(.2, .05, .16).translate(0, .07, -.01), '#3c4456'),
-    colored(new THREE.BoxGeometry(.1, .018, .012).translate(0, .02, .135), '#4fe3ff'),
-    colored(new THREE.SphereGeometry(.05, 12, 8).translate(0, -.075, .1), '#0b0c10'),
+    colored(new THREE.SphereGeometry(.13, 20, 12).scale(1, .38, 1.35), '#d9dde4'),            // shell
+    colored(new THREE.SphereGeometry(.09, 18, 10, 0, Math.PI * 2, 0, Math.PI / 2).scale(1, .55, 1.25).translate(0, .03, -.01), '#3a404c'), // canopy
+    colored(new THREE.BoxGeometry(.16, .028, .26).translate(0, -.04, 0), '#9aa1ad'),          // belly plate
+    colored(new THREE.BoxGeometry(.05, .012, .012).translate(0, .012, .175), '#4fe3ff'),       // front status strip
   ];
-  for (const angle of [Math.PI / 4, -Math.PI / 4]) parts.push(colored(new THREE.BoxGeometry(.66, .025, .035).rotateY(angle), '#20242d'));
-  for (const [x, z] of [[ARM, ARM], [-ARM, ARM], [ARM, -ARM], [-ARM, -ARM]]) parts.push(colored(new THREE.CylinderGeometry(.032, .032, .05, 10).translate(x, .025, z), '#15181e'));
+  for (const [x, z] of MOTORS) {
+    const len = Math.hypot(x, z), yaw = Math.atan2(x, z);
+    const arm = new THREE.CylinderGeometry(.011, .017, len, 8).rotateX(Math.PI / 2).translate(0, 0, len / 2);
+    parts.push(colored(arm.rotateY(yaw).translate(0, -.005, 0), '#22262e'));                    // tapered arm
+    parts.push(colored(new THREE.CylinderGeometry(.026, .03, .042, 14).translate(x, .012, z), '#15181e')); // motor bell
+    parts.push(colored(new THREE.CylinderGeometry(.008, .008, .02, 8).translate(x, .043, z), '#8a919c'));  // shaft cap
+    parts.push(colored(new THREE.SphereGeometry(.009, 8, 6).translate(x, -.018, z), z > 0 ? '#e9f4ff' : '#ff3b3b')); // arm LEDs: white front, red rear
+  }
+  for (const side of [-1, 1]) {                                                                 // landing skids
+    parts.push(colored(new THREE.CylinderGeometry(.006, .006, .3, 6).rotateX(Math.PI / 2).translate(side * .085, -.115, 0), '#2a2e36'));
+    for (const z of [-.08, .08]) parts.push(colored(new THREE.CylinderGeometry(.005, .005, .08, 6).rotateZ(side * .35).translate(side * .072, -.078, z), '#2a2e36'));
+  }
+  parts.push(colored(new THREE.BoxGeometry(.04, .03, .03).translate(0, -.065, .125), '#1b1e24')); // gimbal arm
+  parts.push(colored(new THREE.SphereGeometry(.03, 14, 10).translate(0, -.09, .135), '#0f1115'));  // camera ball
+  parts.push(colored(new THREE.CylinderGeometry(.013, .013, .012, 14).rotateX(Math.PI / 2).translate(0, -.09, .165), '#3c5a7a')); // lens
   return merged(parts);
 }
+/** One two-blade propeller (spun per motor); slightly pitched blades. */
+function propGeometry() {
+  const parts = [];
+  for (const side of [-1, 1]) parts.push(colored(new THREE.BoxGeometry(.1, .003, .016).translate(side * .055, 0, 0).rotateX(side * .12), '#2c3038'));
+  parts.push(colored(new THREE.CylinderGeometry(.008, .008, .008, 10), '#2c3038'));
+  return merged(parts);
+}
+/** Faint motion-blur discs where the props spin. */
 function rotorGeometry() {
   const parts = [];
-  for (const [x, z] of [[ARM, ARM], [-ARM, ARM], [ARM, -ARM], [-ARM, -ARM]]) parts.push(colored(new THREE.CylinderGeometry(.115, .115, .006, 20).translate(x, .058, z), '#ffffff'));
+  for (const [x, z] of MOTORS) parts.push(colored(new THREE.CylinderGeometry(.11, .11, .002, 24).translate(x, .052, z), '#ffffff'));
   return merged(parts);
 }
 
@@ -197,14 +221,22 @@ export class OrbitLife {
     const body = new THREE.Mesh(droneBodyGeometry(), this.droneMaterial);
     body.castShadow = false;
     const rotors = new THREE.Mesh(rotorGeometry(), this.rotorMaterial);
-    const light = new THREE.Mesh(new THREE.SphereGeometry(.035, 10, 8), this.droneLightMaterial);
-    light.position.set(0, .1, -.1);
-    droneRoot.add(body, rotors, light);
+    const light = new THREE.Mesh(new THREE.SphereGeometry(.014, 10, 8), this.droneLightMaterial);
+    light.position.set(0, -.07, .158);              // REC light beside the gimbal camera
+    const tilt = new THREE.Group();                 // leans into travel; root keeps the yaw
+    const propGeo = propGeometry();
+    const props = MOTORS.map(([x, z], i) => {
+      const prop = new THREE.Mesh(propGeo, this.droneMaterial);
+      prop.position.set(x, .052, z); prop.rotation.y = i * .7;
+      return prop;
+    });
+    tilt.add(body, rotors, light, ...props);
+    droneRoot.add(tilt);
     droneRoot.visible = false;
     this.root.add(droneRoot);
     this.drone = {
       root: droneRoot, ready: false, lightOn: false, theta: 0, radius: 6, height: 3.5, groundY: -Infinity,
-      probeTimer: 0, lastRider: new THREE.Vector3(),
+      probeTimer: 0, lastRider: new THREE.Vector3(), tilt, props, lastPos: new THREE.Vector3(), velocity: new THREE.Vector3(),
     };
     this.probePoint = new THREE.Vector3(); this.probeNormal = new THREE.Vector3();
   }
@@ -598,7 +630,21 @@ export class OrbitLife {
       if (this.scratch.lengthSq() < 1e-8) this.scratch.set(0, 1, 0);
       pos.copy(this.closest).addScaledVector(this.scratch.normalize(), need);
     }
-    root.rotation.set(0, Math.atan2(rider.x - pos.x, rider.z - pos.z), 0);
+    const yaw = Math.atan2(rider.x - pos.x, rider.z - pos.z);
+    root.rotation.set(0, yaw, 0);
+    // Realism: props spin (opposite pairs counter-rotate) and the body leans into
+    // its horizontal velocity, eased, up to ~14 degrees.
+    if (dt > 0) {
+      d.velocity.subVectors(pos, d.lastPos).divideScalar(dt);
+      if (d.velocity.lengthSq() > 400) d.velocity.set(0, 0, 0);   // a snap/teleport is not motion
+    }
+    d.lastPos.copy(pos);
+    const c = Math.cos(yaw), sn = Math.sin(yaw);
+    const fwd = d.velocity.x * sn + d.velocity.z * c, side = d.velocity.x * c - d.velocity.z * sn;
+    const ease = 1 - Math.exp(-dt * 4), lean = .045 * this.motion;
+    d.tilt.rotation.x += (THREE.MathUtils.clamp(fwd * lean, -.25, .25) - d.tilt.rotation.x) * ease;
+    d.tilt.rotation.z += (THREE.MathUtils.clamp(-side * lean, -.25, .25) - d.tilt.rotation.z) * ease;
+    for (let i = 0; i < d.props.length; i++) d.props[i].rotation.y += dt * (i === 0 || i === 3 ? 62 : -62);
     const on = (this.time % 1) < .5;
     if (on !== d.lightOn) { d.lightOn = on; this.droneLightMaterial.color.copy(on ? RED_ON : RED_OFF); }
   }

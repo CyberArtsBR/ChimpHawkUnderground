@@ -310,6 +310,6 @@ export function buildWarehouseProps(root, scan, rand, avoid = []) {
   const crates = spreadPick(spots, 5, 14, rand);
   for (const spot of crates) footprint(buildCrates(root, spot, rand, materials), .9, 'crates', spot.facing);
   const benches = spreadPick(spots.filter(s => crates.every(c => c.point.distanceTo(s.point) > 6)), 4, 15, rand);
-  for (const spot of benches) footprint(buildBench(root, spot, materials), 1.1, 'bench', spot.facing);
-  return { door: Boolean(doorWall), posters: posterWalls.length, crates: crates.length, benches: benches.length, props };
+  // Owner (2026-11-09): no benches in the Warehouse (spots still drawn so later picks stay put).
+  return { door: Boolean(doorWall), posters: posterWalls.length, crates: crates.length, benches: 0, props };
 }
