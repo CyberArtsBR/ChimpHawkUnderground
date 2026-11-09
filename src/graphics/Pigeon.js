@@ -7,7 +7,8 @@ import * as THREE from 'three';
  *    primaries) that fold against the body or open for flight.
  *  - Fanned tail with the dark terminal band.
  *  - Real behaviours: head-bob walk, pecking, glances, cooing display,
- *    staggered take-off, flap/glide flight with banking.
+ *    staggered take-off, flap/glide flight with banking, a quick hop aside,
+ *    an alert flinch, and roosting (perch, preen, fly a loop, resettle).
  * All parts share three vertex-coloured materials, so a whole flock costs
  * three shader programs.
  */
@@ -351,6 +352,24 @@ function buildLeg(plumage) {
 const FOLDED = { sweep: 1.5, raise: 0, twist: -2.1, wristRaise: .03, wristSweep: .04, handSpread: .42, innerChord: .84 };
 const GLIDE = { sweep: .22, raise: .3, twist: .06, wristRaise: -.12, wristSweep: .12, handSpread: .96, innerChord: 1 };
 const POSE_KEYS = Object.keys(FOLDED);
+const NECK_TO_HEAD = new THREE.Vector3(0, -.014, -.014);
+
+/** Point on a cubic Bezier curve (writes into out). */
+function bezier(out, a, b, c, d, u) {
+  const v = 1 - u, k0 = v * v * v, k1 = 3 * v * v * u, k2 = 3 * v * u * u, k3 = u * u * u;
+  return out.set(
+    a.x * k0 + b.x * k1 + c.x * k2 + d.x * k3,
+    a.y * k0 + b.y * k1 + c.y * k2 + d.y * k3,
+    a.z * k0 + b.z * k1 + c.z * k2 + d.z * k3);
+}
+/** Derivative d/du of the same curve (writes into out). */
+function bezierTangent(out, a, b, c, d, u) {
+  const v = 1 - u, k0 = -3 * v * v, k1 = 3 * v * v - 6 * u * v, k2 = 6 * u * v - 3 * u * u, k3 = 3 * u * u;
+  return out.set(
+    a.x * k0 + b.x * k1 + c.x * k2 + d.x * k3,
+    a.y * k0 + b.y * k1 + c.y * k2 + d.y * k3,
+    a.z * k0 + b.z * k1 + c.z * k2 + d.z * k3);
+}
 
 export class Pigeon {
   constructor(plumage = pickPlumage()) {
@@ -415,10 +434,24 @@ export class Pigeon {
     this.timer = 0; this.flightTime = 0; this.flightBlend = 0;
     this.bank = 0; this.turnRate = 0; this.cruise = 7; this.startY = 0; this.maxRise = 12;
     this.flapWeight = 1; this.glideTimer = 0; this.gliding = false;
+    // Hop aside (ground action 'hop'): a short arc from hopFrom to hopTo.
+    this.hopFrom = new THREE.Vector3(); this.hopTo = new THREE.Vector3();
+    this.hopLength = .3; this.hopHeight = .12; this.hopCooldown = 0; this.hopSide = 1;
+    // Alert flinch: freeze, head up, crouch.
+    this.flinchTime = 0; this.flinchAmp = 1; this.flinchRate = 18; this.flinchBlend = 0; this.startled = false;
+    // Take-off bookkeeping for the owner's wing-clap sound.
+    this.tookOff = false; this.clapGain = 0;
+    // Roost: role flag, current perch (owner-managed), path to a perch.
+    this.roost = false; this.perchAnchor = null; this.perchIndex = -1; this.perchAngle = 0; this.perchYaw = 0;
+    this.pathStart = new THREE.Vector3(); this.pathC1 = new THREE.Vector3();
+    this.pathC2 = new THREE.Vector3(); this.pathEnd = new THREE.Vector3();
+    this.pathLength = 4; this.launched = false; this.preenSide = 1;
     this.pose = { ...FOLDED };
+    this._flapPose = { ...FOLDED };
     this._head = new THREE.Vector3();
     this._probe = new THREE.Vector3();
     this._dir = new THREE.Vector3();
+    this._velocity = new THREE.Vector3();
     this.applyWings(this.pose);
     this.posHead(0, 0, .2, 1);
   }
@@ -426,7 +459,10 @@ export class Pigeon {
   /** Legacy alias used by WorldLife's callers and tests. */
   get group() { return this.root; }
 
-  hide() { this.state = 'hidden'; this.root.visible = false; }
+  hide() { this.state = 'hidden'; this.root.visible = false; this.tookOff = false; this.clapGain = 0; this.startled = false; }
+
+  /** On a perch, or flying to one. */
+  get roosting() { return this.state === 'perch' || this.state === 'roost'; }
 
   spawn(point, yaw) {
     this.root.position.copy(point);
@@ -435,15 +471,74 @@ export class Pigeon {
     this.root.visible = true;
     this.state = 'idle';
     this.flightBlend = 0;
-    this.legs.forEach(l => { l.visible = true; l.rotation.set(0, 0, 0); });
+    for (let i = 0; i < this.legs.length; i++) { this.legs[i].visible = true; this.legs[i].rotation.set(0, 0, 0); }
     this.body.rotation.set(0, 0, 0);
     this.body.position.set(0, BODY_Y, 0);
     Object.assign(this.pose, FOLDED);
     this.applyWings(this.pose);
     this.tail.rotation.set(.08, 0, 0); this.tail.scale.set(1, 1, 1);
     this.look = this.lookTarget = 0;
+    this.hopCooldown = 0; this.hopSide = Math.random() < .5 ? -1 : 1;
+    this.flinchTime = 0; this.flinchBlend = 0; this.startled = false;
+    this.tookOff = false; this.clapGain = 0;
     this.posHead(0, 0, .2, 1); // never draw a frame with an unposed neck
     this.chooseAction(true);
+  }
+
+  /** Sit on a perch (no walking: stand, shuffle round, glance, preen). */
+  perch(point, yaw) {
+    this.spawn(point, yaw);
+    this.state = 'perch';
+    this.chooseAction();
+  }
+
+  /**
+   * Hop aside to `target` (same ground height): `length` s, peaking `height` m
+   * above the ground; no new hop for `cooldown` s after it lands.
+   */
+  hop(target, length, height, cooldown = 0) {
+    // A flinching bird stays frozen: no hop until the flinch is over.
+    if (this.state !== 'idle' || this.action === 'hop' || this.flinchTime > 0) return false;
+    this.hopFrom.copy(this.root.position);
+    this.hopTo.copy(target);
+    this.hopLength = Math.max(.05, length); this.hopHeight = height;
+    this.hopCooldown = this.hopLength + Math.max(0, cooldown);
+    this.action = 'hop'; this.actionTime = 0; this.actionLength = this.hopLength;
+    this.targetYaw = Math.atan2(target.x - this.hopFrom.x, target.z - this.hopFrom.z);
+    return true;
+  }
+
+  /** Startle: freeze with the head up for `duration` s (amplitude and ease rate scale it). */
+  flinch(duration, amplitude = 1, rate = 18) {
+    if (this.state !== 'idle') return false;
+    this.flinchTime = duration; this.flinchAmp = amplitude; this.flinchRate = rate;
+    return true;
+  }
+
+  /**
+   * Leave the perch (or the floor) and fly a curved loop to `end`, landing
+   * there after `length` s. `delay` s of stillness first (staggered flocks);
+   * `swing` is how far out the loop bulges, `depth` scales how far it dips.
+   * Positional parameters: reaction handlers call this, so no option objects.
+   */
+  flyToPerch(end, length, delay = 0, swing = 4, depth = 1, yaw = rand(0, TAU)) {
+    if (this.state === 'hidden' || this.state === 'flee' || this.state === 'alert') return false;
+    const s = this.pathStart.copy(this.root.position);
+    this.pathEnd.copy(end);
+    const rise = end.y - s.y, climb = rise > 2;
+    const a = rand(0, TAU), b = a + (Math.random() < .5 ? -1 : 1) * rand(.9, 1.6);
+    // Control points never above the start/end heights, so the loop stays under the roof.
+    this.pathC1.set(s.x + Math.sin(a) * swing, s.y + (climb ? rise * .55 : -.9 * depth), s.z + Math.cos(a) * swing);
+    this.pathC2.set(end.x + Math.sin(b) * swing * .8, end.y - (climb ? 1.2 : .5 * depth), end.z + Math.cos(b) * swing * .8);
+    this.state = 'roost';
+    this.pathLength = Math.max(.5, length);
+    this.flightTime = -Math.max(0, delay);
+    this.launched = false;
+    this.perchYaw = yaw;
+    this.flightBlend = 0; this.bank = 0;
+    this.gliding = false; this.glideTimer = rand(1, 1.4); this.flapWeight = 1;
+    this.flap = -Math.PI / 2;
+    return true;
   }
 
   /** Start a take-off after `delay` seconds (staggered flocks look natural). */
@@ -459,6 +554,7 @@ export class Pigeon {
   takeOff() {
     this.state = 'flee';
     this.flightTime = 0;
+    this.tookOff = true;
     const away = this.root.position.clone().sub(this.fleeFrom).setY(0);
     if (away.lengthSq() < 1e-4) away.set(Math.random() - .5, 0, Math.random() - .5);
     away.normalize().applyAxisAngle(UP, rand(-.6, .6));
@@ -475,6 +571,13 @@ export class Pigeon {
   chooseAction(first = false) {
     const r = Math.random();
     this.actionTime = 0;
+    if (this.state === 'perch') {
+      // Perched: no walking. Stand and glance, shuffle round, or preen.
+      if (r < .45) { this.action = 'stand'; this.actionLength = rand(1, 2.6); }
+      else if (r < .7) { this.action = 'turn'; this.actionLength = rand(.5, .9); this.targetYaw = this.yaw + rand(.5, 1.4) * (Math.random() < .5 ? -1 : 1); }
+      else { this.action = 'preen'; this.actionLength = rand(1.2, 2.4); this.preenSide = Math.random() < .5 ? -1 : 1; }
+      return;
+    }
     if (first || r < .36) { this.action = 'walk'; this.actionLength = rand(.8, 2.2); this.targetYaw = this.yaw + rand(-.9, .9); }
     else if (r < .66) { this.action = 'peck'; this.actionLength = rand(.7, 1.6); }
     else if (r < .82) { this.action = 'stand'; this.actionLength = rand(.6, 1.6); }
@@ -489,6 +592,7 @@ export class Pigeon {
     if (this.state === 'hidden') return false;
     this.phase += dt;
     if (this.state === 'flee') return this.updateFlight(dt, ctx);
+    if (this.state === 'roost') return this.updateRoostFlight(dt);
     this.updateGround(dt, ctx);
     return true;
   }
@@ -500,16 +604,32 @@ export class Pigeon {
       if (this.timer <= 0) { this.takeOff(); return; }
     } else {
       this.actionTime += dt;
-      if (this.actionTime > this.actionLength) this.chooseAction();
+      if (this.action === 'hop') {
+        if (this.actionTime >= this.hopLength) { this.root.position.copy(this.hopTo); this.chooseAction(); }
+      } else if (this.actionTime > this.actionLength) this.chooseAction();
     }
-    const action = alert ? 'stand' : this.action;
+    this.hopCooldown = Math.max(0, this.hopCooldown - dt);
+    const flinching = !alert && this.flinchTime > 0;
+    if (flinching) this.flinchTime = Math.max(0, this.flinchTime - dt);
+    this.flinchBlend += ((flinching ? 1 : 0) - this.flinchBlend) * Math.min(1, dt * this.flinchRate);
+    // A flinch freezes the bird where it stands (a hop already under way finishes).
+    const action = alert || (flinching && this.action !== 'hop') ? 'stand' : this.action;
     let speed = 0, stepping = false;
     if (action === 'walk') { speed = .27; stepping = true; }
-    if (action === 'turn') stepping = true;
+    if (action === 'turn' || action === 'hop') stepping = true;
     if (action === 'coo') { stepping = true; this.targetYaw += dt * 1.6; speed = .05; }
 
-    this.yaw += wrapAngle(this.targetYaw - this.yaw) * Math.min(1, dt * (action === 'turn' ? 5 : 3));
-    if (stepping) this.walkCycle += dt / (action === 'walk' ? .3 : .26);
+    this.yaw += wrapAngle(this.targetYaw - this.yaw) * Math.min(1, dt * (action === 'hop' ? 12 : action === 'turn' ? 5 : 3));
+    if (stepping) this.walkCycle += dt / (action === 'walk' ? .3 : action === 'hop' ? .14 : .26);
+
+    // Hop: a quick, low arc to the side (the stepping legs and head-bob carry it).
+    let hop = 0;
+    if (action === 'hop') {
+      const u = Math.min(1, this.actionTime / this.hopLength);
+      hop = Math.sin(Math.PI * u);
+      this.root.position.lerpVectors(this.hopFrom, this.hopTo, u);
+      this.root.position.y += 4 * this.hopHeight * u * (1 - u);
+    }
 
     // Walk forward, but only over flat ground (never off a ledge or up a ramp).
     if (speed > 0) {
@@ -534,8 +654,8 @@ export class Pigeon {
     const s = this.walkCycle % 1;
     const step = stepping ? Math.sin(s * TAU) : 0;
     const breathe = Math.sin(this.phase * 3.1) * .012;
-    let bodyPitch = -.2, headDrop = 0, headForward = 0, headPitch = 0, neckPuff = 1, tailSpread = 1, tailPitch = .08;
-    if (action === 'walk' || action === 'turn') {
+    let bodyPitch = -.2, headDrop = 0, headForward = 0, headPitch = 0, headSide = 0, neckPuff = 1, tailSpread = 1, tailPitch = .08;
+    if (action === 'walk' || action === 'turn' || action === 'hop') {
       // Pigeon head-bob: a quick thrust forward, then the head holds still
       // in the world while the body walks up underneath it.
       const thrust = .26;
@@ -556,11 +676,25 @@ export class Pigeon {
       neckPuff = 1.38; bodyPitch += .32 * bow - .06; headDrop = .035 * bow; headPitch = .5 * bow;
       tailSpread = 1.5; tailPitch = -.12;
     }
+    if (action === 'preen') {
+      // Head turned back into the shoulder feathers, nibbling.
+      const k = smooth(0, .25, this.actionTime) * (1 - smooth(this.actionLength - .25, this.actionLength, this.actionTime));
+      this.lookTarget = this.preenSide * 2.3 * k; this.lookTimer = 1;
+      headForward = -.045 * k; headSide = this.preenSide * .028 * k; headPitch = .5 * k;
+      headDrop = (.04 + .006 * Math.sin(this.actionTime * 15)) * k;
+      tailPitch += .06 * Math.sin(this.actionTime * 9) * k;
+    }
+    if (action === 'hop') { bodyPitch -= .12 * hop; tailPitch += .1 * hop; tailSpread = 1 + .3 * hop; }
+    const flinch = this.flinchBlend * this.flinchAmp;
+    if (flinch > .001) {
+      headDrop = lerp(headDrop, -.02, flinch); headForward = lerp(headForward, -.008, flinch); headPitch *= 1 - flinch;
+      bodyPitch = lerp(bodyPitch, -.36, flinch); neckPuff = lerp(neckPuff, .9, flinch);
+    }
     if (alert) {
       headDrop = -.016; bodyPitch = -.32; neckPuff = .92;
       if (this.timer < .1) { this.body.position.y = BODY_Y - .014; bodyPitch = -.05; }
     }
-    if (!alert || this.timer >= .1) this.body.position.y = BODY_Y + Math.abs(step) * .003;
+    if (!alert || this.timer >= .1) this.body.position.y = BODY_Y + Math.abs(step) * .003 - .012 * flinch;
     this.body.rotation.set(bodyPitch, 0, step * .055, 'YXZ');
     this.body.scale.setScalar(1 + breathe);
     this.legs[0].rotation.x = step * .5;
@@ -568,21 +702,27 @@ export class Pigeon {
 
     // Quick glances: pigeons snap their heads between targets.
     this.lookTimer -= dt;
-    if (this.lookTimer <= 0) { this.lookTarget = action === 'peck' ? rand(-.2, .2) : rand(-.75, .75); this.lookTimer = rand(.35, 1.2); }
+    if (this.lookTimer <= 0 && flinch > .5) { this.lookTarget *= .5; this.lookTimer = .1; } // eyes front
+    else if (this.lookTimer <= 0) { this.lookTarget = action === 'peck' ? rand(-.2, .2) : rand(-.75, .75); this.lookTimer = rand(.35, 1.2); }
     this.look += (this.lookTarget - this.look) * Math.min(1, dt * 16);
 
-    this.posHead(headForward, headDrop, headPitch - bodyPitch, neckPuff);
+    this.posHead(headForward, headDrop, headPitch - bodyPitch, neckPuff, headSide);
     this.tail.rotation.set(tailPitch, 0, 0);
     this.tail.scale.set(tailSpread, 1, 1);
-    this.applyWings(FOLDED);
+    if (hop > 0) {
+      // A little wing flick for balance mid-hop.
+      const pose = this._flapPose, k = .3 * hop;
+      for (const key of POSE_KEYS) pose[key] = lerp(FOLDED[key], GLIDE[key], k);
+      this.applyWings(pose);
+    } else this.applyWings(FOLDED);
   }
 
   /** Place the head (keeping it level in the world) and stretch the neck to it. */
-  posHead(forward, drop, pitch, puff) {
-    this.head.position.set(HEAD_REST.x, HEAD_REST.y - drop, HEAD_REST.z + forward);
+  posHead(forward, drop, pitch, puff, side = 0) {
+    this.head.position.set(HEAD_REST.x + side, HEAD_REST.y - drop, HEAD_REST.z + forward);
     // Counter the body pitch so the head reads level, then add its own pitch.
     this.head.rotation.set(pitch, this.look, 0, 'YXZ');
-    const target = this._head.copy(this.head.position).add(new THREE.Vector3(0, -.014, -.014));
+    const target = this._head.copy(this.head.position).add(NECK_TO_HEAD);
     const dir = target.sub(NECK_BASE);
     const length = dir.length();
     this.neck.quaternion.setFromUnitVectors(UP, dir.multiplyScalar(1 / length));
@@ -618,29 +758,61 @@ export class Pigeon {
     v.y += (targetVy - v.y) * Math.min(1, dt * 2.2);
     this.root.position.addScaledVector(v, dt);
 
+    this.animateFlight(dt, t, hs, v.y, heading, this.turnRate, smooth(0, 1, this.flightBlend), false, 1);
+
+    if (t > 6.5) { this.hide(); return false; }
+    return true;
+  }
+
+  /** Follow the curved path to a perch; land, fold up and sit when it ends. */
+  updateRoostFlight(dt) {
+    this.flightTime += dt;
+    const t = this.flightTime;
+    if (t < 0) return true; // poised on the perch for a beat (staggered flock)
+    if (!this.launched) { this.launched = true; this.tookOff = true; }
+    const length = this.pathLength, x = Math.min(1, t / length);
+    if (x >= 1) { this.perch(this.pathEnd, this.perchYaw); return true; }
+    // Ease in and out along the curve: slow lift-off, flare to land.
+    const u = smooth(0, 1, x), du = 6 * x * (1 - x) / length;
+    bezier(this.root.position, this.pathStart, this.pathC1, this.pathC2, this.pathEnd, u);
+    const tangent = bezierTangent(this._dir, this.pathStart, this.pathC1, this.pathC2, this.pathEnd, u);
+    const v = this._velocity.copy(tangent).multiplyScalar(du);
+    const hs = Math.hypot(v.x, v.z);
+    const heading = Math.hypot(tangent.x, tangent.z) > 1e-4 ? Math.atan2(tangent.x, tangent.z) : this.yaw;
+    const turnRate = dt > 0 ? wrapAngle(heading - this.yaw) / dt : 0;
+    // Wings open over the first 0.12 s and fold over the last 0.3 s (the landing flare).
+    const fb = smooth(0, .12, t) * (1 - smooth(length - .3, length, t));
+    this.animateFlight(dt, t, hs, v.y, heading, turnRate, fb, length - t < .6, fb);
+    return true;
+  }
+
+  /**
+   * Wingbeats, glides, banking and body/tail/head posture for a flying bird.
+   * fb blends folded (0) to flying (1); tilt scales pitch and bank.
+   */
+  animateFlight(dt, t, hs, vy, heading, turnRate, fb, braking = false, tilt = 1) {
     // Flap bursts and glides, like a real pigeon leaving a plaza.
     this.glideTimer -= dt;
     if (this.glideTimer <= 0) {
       this.gliding = !this.gliding;
       this.glideTimer = this.gliding ? rand(.35, .65) : rand(.5, .9);
     }
-    const wantFlap = t < 1.1 || !this.gliding;
+    const wantFlap = braking || t < 1.1 || !this.gliding;
     this.flapWeight += ((wantFlap ? 1 : 0) - this.flapWeight) * Math.min(1, dt * 7);
     const freq = lerp(6.4, 9.6, smooth(1.4, 0, t));
     const amp = lerp(.82, 1.18, smooth(1.2, 0, t));
     this.flap += dt * freq * TAU * Math.max(.25, this.flapWeight);
 
     const sn = Math.sin(this.flap), cs = Math.cos(this.flap);
-    const flapPose = {
-      sweep: .1 + .3 * Math.max(0, cs),
-      raise: .16 + amp * sn,
-      twist: -.34 * cs,
-      wristRaise: amp * .55 * Math.sin(this.flap - .9),
-      wristSweep: .5 * Math.max(0, cs),
-      handSpread: 1 - .3 * Math.max(0, cs),
-      innerChord: 1,
-    };
-    const fw = this.flapWeight, fb = smooth(0, 1, this.flightBlend);
+    const flapPose = this._flapPose;
+    flapPose.sweep = .1 + .3 * Math.max(0, cs);
+    flapPose.raise = .16 + amp * sn;
+    flapPose.twist = -.34 * cs;
+    flapPose.wristRaise = amp * .55 * Math.sin(this.flap - .9);
+    flapPose.wristSweep = .5 * Math.max(0, cs);
+    flapPose.handSpread = 1 - .3 * Math.max(0, cs);
+    flapPose.innerChord = 1;
+    const fw = this.flapWeight;
     for (const key of POSE_KEYS) {
       const air = lerp(GLIDE[key], flapPose[key], fw);
       this.pose[key] = lerp(FOLDED[key], air, fb);
@@ -649,22 +821,19 @@ export class Pigeon {
 
     // Orientation: face the flight path, pitch with the climb, bank into turns.
     this.yaw = heading;
-    const pitch = clamp(-Math.atan2(v.y, hs) * .75, -.75, .3);
-    this.bank += (clamp(-this.turnRate * hs * .1, -.6, .6) - this.bank) * Math.min(1, dt * 3);
-    this.root.rotation.set(pitch, heading, this.bank, 'YXZ');
+    const pitch = clamp(-Math.atan2(vy, hs) * .75, -.75, .3);
+    this.bank += (clamp(-turnRate * hs * .1, -.6, .6) - this.bank) * Math.min(1, dt * 3);
+    this.root.rotation.set(pitch * tilt, heading, this.bank * tilt, 'YXZ');
 
     // Body rides the wingbeat; legs tuck away; tail fans for lift.
-    this.body.position.y = BODY_Y + sn * .01 * fw;
+    this.body.position.y = BODY_Y + sn * .01 * fw * fb;
     this.body.rotation.set(lerp(-.2, 0, fb), 0, 0, 'YXZ');
     this.body.scale.setScalar(1);
-    for (const leg of this.legs) { leg.rotation.x = lerp(0, 1.25, fb); leg.visible = fb < .7; }
+    for (let i = 0; i < this.legs.length; i++) { const leg = this.legs[i]; leg.rotation.x = lerp(0, 1.25, fb); leg.visible = fb < .7; }
     this.tail.rotation.set(lerp(.08, -.05 + (1 - fw) * .06, fb), 0, 0);
     this.tail.scale.set(lerp(1, lerp(1.25, 1.75, smooth(1, 0, t)), fb), 1, 1);
     this.look *= .9;
     this.posHead(.01 * fb, -.012 * fb, lerp(.2, -.05, fb), 1);
-
-    if (t > 6.5) { this.hide(); return false; }
-    return true;
   }
 
   dispose() {
